@@ -1,1 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="1UP">
+<meta name="theme-color" content="#0a0a0a">
+<title>1UP — Your Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #e8e8e8;
+    --text-muted: #888;
+    --text-dim: #555;
+    --accent: #4ade80;
+    --accent-dim: rgba(74,222,128,0.12);
+    --danger: #c0392b;
+    --s-playing: #4ade80;
+    --s-completed: #60a5fa;
+    --s-100: #fbbf24;
+    --s-dropped: #f87171;
+    --header-height: 60px;
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
 
+  /* ── GATE ── */
+  #gate { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg); padding: 24px; }
+  .gate-box { width: 100%; max-width: 340px; text-align: center; }
+  .gate-logo { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 6px; }
+  .gate-sub { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 32px; }
+  .gate-input { width: 100%; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 2px; color: var(--text); font-family: inherit; font-size: 1rem; text-align: center; letter-spacing: 0.2em; outline: none; transition: border-color 0.2s; }
+  .gate-input:focus { border-color: var(--accent); }
+  .gate-btn { width: 100%; margin-top: 12px; padding: 14px; background: var(--accent); color: #000; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; border: none; border-radius: 2px; cursor: pointer; transition: opacity 0.15s; }
+  .gate-btn:hover { opacity: 0.88; }
+  .gate-error { font-size: 0.72rem; color: var(--danger); margin-top: 10px; min-height: 18px; }
+
+  /* ── IMPORT PANEL ── */
+  #import-panel { display: none; min-height: 100vh; background: var(--bg); padding: calc(var(--safe-top) + 32px) 24px 60px; max-width: 640px; margin: 0 auto; }
+  .import-logo { font-family: 'Bebas Neue', sans-serif; font-size: 3.2rem; letter-spacing: 0.12em; color: var(--accent); }
+  .import-tagline { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 32px; }
+  .import-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 12px 20px; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; border-radius: 2px; transition: all 0.15s; white-space: nowrap; }
+  .btn:hover { border-color: var(--text-muted); color: var(--text); }
+  .btn-accent { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+  .btn-accent:hover { opacity: 0.88; color: #000; border-color: var(--accent); }
+  .btn-danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+  .btn-danger:hover { background: rgba(192,57,43,0.08); }
+  .section-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-dim); margin-bottom: 10px; }
+  label { display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 5px; letter-spacing: 0.05em; }
+  input[type=text], input[type=password], select, textarea { width: 100%; padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 2px; color: var(--text); font-family: inherit; font-size: 0.85rem; outline: none; transition: border-color 0.2s; }
+  input[type=text]:focus, input[type=password]:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+
+  /* import tabs */
+  .tab-bar { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .tab-btn { padding: 8px 16px; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.15s; margin-bottom: -1px; }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* add form */
+  .add-form-group { margin-bottom: 14px; }
+  .add-form-label { font-size: 0.68rem; color: var(--text-dim); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .add-platform-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .platform-toggle { padding: 4px 10px; border: 1px solid var(--border); border-radius: 2px; font-size: 0.68rem; color: var(--text-dim); cursor: pointer; background: none; font-family: inherit; transition: all 0.15s; }
+  .platform-toggle.active { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+
+  /* IGDB results */
+  #igdb-results { display: none; margin-top: 10px; }
+  .igdb-result { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border: 1px solid var(--border); border-radius: 2px; cursor: pointer; transition: all 0.15s; margin-bottom: 8px; background: var(--surface2); }
+  .igdb-result:hover { border-color: var(--accent); background: var(--accent-dim); }
+  .igdb-result.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .igdb-result-cover { width: 40px; flex-shrink: 0; }
+  .igdb-result-cover img { width: 40px; height: 56px; object-fit: cover; border-radius: 1px; display: block; }
+  .igdb-result-cover .no-cover { width: 40px; height: 56px; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--text-dim); background: var(--border); border-radius: 1px; }
+  .igdb-result-info { flex: 1; }
+  .igdb-result-title { font-family: 'DM Serif Display', serif; font-size: 0.88rem; color: var(--text); margin-bottom: 3px; }
+  .igdb-result-meta { font-size: 0.68rem; color: var(--text-muted); }
+
+  /* progress overlay */
+  #progress-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
+  #progress-overlay.active { display: flex; }
+  #progress-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.1em; color: var(--accent); }
+  #progress-sub { font-size: 0.75rem; color: var(--text-muted); max-width: 320px; text-align: center; }
+  #progress-bar { width: 280px; height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+
+  /* ── MAIN APP ── */
+  #app { display: none; }
+  #app.active { display: block; }
+  #main-header { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: calc(var(--safe-top) + 10px) 16px 10px; }
+  #main-header.active { display: flex; flex-direction: column; gap: 8px; }
+  .header-row1 { display: flex; align-items: center; gap: 12px; }
+  .app-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.12em; color: var(--accent); cursor: pointer; flex-shrink: 0; line-height: 1; }
+  .header-stats { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); flex: 1; }
+  .header-btns { display: flex; gap: 8px; align-items: center; }
+  .icon-btn { background: none; border: 1px solid var(--border); border-radius: 2px; color: var(--text-muted); cursor: pointer; padding: 5px 8px; font-size: 0.75rem; transition: all 0.15s; white-space: nowrap; }
+  .icon-btn:hover { border-color: var(--text-muted); color: var(--text); }
+  .icon-btn.active { border-color: var(--accent); color: var(--accent); }
+  #search-input { flex: 1; padding: 7px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 2px; color: var(--text); font-family: inherit; font-size: 0.8rem; outline: none; min-width: 0; }
+  #search-input:focus { border-color: var(--accent); }
+  .header-row2 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .header-select { padding: 5px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 2px; color: var(--text-muted); font-family: inherit; font-size: 0.68rem; outline: none; cursor: pointer; }
+  .status-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+  .status-pill { padding: 3px 9px; border: 1px solid var(--border); border-radius: 2px; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); cursor: pointer; background: none; font-family: inherit; transition: all 0.15s; }
+  .status-pill:hover { border-color: var(--text-muted); color: var(--text-muted); }
+  .status-pill.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .status-pill[data-status="playing"].active { background: rgba(74,222,128,0.12); border-color: var(--s-playing); color: var(--s-playing); }
+  .status-pill[data-status="completed"].active { background: rgba(96,165,250,0.12); border-color: var(--s-completed); color: var(--s-completed); }
+  .status-pill[data-status="100percent"].active { background: rgba(251,191,36,0.12); border-color: var(--s-100); color: var(--s-100); }
+  .status-pill[data-status="dropped"].active { background: rgba(248,113,113,0.12); border-color: var(--s-dropped); color: var(--s-dropped); }
+
+  /* grid */
+  #grid-wrap { padding-top: calc(var(--header-height) + var(--safe-top) + 16px); }
+  #game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; padding: 12px 12px 80px; }
+  .game-card { position: relative; cursor: pointer; border-radius: 2px; overflow: hidden; background: var(--surface2); transition: transform 0.15s, box-shadow 0.15s; }
+  .game-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  .game-card.selected-card { outline: 2px solid var(--accent); }
+  .card-cover { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+  .card-cover-placeholder { width: 100%; aspect-ratio: 3/4; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--text-dim); }
+  .card-title { padding: 6px 7px 8px; font-size: 0.68rem; line-height: 1.3; color: var(--text-muted); }
+  .status-dot { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+  .status-dot.playing { background: var(--s-playing); color: #000; }
+  .status-dot.completed { background: var(--s-completed); color: #000; }
+  .status-dot[class*="100"] { background: var(--s-100); color: #000; }
+  .status-dot.dropped { background: var(--s-dropped); color: #000; }
+  .card-platforms { position: absolute; bottom: 0; left: 0; right: 0; padding: 3px 5px 4px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; gap: 3px; flex-wrap: wrap; min-height: 24px; align-items: flex-end; }
+  .plat-badge { font-size: 0.52rem; font-weight: 700; letter-spacing: 0.06em; padding: 1px 4px; border-radius: 1px; text-transform: uppercase; }
+  .not-found-card { opacity: 0.45; }
+
+  /* ── GAME MODAL ── */
+  #modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 200; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  #modal-overlay.active { display: flex; align-items: flex-start; justify-content: center; padding: calc(var(--safe-top) + 20px) 12px 40px; }
+  #modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; width: 100%; max-width: 680px; overflow: hidden; position: relative; }
+  .modal-hero { display: flex; gap: 0; }
+  .modal-cover { width: 180px; flex-shrink: 0; object-fit: cover; aspect-ratio: 3/4; display: block; }
+  .modal-cover-placeholder { width: 180px; flex-shrink: 0; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--text-dim); aspect-ratio: 3/4; }
+  .modal-info { flex: 1; padding: 20px 20px 20px 18px; min-width: 0; display: flex; flex-direction: column; gap: 0; }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 1.4rem; line-height: 1.2; color: var(--text); margin-bottom: 4px; }
+  .modal-sub { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 10px; }
+  .modal-platforms { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+  .modal-plat-badge { padding: 3px 8px; border-radius: 2px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; }
+  .modal-meta-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; }
+  .modal-meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .modal-meta-label { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-dim); }
+  .modal-meta-value { font-size: 0.82rem; color: var(--text); }
+  .modal-rating { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--accent); }
+  .modal-genres { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+  .genre-pill { padding: 2px 8px; border: 1px solid var(--border); border-radius: 2px; font-size: 0.62rem; color: var(--text-dim); letter-spacing: 0.06em; }
+  .hltb-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .hltb-item { display: flex; flex-direction: column; gap: 2px; }
+  .hltb-label { font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-dim); }
+  .hltb-value { font-size: 0.82rem; color: var(--text-muted); }
+  .modal-credits { margin-bottom: 10px; }
+  .person-chip { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; transition: color 0.15s; }
+  .person-chip:hover { color: var(--accent); }
+  .modal-overview { font-size: 0.78rem; line-height: 1.6; color: var(--text-muted); font-style: italic; border-top: 1px solid var(--border); padding-top: 10px; margin-top: auto; }
+  .modal-close { position: absolute; top: 10px; right: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; cursor: pointer; color: var(--text-muted); transition: all 0.15s; z-index: 1; }
+  .modal-close:hover { border-color: var(--text-muted); color: var(--text); }
+  .modal-status-row { padding: 14px 18px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .status-btn { padding: 7px 14px; border-radius: 2px; border: 1px solid var(--border); font-size: 0.68rem; font-family: inherit; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; background: none; color: var(--text-dim); transition: all 0.15s; }
+  .status-btn:hover { border-color: var(--text-muted); color: var(--text-muted); }
+  .status-btn.active-playing { background: rgba(74,222,128,0.12); border-color: var(--s-playing); color: var(--s-playing); }
+  .status-btn.active-completed { background: rgba(96,165,250,0.12); border-color: var(--s-completed); color: var(--s-completed); }
+  .status-btn.active-100percent { background: rgba(251,191,36,0.12); border-color: var(--s-100); color: var(--s-100); }
+  .status-btn.active-dropped { background: rgba(248,113,113,0.12); border-color: var(--s-dropped); color: var(--s-dropped); }
+  .modal-actions { padding: 10px 18px 16px; display: flex; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--border); }
+  .btn-igdb-link { padding: 10px 16px; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; border-radius: 2px; text-decoration: none; display: inline-flex; align-items: center; }
+  .btn-igdb-link:hover { border-color: var(--text-muted); color: var(--text); }
+
+  /* ── FIX MODAL ── */
+  #fix-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; overflow-y: auto; }
+  #fix-overlay.active { display: flex; align-items: flex-start; justify-content: center; padding: 40px 12px; }
+  #fix-content { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; width: 100%; max-width: 540px; padding: 24px; position: relative; }
+  .fix-title { font-family: 'DM Serif Display', serif; font-size: 1.1rem; margin-bottom: 4px; }
+  .fix-sub { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 20px; }
+  .fix-section-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.18em; color: var(--text-dim); margin-bottom: 8px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; }
+  .fix-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .fix-status { font-size: 0.72rem; color: var(--text-muted); margin-top: 8px; min-height: 18px; }
+  .fix-hint { font-size: 0.68rem; color: var(--text-dim); font-style: italic; }
+
+  /* ── RANDOM PICKER ── */
+  #random-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 250; align-items: center; justify-content: center; flex-direction: column; gap: 20px; padding: 24px; }
+  #random-overlay.active { display: flex; }
+  #random-cover { width: 160px; aspect-ratio: 3/4; object-fit: cover; border-radius: 2px; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+  #random-title { font-family: 'DM Serif Display', serif; font-size: 1.6rem; text-align: center; max-width: 400px; }
+  #random-meta { font-size: 0.72rem; color: var(--text-muted); text-align: center; }
+  .random-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  /* ── BULK EDIT ── */
+  #bulk-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px calc(env(safe-area-inset-bottom,0px) + 12px); z-index: 150; display: none; gap: 10px; align-items: center; flex-wrap: wrap; }
+  #bulk-bar.active { display: flex; }
+  .bulk-count { font-size: 0.72rem; color: var(--text-muted); flex: 1; }
+
+  /* ── PLATFORM COLORS ── */
+  .plat-ps  { background: rgba(0,112,209,0.2); color: #60a5fa; }
+  .plat-xbox { background: rgba(16,124,16,0.2); color: #4ade80; }
+  .plat-switch { background: rgba(228,0,15,0.2); color: #f87171; }
+  .plat-steam { background: rgba(163,180,198,0.15); color: #a3b4c6; }
+  .plat-epic { background: rgba(180,180,180,0.12); color: #aaa; }
+  .plat-ufo50 { background: rgba(192,132,252,0.2); color: #c084fc; }
+
+  /* ── MISC ── */
+  .count-line { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 8px; }
+  #select-btn { display: none; }
+  .empty-state { text-align: center; padding: 80px 24px; color: var(--text-dim); }
+  .empty-state h2 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 8px; }
+
+  @media (max-width: 520px) {
+    .modal-hero { flex-direction: column; }
+    .modal-cover, .modal-cover-placeholder { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+    .modal-info { padding: 16px; }
+    #game-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── GATE ── -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">1UP</div>
+    <div class="gate-sub">Your Game Collection</div>
+    <input type="password" class="gate-input" id="gate-input" placeholder="password" onkeydown="if(event.key==='Enter')gateSubmit()">
+    <button class="gate-btn" onclick="gateSubmit()">Enter</button>
+    <div class="gate-error" id="gate-error"></div>
+  </div>
+</div>
+
+<!-- ── IMPORT PANEL ── -->
+<div id="import-panel">
+  <div class="import-logo">1UP</div>
+  <div class="import-tagline">Your Game Collection</div>
+
+  <div class="import-actions" id="import-actions">
+    <button class="btn btn-accent" onclick="showImport()" id="add-games-btn">+ Add Games</button>
+    <button class="btn" id="select-btn" onclick="enterSelectionMode()">Select</button>
+    <button class="btn" onclick="pickRandom()" id="pick-btn" style="display:none">🎲 Pick For Me</button>
+    <button class="btn" onclick="openApp()" id="back-btn" style="display:none">← My Collection</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar" id="add-tabs" style="display:none">
+    <button class="tab-btn active" onclick="switchTab('search')">Search IGDB</button>
+    <button class="tab-btn" onclick="switchTab('manual')">Manual Entry</button>
+    <button class="tab-btn" onclick="switchTab('csv')">Import CSV</button>
+  </div>
+
+  <!-- Search IGDB tab -->
+  <div class="tab-pane active" id="tab-search">
+    <div class="add-form-group">
+      <div class="add-form-label">Platforms owned on</div>
+      <div class="add-platform-chips" id="add-platform-chips">
+        <button class="platform-toggle" data-platform="PlayStation" onclick="togglePlatform(this)">PlayStation</button>
+        <button class="platform-toggle" data-platform="Xbox" onclick="togglePlatform(this)">Xbox</button>
+        <button class="platform-toggle" data-platform="Switch" onclick="togglePlatform(this)">Switch</button>
+        <button class="platform-toggle" data-platform="Steam" onclick="togglePlatform(this)">Steam</button>
+        <button class="platform-toggle" data-platform="Epic" onclick="togglePlatform(this)">Epic</button>
+        <button class="platform-toggle" data-platform="UFO 50" onclick="togglePlatform(this)">UFO 50</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <input type="text" id="igdb-search-input" placeholder="Search for a game… e.g. Hades 2020" onkeydown="if(event.key==='Enter')searchIGDBUI()">
+      <button class="btn btn-accent" onclick="searchIGDBUI()" style="white-space:nowrap">Search</button>
+    </div>
+    <div id="igdb-search-status" style="font-size:0.72rem;color:var(--text-muted);min-height:18px;margin-bottom:6px"></div>
+    <div id="igdb-results"></div>
+    <div id="add-game-form" style="display:none;margin-top:16px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-accent" onclick="addGame(false)">Add to Collection</button>
+        <button class="btn" onclick="addGame(true)">Add &amp; Stay</button>
+        <button class="btn" onclick="cancelAddGame()">Cancel</button>
+      </div>
+      <div id="add-game-status" style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
+    </div>
+  </div>
+
+  <!-- Manual Entry tab -->
+  <div class="tab-pane" id="tab-manual">
+    <div class="add-form-group">
+      <label>Title *</label>
+      <input type="text" id="manual-title" placeholder="e.g. Asteroids (UFO 50)">
+    </div>
+    <div class="add-form-group">
+      <label>Year</label>
+      <input type="text" id="manual-year" placeholder="e.g. 2024">
+    </div>
+    <div class="add-form-group">
+      <div class="add-form-label">Platform(s)</div>
+      <div class="add-platform-chips" id="manual-platform-chips">
+        <button class="platform-toggle" data-platform="PlayStation" onclick="togglePlatformManual(this)">PlayStation</button>
+        <button class="platform-toggle" data-platform="Xbox" onclick="togglePlatformManual(this)">Xbox</button>
+        <button class="platform-toggle" data-platform="Switch" onclick="togglePlatformManual(this)">Switch</button>
+        <button class="platform-toggle" data-platform="Steam" onclick="togglePlatformManual(this)">Steam</button>
+        <button class="platform-toggle" data-platform="Epic" onclick="togglePlatformManual(this)">Epic</button>
+        <button class="platform-toggle" data-platform="UFO 50" onclick="togglePlatformManual(this)">UFO 50</button>
+      </div>
+    </div>
+    <div class="add-form-group">
+      <label>Developer</label>
+      <input type="text" id="manual-developer" placeholder="e.g. Supergiant Games">
+    </div>
+    <div class="add-form-group">
+      <label>Genre(s) <span style="color:var(--text-dim);font-weight:400">(comma separated)</span></label>
+      <input type="text" id="manual-genres" placeholder="e.g. Action, Roguelike">
+    </div>
+    <div class="add-form-group">
+      <label>Notes</label>
+      <input type="text" id="manual-notes" placeholder="optional">
+    </div>
+    <button class="btn btn-accent" onclick="addManualGame()">Add to Collection</button>
+    <div id="manual-status" style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
+  </div>
+
+  <!-- CSV Import tab -->
+  <div class="tab-pane" id="tab-csv">
+    <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:14px;line-height:1.6">
+      Import from a CSV file. Expected columns: <strong>Title</strong> and <strong>Platform</strong> (required). Optional: <strong>Metacritic</strong>, <strong>HLTBMain</strong>, <strong>HLTBExtra</strong>, <strong>HLTBComplete</strong>.<br>
+      Each row will be looked up on IGDB automatically.
+    </div>
+    <input type="file" id="csv-file-input" accept=".csv,.txt" onchange="handleCSVFile(event)" style="display:none">
+    <button class="btn" onclick="document.getElementById('csv-file-input').click()">📂 Choose CSV File</button>
+    <div id="csv-status" style="font-size:0.72rem;color:var(--text-muted);margin-top:12px;min-height:18px"></div>
+  </div>
+
+  <!-- Credentials -->
+  <div style="margin-top:32px;border-top:1px solid var(--border);padding-top:24px">
+    <div class="section-label">IGDB / Twitch Credentials</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px">
+      <div><label>Client ID</label><input type="password" id="client-id-input" placeholder="Twitch Client ID"></div>
+      <div><label>Client Secret</label><input type="password" id="client-secret-input" placeholder="Twitch Client Secret"></div>
+    </div>
+    <button class="btn" onclick="saveCredentials()">Save Credentials</button>
+    <div id="cred-status" style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
+  </div>
+
+  <!-- Backup & Restore -->
+  <div id="data-section" style="display:none;margin-top:32px;border-top:1px solid var(--border);padding-top:24px">
+    <div class="section-label">Backup &amp; Restore</div>
+    <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:10px">Download a full backup or restore from a previous backup.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" onclick="downloadBackup()" style="font-size:0.68rem;padding:8px 14px">⬇ Download Backup</button>
+      <button class="btn" onclick="document.getElementById('backup-file-input').click()" style="font-size:0.68rem;padding:8px 14px">⬆ Restore from Backup</button>
+      <input type="file" id="backup-file-input" accept=".json" style="display:none" onchange="restoreBackup(event)">
+    </div>
+    <div id="backup-status" style="font-size:0.7rem;color:var(--text-muted);min-height:18px;margin-top:8px;font-style:italic"></div>
+    <div id="danger-section" style="display:none;margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+      <div class="section-label">Danger Zone</div>
+      <button class="btn-danger" onclick="resetAllStatus()" style="width:auto;padding:8px 14px;font-size:0.68rem">↺ Reset All Progress to Unplayed</button>
+      <div style="font-size:0.7rem;color:var(--text-dim);font-style:italic;margin-top:7px">Clears every completion status across your entire collection.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app">
+  <div id="main-header">
+    <div class="header-row1">
+      <span class="app-title" onclick="showImportPanel()">1UP</span>
+      <span class="header-stats" id="header-stats"></span>
+      <div class="header-btns">
+        <button class="icon-btn" id="select-btn-app" onclick="enterSelectionMode()" style="display:none">Select</button>
+        <button class="icon-btn" onclick="pickRandom()">🎲</button>
+        <button class="icon-btn" onclick="showImportPanel()">+ Add</button>
+      </div>
+    </div>
+    <div class="header-row2">
+      <input type="text" id="search-input" placeholder="Search games, developers…" oninput="applyFilters()">
+      <select class="header-select" id="filter-genre" onchange="applyFilters()"><option value="">All Genres</option></select>
+      <select class="header-select" id="sort-select" onchange="changeSortOrder()">
+        <option value="title">A–Z</option>
+        <option value="title-desc">Z–A</option>
+        <option value="year">Year ↑</option>
+        <option value="year-desc">Year ↓</option>
+        <option value="rating">Rating ↓</option>
+        <option value="added">Recently Added</option>
+      </select>
+    </div>
+    <div class="header-row2">
+      <div class="status-pills">
+        <button class="status-pill active" data-status="all" onclick="setStatusFilter('all',this)">All</button>
+        <button class="status-pill" data-status="unplayed" onclick="setStatusFilter('unplayed',this)">Unplayed</button>
+        <button class="status-pill" data-status="playing" onclick="setStatusFilter('playing',this)">Playing</button>
+        <button class="status-pill" data-status="completed" onclick="setStatusFilter('completed',this)">Completed</button>
+        <button class="status-pill" data-status="100percent" onclick="setStatusFilter('100percent',this)">100%</button>
+        <button class="status-pill" data-status="dropped" onclick="setStatusFilter('dropped',this)">Dropped</button>
+      </div>
+      <select class="header-select" id="filter-platform" onchange="applyFilters()"><option value="">All Platforms</option></select>
+    </div>
+  </div>
+  <div id="grid-wrap">
+    <div id="count-line" class="count-line" style="padding:0 14px 4px"></div>
+    <div id="game-grid"></div>
+  </div>
+</div>
+
+<!-- ── GAME MODAL ── -->
+<div id="modal-overlay" onclick="handleModalOverlayClick(event)">
+  <div id="modal-content"></div>
+</div>
+
+<!-- ── FIX MODAL ── -->
+<div id="fix-overlay" onclick="if(event.target===this)closeFixModal()">
+  <div id="fix-content">
+    <button class="modal-close" onclick="closeFixModal()">✕</button>
+    <div class="fix-title" id="fix-game-name"></div>
+    <div class="fix-sub">Edit game data</div>
+
+    <div class="fix-section-label">Display &amp; Sort Title</div>
+    <div class="fix-row">
+      <div style="flex:1"><label>Display title</label><input type="text" id="fix-display-title" placeholder="Shown in grid &amp; modal"></div>
+    </div>
+    <div class="fix-row">
+      <div style="flex:1"><label>Sort title</label><input type="text" id="fix-sort-title" placeholder="Used for A–Z sort only"></div>
+    </div>
+    <button class="btn" onclick="saveTitleOverrides()" style="font-size:0.68rem;padding:7px 14px">Save Title Overrides</button>
+
+    <div class="fix-section-label">Re-fetch from IGDB</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <input type="text" id="fix-title-input" placeholder="Search title">
+      <button class="btn btn-accent" onclick="fixRefetchByTitle()" style="white-space:nowrap;font-size:0.7rem;padding:8px 12px">Search</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <input type="text" id="fix-igdbid-input" placeholder="IGDB Game ID (e.g. 1942)">
+      <button class="btn btn-accent" onclick="fixRefetchById()" style="white-space:nowrap;font-size:0.7rem;padding:8px 12px">Fetch</button>
+    </div>
+    <div id="fix-refetch-results" style="margin-bottom:10px"></div>
+
+    <div class="fix-section-label">Custom Cover Art</div>
+    <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:10px">Replaces the IGDB cover for games with missing or wrong art.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="document.getElementById('fix-art-file').click()" style="font-size:0.7rem;padding:8px 12px">📷 Upload Image</button>
+      <button class="btn" id="fix-art-remove-btn" onclick="removeCustomCover()" style="display:none;font-size:0.7rem;padding:8px 12px">✕ Remove Custom Art</button>
+    </div>
+    <input type="file" id="fix-art-file" accept="image/*" style="display:none" onchange="uploadCustomCover(event)">
+    <div id="fix-art-status" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
+
+    <div class="fix-section-label">Platforms</div>
+    <div class="add-platform-chips" id="fix-platform-chips">
+      <button class="platform-toggle" data-platform="PlayStation" onclick="togglePlatformFix(this)">PlayStation</button>
+      <button class="platform-toggle" data-platform="Xbox" onclick="togglePlatformFix(this)">Xbox</button>
+      <button class="platform-toggle" data-platform="Switch" onclick="togglePlatformFix(this)">Switch</button>
+      <button class="platform-toggle" data-platform="Steam" onclick="togglePlatformFix(this)">Steam</button>
+      <button class="platform-toggle" data-platform="Epic" onclick="togglePlatformFix(this)">Epic</button>
+      <button class="platform-toggle" data-platform="UFO 50" onclick="togglePlatformFix(this)">UFO 50</button>
+    </div>
+    <button class="btn btn-accent" onclick="savePlatformsFix()" style="margin-top:10px;font-size:0.7rem;padding:8px 12px">Save Platforms</button>
+
+    <div class="fix-section-label" style="color:var(--danger)">Remove Game</div>
+    <button class="btn-danger" onclick="deleteGame()" style="width:auto;padding:8px 14px;font-size:0.68rem">🗑 Remove from Collection</button>
+
+    <div class="fix-status" id="fix-status"></div>
+  </div>
+</div>
+
+<!-- ── RANDOM PICKER ── -->
+<div id="random-overlay">
+  <img id="random-cover" src="" alt="" style="display:none">
+  <div id="random-cover-placeholder" style="display:none;width:160px;aspect-ratio:3/4;background:var(--surface2);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--text-dim)">🎮</div>
+  <div id="random-title" style="font-family:'DM Serif Display',serif;font-size:1.6rem;text-align:center;max-width:400px"></div>
+  <div id="random-meta" style="font-size:0.72rem;color:var(--text-muted);text-align:center"></div>
+  <div class="random-btns">
+    <button class="btn btn-accent" onclick="openModalFromRandom()">View Game</button>
+    <button class="btn" onclick="pickRandom()">Pick Another</button>
+    <button class="btn" onclick="closeRandom()">Close</button>
+  </div>
+</div>
+
+<!-- ── BULK BAR ── -->
+<div id="bulk-bar">
+  <span class="bulk-count" id="bulk-count">0 selected</span>
+  <select id="bulk-status-select" class="header-select">
+    <option value="">— Set Status —</option>
+    <option value="unplayed">Unplayed</option>
+    <option value="playing">Playing</option>
+    <option value="completed">Completed</option>
+    <option value="100percent">100%</option>
+    <option value="dropped">Dropped</option>
+  </select>
+  <select id="bulk-platform-select" class="header-select">
+    <option value="">— Set Platform —</option>
+    <option value="PlayStation">PlayStation</option>
+    <option value="Xbox">Xbox</option>
+    <option value="Switch">Switch</option>
+    <option value="Steam">Steam</option>
+    <option value="Epic">Epic</option>
+    <option value="UFO 50">UFO 50</option>
+  </select>
+  <button class="btn btn-accent" onclick="saveBulkEdit()" style="font-size:0.7rem;padding:7px 12px">Apply</button>
+  <button class="btn" onclick="exitSelectionMode()" style="font-size:0.7rem;padding:7px 12px">Cancel</button>
+</div>
+
+<!-- ── PROGRESS ── -->
+<div id="progress-overlay">
+  <div id="progress-title"></div>
+  <div id="progress-sub"></div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+</div>
+
+<script>
+// ── CONSTANTS ──────────────────────────────────────────────────────────────
+const SB_URL = 'https://lpfixzzzboopszwueidp.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZml4enp6Ym9vcHN6d3VlaWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4NDg4MjIsImV4cCI6MjA4NjQyNDgyMn0.xeX1dMHsJGVZPnMwIyZASQoVo7OWC-0Qj7Eq5V8KwW8';
+const SB_HEADERS = { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` };
+const IGDB_BASE = 'https://api.igdb.com/v4';
+const IGDB_IMG  = 'https://images.igdb.com/igdb/image/upload/t_cover_big/';
+const IGDB_IMG_LG = 'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/';
+const STORAGE_URL = `${SB_URL}/storage/v1/object/public/shelf-posters/games/`;
+const HASH_KEY = 'up1_auth';
+const PASS_HASH = 1178069437; // "paddington"
+
+const PLATFORM_CONFIG = {
+  'PlayStation': { abbr:'PS',  cls:'plat-ps'     },
+  'Xbox':        { abbr:'XB',  cls:'plat-xbox'   },
+  'Switch':      { abbr:'NSW', cls:'plat-switch'  },
+  'Steam':       { abbr:'PC',  cls:'plat-steam'   },
+  'Epic':        { abbr:'EPC', cls:'plat-epic'    },
+  'UFO 50':      { abbr:'U50', cls:'plat-ufo50'   },
+};
+
+const STATUS_CONFIG = {
+  unplayed:   { label:'Unplayed',   icon:'',   dotClass:''          },
+  playing:    { label:'Playing',    icon:'▶',  dotClass:'playing'   },
+  completed:  { label:'Completed',  icon:'✓',  dotClass:'completed' },
+  '100percent':{ label:'100%',      icon:'★',  dotClass:'100percent'},
+  dropped:    { label:'Dropped',    icon:'✕',  dotClass:'dropped'   },
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let games        = [];
+let filteredGames = [];
+let statusMap    = new Map();   // id → status string
+let currentSort  = 'title';
+let currentStatusFilter = 'all';
+let currentPlatformFilter = '';
+let currentGenreFilter = '';
+let selectionMode = false;
+let selectedIds  = new Set();
+let currentRandomGame = null;
+let selectedIGDBResult = null;
+let igdbToken    = null;
+let clientId     = '';
+let clientSecret = '';
+let currentModalGameId = null;
+let fixTargetId  = null;
+let fixPlatforms = [];
+
+// ── SUPABASE ───────────────────────────────────────────────────────────────
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(`${SB_URL}/rest/v1/${path}`, { ...opts, headers: { ...SB_HEADERS, ...(opts.headers || {}) } });
+  if (!res.ok) throw new Error(`Supabase error ${res.status}: ${await res.text()}`);
+  return res.status === 204 ? null : res.json();
+}
+
+async function sbLoadAll(path) {
+  const limit = 1000;
+  let offset = 0, all = [];
+  while (true) {
+    const rows = await sbFetch(`${path}&limit=${limit}&offset=${offset}`);
+    if (!rows || !rows.length) break;
+    all = all.concat(rows);
+    if (rows.length < limit) break;
+    offset += limit;
+  }
+  return all;
+}
+
+async function sbLoadGames() {
+  const rows = await sbLoadAll('games?select=id,data,updated_at&order=id');
+  return rows.map(r => {
+    const d = typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+    return { ...d, id: String(r.id), _updatedAt: r.updated_at };
+  });
+}
+
+async function sbLoadStatus() {
+  const rows = await sbLoadAll('game_status?select=game_id,status&order=game_id');
+  const m = new Map();
+  rows.forEach(r => m.set(String(r.game_id), r.status));
+  return m;
+}
+
+async function sbSaveGame(game) {
+  const payload = { id: String(game.id), data: game, updated_at: new Date().toISOString() };
+  await sbFetch('games', { method: 'POST', headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(payload) });
+}
+
+async function sbSetStatus(id, status) {
+  const payload = { game_id: String(id), status, updated_at: new Date().toISOString() };
+  await sbFetch('game_status', { method: 'POST', headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(payload) });
+}
+
+async function sbDeleteGame(id) {
+  await sbFetch(`games?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' });
+  await sbFetch(`game_status?game_id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+// ── IGDB / TWITCH ──────────────────────────────────────────────────────────
+async function igdbEnsureToken() {
+  if (igdbToken && Date.now() < igdbToken.expiresAt - 60000) return true;
+  const stored = localStorage.getItem('igdb_token');
+  if (stored) {
+    const tok = JSON.parse(stored);
+    if (Date.now() < tok.expiresAt - 60000) { igdbToken = tok; return true; }
+  }
+  if (!clientId || !clientSecret) return false;
+  try {
+    const res = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&grant_type=client_credentials`, { method: 'POST' });
+    const data = await res.json();
+    if (!data.access_token) return false;
+    igdbToken = { access_token: data.access_token, expiresAt: Date.now() + data.expires_in * 1000 };
+    localStorage.setItem('igdb_token', JSON.stringify(igdbToken));
+    return true;
+  } catch(e) { return false; }
+}
+
+async function igdbFetch(endpoint, query) {
+  if (!await igdbEnsureToken()) throw new Error('IGDB: no credentials. Enter your Twitch Client ID and Secret.');
+  const res = await fetch(`${IGDB_BASE}/${endpoint}`, {
+    method: 'POST',
+    headers: { 'Client-ID': clientId, 'Authorization': `Bearer ${igdbToken.access_token}`, 'Content-Type': 'text/plain' },
+    body: query
+  });
+  if (!res.ok) throw new Error(`IGDB error ${res.status}`);
+  return res.json();
+}
+
+async function igdbSearch(title) {
+  const q = title.replace(/"/g, '\\"');
+  return igdbFetch('games', `
+    fields name, cover.url, first_release_date, platforms.name,
+           involved_companies.company.name, involved_companies.developer,
+           genres.name, summary, rating, aggregated_rating,
+           collection.name, collection.games.id;
+    search "${q}"; limit 8;`);
+}
+
+async function igdbFetchById(id) {
+  const rows = await igdbFetch('games', `
+    fields name, cover.url, first_release_date, platforms.name,
+           involved_companies.company.name, involved_companies.developer,
+           involved_companies.publisher,
+           genres.name, summary, rating, aggregated_rating, aggregated_rating_count,
+           collection.name, collection.games.id, collection.games.name,
+           franchises.name;
+    where id = ${id}; limit 1;`);
+  return rows[0] || null;
+}
+
+async function igdbFetchTimeToBeat(igdbId) {
+  try {
+    const rows = await igdbFetch('game_time_to_beat', `fields normally,hastly,completely,count; where game_id = ${igdbId}; limit 1;`);
+    return rows[0] || null;
+  } catch(e) { return null; }
+}
+
+function igdbCoverUrl(coverObj, large = false) {
+  if (!coverObj?.url) return null;
+  const hash = coverObj.url.replace(/.*\//, '').replace(/\.[^.]+$/, '');
+  return `https://images.igdb.com/igdb/image/upload/${large ? 't_cover_big_2x' : 't_cover_big'}/${hash}.jpg`;
+}
+
+function buildGameObject(result, detailOrNull, ttb, searchTitle, userPlatforms) {
+  const d = detailOrNull || result;
+  const developer = d.involved_companies?.find(c => c.developer)?.company?.name || null;
+  const publisher = d.involved_companies?.find(c => c.publisher)?.company?.name ||
+                    d.involved_companies?.[0]?.company?.name || null;
+  const year = (result.first_release_date || d.first_release_date)
+    ? new Date((result.first_release_date || d.first_release_date) * 1000).getFullYear() : null;
+  return {
+    id: String(result.id),
+    igdbId: String(result.id),
+    searchTitle: searchTitle || result.name,
+    title: result.name,
+    displayTitle: null,
+    sortTitle: null,
+    cover: igdbCoverUrl(d.cover || result.cover),
+    coverLg: igdbCoverUrl(d.cover || result.cover, true),
+    customCover: null,
+    year,
+    summary: d.summary || result.summary || null,
+    developer,
+    publisher,
+    genres: (d.genres || result.genres || []).map(g => g.name),
+    igdbPlatforms: (d.platforms || result.platforms || []).map(p => p.name),
+    userPlatforms: userPlatforms || [],
+    rating: d.aggregated_rating ? Math.round(d.aggregated_rating) : (d.rating ? Math.round(d.rating) : null),
+    hltbMain: ttb?.normally ? Math.round(ttb.normally / 3600 * 10) / 10 : null,
+    hltbExtra: ttb?.hastly ? Math.round(ttb.hastly / 3600 * 10) / 10 : null,
+    hltbComplete: ttb?.completely ? Math.round(ttb.completely / 3600 * 10) / 10 : null,
+    collectionId: d.collection?.id ? String(d.collection.id) : null,
+    collectionName: d.collection?.name || null,
+    collectionTotal: d.collection?.games?.length || null,
+    collectionOrder: null,
+    dateAdded: new Date().toISOString(),
+    notFound: false
+  };
+}
+
+async function fetchFullGame(searchTitle, userPlatforms) {
+  const results = await igdbSearch(searchTitle);
+  if (!results || !results.length) return null;
+  const r = results[0];
+  const [detail, ttb] = await Promise.all([
+    igdbFetchById(r.id),
+    igdbFetchTimeToBeat(r.id)
+  ]);
+  const game = buildGameObject(r, detail, ttb, searchTitle, userPlatforms);
+  // determine collection order
+  if (game.collectionId && detail?.collection?.games?.length) {
+    const sortedIds = [...detail.collection.games].map(g => g.id);
+    const idx = sortedIds.indexOf(r.id);
+    game.collectionOrder = idx >= 0 ? idx + 1 : null;
+  }
+  return game;
+}
+
+// ── AUTH ───────────────────────────────────────────────────────────────────
+function simpleHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) { h = Math.imul(31, h) + str.charCodeAt(i) | 0; }
+  return h;
+}
+
+function gateSubmit() {
+  const pw = document.getElementById('gate-input').value;
+  if (simpleHash(pw) === PASS_HASH) {
+    localStorage.setItem(HASH_KEY, String(PASS_HASH));
+    document.getElementById('gate').style.display = 'none';
+    init();
+  } else {
+    document.getElementById('gate-error').textContent = 'Wrong password.';
+    document.getElementById('gate-input').value = '';
+  }
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+async function init() {
+  // Load credentials
+  clientId = localStorage.getItem('igdb_client_id') || '';
+  clientSecret = localStorage.getItem('igdb_client_secret') || '';
+  if (clientId) document.getElementById('client-id-input').value = clientId;
+  if (clientSecret) document.getElementById('client-secret-input').value = clientSecret;
+
+  // Create app icon
+  createAppIcon();
+
+  // Show import panel while loading
+  document.getElementById('import-panel').style.display = 'block';
+  document.getElementById('add-tabs').style.display = 'none';
+  document.getElementById('import-actions').innerHTML = `<span style="font-size:0.8rem;color:var(--text-dim)">Loading collection…</span>`;
+
+  try {
+    const [loadedGames, loadedStatus] = await Promise.all([sbLoadGames(), sbLoadStatus()]);
+    games = loadedGames;
+    statusMap = loadedStatus;
+    if (games.length > 0) {
+      openApp();
+    } else {
+      showImport();
+    }
+  } catch(e) {
+    document.getElementById('import-actions').innerHTML = `<span style="font-size:0.8rem;color:var(--danger)">Load error — check credentials.</span>`;
+    console.error(e);
+  }
+}
+
+function createAppIcon() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 180; canvas.height = 180;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#0f0f0f';
+  ctx.beginPath(); ctx.roundRect(0,0,180,180,28); ctx.fill();
+  ctx.fillStyle = '#4ade80';
+  ctx.fillRect(18, 148, 144, 6);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 70px "Bebas Neue", sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('1UP', 90, 86);
+  const url = canvas.toDataURL('image/png');
+  [['icon','image/png'], ['apple-touch-icon','']].forEach(([rel, type]) => {
+    const l = document.createElement('link');
+    l.rel = rel; if (type) l.type = type; l.href = url;
+    document.head.appendChild(l);
+  });
+}
+
+function showImport() {
+  document.getElementById('import-panel').style.display = 'block';
+  document.getElementById('main-header').style.display = 'none';
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('add-tabs').style.display = 'flex';
+  document.getElementById('import-actions').innerHTML = `
+    <button class="btn btn-accent" onclick="openApp()" ${games.length === 0 ? 'disabled style="opacity:0.4"' : ''}>← My Collection</button>
+  `;
+  document.getElementById('data-section').style.display = games.length > 0 ? 'block' : 'none';
+  document.getElementById('danger-section').style.display = [...statusMap.values()].some(s => s !== 'unplayed') ? 'block' : 'none';
+}
+
+function showImportPanel() { showImport(); }
+
+function openApp() {
+  document.getElementById('import-panel').style.display = 'none';
+  document.getElementById('main-header').style.display = 'flex';
+  document.getElementById('app').classList.add('active');
+  buildFilterOptions();
+  applyFilters();
+  updateStats();
+  requestAnimationFrame(updateHeaderHeight);
+}
+
+function updateHeaderHeight() {
+  const h = document.getElementById('main-header');
+  if (h) document.documentElement.style.setProperty('--header-height', h.offsetHeight + 'px');
+}
+
+function saveCredentials() {
+  clientId = document.getElementById('client-id-input').value.trim();
+  clientSecret = document.getElementById('client-secret-input').value.trim();
+  localStorage.setItem('igdb_client_id', clientId);
+  localStorage.setItem('igdb_client_secret', clientSecret);
+  igdbToken = null;
+  localStorage.removeItem('igdb_token');
+  document.getElementById('cred-status').textContent = '✓ Credentials saved';
+  setTimeout(() => document.getElementById('cred-status').textContent = '', 2000);
+}
+
+// ── TABS ───────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const names = ['search','manual','csv'];
+    b.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+}
+
+// ── PLATFORM TOGGLES ───────────────────────────────────────────────────────
+function togglePlatform(btn)       { btn.classList.toggle('active'); }
+function togglePlatformManual(btn) { btn.classList.toggle('active'); }
+function togglePlatformFix(btn)    { btn.classList.toggle('active'); }
+
+function getActivePlatforms(containerId) {
+  return [...document.querySelectorAll(`#${containerId} .platform-toggle.active`)].map(b => b.dataset.platform);
+}
+
+function resetPlatformToggles(containerId) {
+  document.querySelectorAll(`#${containerId} .platform-toggle`).forEach(b => b.classList.remove('active'));
+}
+
+// ── IGDB SEARCH (ADD TAB) ──────────────────────────────────────────────────
+async function searchIGDBUI() {
+  const query = document.getElementById('igdb-search-input').value.trim();
+  if (!query) return;
+  const statusEl = document.getElementById('igdb-search-status');
+  const resultsEl = document.getElementById('igdb-results');
+  statusEl.textContent = '⟳ Searching…';
+  resultsEl.style.display = 'none';
+  resultsEl.innerHTML = '';
+  selectedIGDBResult = null;
+  document.getElementById('add-game-form').style.display = 'none';
+  try {
+    const results = await igdbSearch(query);
+    if (!results || !results.length) { statusEl.textContent = 'No results found.'; return; }
+    statusEl.textContent = `${results.length} result${results.length !== 1 ? 's' : ''} — tap to select`;
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = results.map((r,i) => {
+      const yr = r.first_release_date ? new Date(r.first_release_date * 1000).getFullYear() : '?';
+      const covUrl = igdbCoverUrl(r.cover);
+      const devName = r.involved_companies?.find(c => c.developer)?.company?.name || '';
+      return `<div class="igdb-result" onclick="selectIGDBResult(${i}, this)" data-idx="${i}">
+        <div class="igdb-result-cover">${covUrl ? `<img src="${covUrl}" alt="">` : '<div class="no-cover">🎮</div>'}</div>
+        <div class="igdb-result-info">
+          <div class="igdb-result-title">${escHtml(r.name)}</div>
+          <div class="igdb-result-meta">${yr}${devName ? ' · ' + escHtml(devName) : ''}${r.summary ? ' — ' + escHtml(r.summary.slice(0,80)) + '…' : ''}</div>
+        </div>
+      </div>`;
+    }).join('');
+    // store results for selection
+    resultsEl._results = results;
+  } catch(e) {
+    statusEl.textContent = '⚠ ' + e.message;
+  }
+}
+
+function selectIGDBResult(idx, el) {
+  document.querySelectorAll('.igdb-result').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedIGDBResult = document.getElementById('igdb-results')._results[idx];
+  document.getElementById('add-game-form').style.display = 'block';
+}
+
+function cancelAddGame() {
+  selectedIGDBResult = null;
+  document.getElementById('add-game-form').style.display = 'none';
+  document.querySelectorAll('.igdb-result').forEach(d => d.classList.remove('selected'));
+}
+
+async function addGame(stayInMode) {
+  if (!selectedIGDBResult) return;
+  const platforms = getActivePlatforms('add-platform-chips');
+  const statusEl = document.getElementById('add-game-status');
+  statusEl.textContent = 'Fetching details…';
+  try {
+    const r = selectedIGDBResult;
+    const [detail, ttb] = await Promise.all([igdbFetchById(r.id), igdbFetchTimeToBeat(r.id)]);
+    const game = buildGameObject(r, detail, ttb, r.name, platforms);
+    if (detail?.collection?.games?.length) {
+      const sortedIds = [...detail.collection.games].map(g => g.id);
+      const idx = sortedIds.indexOf(r.id);
+      game.collectionOrder = idx >= 0 ? idx + 1 : null;
+    }
+    if (games.find(g => g.id === game.id)) {
+      // merge platforms
+      const existing = games.find(g => g.id === game.id);
+      platforms.forEach(p => { if (!existing.userPlatforms.includes(p)) existing.userPlatforms.push(p); });
+      await sbSaveGame(existing);
+      statusEl.textContent = `✓ Updated platform for ${existing.displayTitle || existing.title}`;
+    } else {
+      games.push(game);
+      await sbSaveGame(game);
+      statusEl.textContent = `✓ Added ${game.displayTitle || game.title}`;
+    }
+    if (!stayInMode) {
+      setTimeout(() => openApp(), 800);
+    } else {
+      selectedIGDBResult = null;
+      document.getElementById('add-game-form').style.display = 'none';
+      document.getElementById('igdb-results').innerHTML = '';
+      document.getElementById('igdb-results').style.display = 'none';
+      document.getElementById('igdb-search-input').value = '';
+      document.getElementById('igdb-search-status').textContent = '';
+    }
+  } catch(e) {
+    statusEl.textContent = '⚠ ' + e.message;
+  }
+}
+
+// ── MANUAL ENTRY ───────────────────────────────────────────────────────────
+async function addManualGame() {
+  const title = document.getElementById('manual-title').value.trim();
+  if (!title) { document.getElementById('manual-status').textContent = 'Title is required.'; return; }
+  const platforms = getActivePlatforms('manual-platform-chips');
+  const year = document.getElementById('manual-year').value.trim();
+  const developer = document.getElementById('manual-developer').value.trim();
+  const genres = document.getElementById('manual-genres').value.trim().split(',').map(s => s.trim()).filter(Boolean);
+  const notes = document.getElementById('manual-notes').value.trim();
+  const id = 'manual_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+  const game = {
+    id, igdbId: null, searchTitle: title, title,
+    displayTitle: null, sortTitle: null,
+    cover: null, coverLg: null, customCover: null,
+    year: year ? parseInt(year) : null, summary: notes || null,
+    developer: developer || null, publisher: null,
+    genres, igdbPlatforms: [], userPlatforms: platforms,
+    rating: null, hltbMain: null, hltbExtra: null, hltbComplete: null,
+    collectionId: null, collectionName: null, collectionTotal: null, collectionOrder: null,
+    dateAdded: new Date().toISOString(), notFound: true
+  };
+  try {
+    games.push(game);
+    await sbSaveGame(game);
+    document.getElementById('manual-status').textContent = `✓ Added ${title}`;
+    document.getElementById('manual-title').value = '';
+    document.getElementById('manual-year').value = '';
+    document.getElementById('manual-developer').value = '';
+    document.getElementById('manual-genres').value = '';
+    document.getElementById('manual-notes').value = '';
+    resetPlatformToggles('manual-platform-chips');
+  } catch(e) {
+    document.getElementById('manual-status').textContent = '⚠ ' + e.message;
+  }
+}
+
+// ── CSV IMPORT ─────────────────────────────────────────────────────────────
+async function handleCSVFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+  const statusEl = document.getElementById('csv-status');
+  statusEl.textContent = 'Reading file…';
+  const text = await file.text();
+  const rows = parseCSV(text);
+  if (!rows.length) { statusEl.textContent = 'No rows found in file.'; return; }
+
+  // Detect columns (case-insensitive)
+  const headers = rows[0].map(h => h.toLowerCase().trim());
+  const colTitle = headers.findIndex(h => h === 'title' || h === 'game' || h === 'name');
+  const colPlatform = headers.findIndex(h => h === 'platform' || h === 'console' || h === 'system');
+  if (colTitle < 0) { statusEl.textContent = '⚠ No "Title" column found.'; return; }
+
+  const colMeta = headers.findIndex(h => h.includes('metacritic') || h === 'score');
+  const colHltbMain = headers.findIndex(h => h.includes('hltbmain') || h === 'main');
+  const colHltbExtra = headers.findIndex(h => h.includes('hltbextra') || h.includes('extra'));
+  const colHltbComplete = headers.findIndex(h => h.includes('hltbcomplete') || h.includes('complet'));
+
+  const dataRows = rows.slice(1).filter(r => r[colTitle]?.trim());
+
+  // Group by title to merge platforms
+  const titlePlatformMap = new Map();
+  dataRows.forEach(row => {
+    const title = row[colTitle].trim();
+    const platform = colPlatform >= 0 ? (row[colPlatform]?.trim() || '') : '';
+    if (!titlePlatformMap.has(title)) {
+      titlePlatformMap.set(title, { platforms: [], row });
+    }
+    if (platform && !titlePlatformMap.get(title).platforms.includes(platform)) {
+      titlePlatformMap.get(title).platforms.push(platform);
+    }
+  });
+
+  const entries = [...titlePlatformMap.entries()];
+  const total = entries.length;
+  showProgress('Importing Games', `0 / ${total}`);
+  let done = 0, skipped = 0;
+
+  for (const [title, { platforms, row }] of entries) {
+    setProgress(`${title}`, Math.round(done / total * 100));
+
+    // Check if already in collection
+    const existingByTitle = games.find(g =>
+      (g.title?.toLowerCase() === title.toLowerCase()) ||
+      (g.displayTitle?.toLowerCase() === title.toLowerCase()) ||
+      (g.searchTitle?.toLowerCase() === title.toLowerCase())
+    );
+
+    if (existingByTitle) {
+      // merge platforms
+      let changed = false;
+      platforms.forEach(p => {
+        if (!existingByTitle.userPlatforms.includes(p)) { existingByTitle.userPlatforms.push(p); changed = true; }
+      });
+      if (changed) await sbSaveGame(existingByTitle);
+      skipped++;
+      done++;
+      continue;
+    }
+
+    // Build CSV fallback data
+    const csvMeta = colMeta >= 0 ? parseInt(row[colMeta]) : null;
+    const csvHltbMain = colHltbMain >= 0 ? parseFloat(row[colHltbMain]) : null;
+    const csvHltbExtra = colHltbExtra >= 0 ? parseFloat(row[colHltbExtra]) : null;
+    const csvHltbComplete = colHltbComplete >= 0 ? parseFloat(row[colHltbComplete]) : null;
+
+    try {
+      const results = await igdbSearch(title);
+      await sleep(260); // respect rate limit
+
+      if (results && results.length) {
+        const r = results[0];
+        const [detail, ttb] = await Promise.all([igdbFetchById(r.id), igdbFetchTimeToBeat(r.id)]);
+        await sleep(260);
+        const game = buildGameObject(r, detail, ttb, title, platforms);
+        // Use CSV data as fallback
+        if (!game.rating && csvMeta) game.rating = csvMeta;
+        if (!game.hltbMain && csvHltbMain) game.hltbMain = csvHltbMain;
+        if (!game.hltbExtra && csvHltbExtra) game.hltbExtra = csvHltbExtra;
+        if (!game.hltbComplete && csvHltbComplete) game.hltbComplete = csvHltbComplete;
+        if (detail?.collection?.games?.length) {
+          const sortedIds = [...detail.collection.games].map(g => g.id);
+          const idx = sortedIds.indexOf(r.id);
+          game.collectionOrder = idx >= 0 ? idx + 1 : null;
+        }
+        games.push(game);
+        await sbSaveGame(game);
+      } else {
+        // Not found — manual entry
+        const id = 'manual_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+        const game = {
+          id, igdbId: null, searchTitle: title, title,
+          displayTitle: null, sortTitle: null, cover: null, coverLg: null, customCover: null,
+          year: null, summary: null, developer: null, publisher: null,
+          genres: [], igdbPlatforms: [], userPlatforms: platforms,
+          rating: csvMeta || null, hltbMain: csvHltbMain, hltbExtra: csvHltbExtra, hltbComplete: csvHltbComplete,
+          collectionId: null, collectionName: null, collectionTotal: null, collectionOrder: null,
+          dateAdded: new Date().toISOString(), notFound: true
+        };
+        games.push(game);
+        await sbSaveGame(game);
+      }
+    } catch(e) {
+      console.warn('Import error for', title, e);
+    }
+    done++;
+  }
+
+  hideProgress();
+  document.getElementById('csv-status').textContent = `✓ Imported ${done - skipped} new games${skipped ? `, ${skipped} already in collection (platforms merged)` : ''}.`;
+  setTimeout(() => openApp(), 1200);
+}
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  return lines.map(line => {
+    const cells = []; let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === '"' && !inQ) { inQ = true; }
+      else if (line[i] === '"' && inQ) { if (line[i+1] === '"') { cur += '"'; i++; } else inQ = false; }
+      else if (line[i] === ',' && !inQ) { cells.push(cur); cur = ''; }
+      else cur += line[i];
+    }
+    cells.push(cur);
+    return cells;
+  });
+}
+
+// ── RENDERING ──────────────────────────────────────────────────────────────
+function sortTitle(t) {
+  return (t || '').toLowerCase().replace(/^(the |a |an )/i, '');
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escJs(s) { return (s || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+function platBadgeHTML(p, small = true) {
+  const cfg = PLATFORM_CONFIG[p];
+  if (!cfg) return `<span class="plat-badge ${small ? '' : 'modal-plat-badge'}" style="background:rgba(100,100,100,0.15);color:#888">${escHtml(p)}</span>`;
+  return `<span class="plat-badge ${small ? '' : 'modal-plat-badge'} ${cfg.cls}">${small ? cfg.abbr : escHtml(p)}</span>`;
+}
+
+function statusDotHTML(status) {
+  if (!status || status === 'unplayed') return '';
+  const cfg = STATUS_CONFIG[status];
+  if (!cfg || !cfg.icon) return '';
+  return `<div class="status-dot ${cfg.dotClass}">${cfg.icon}</div>`;
+}
+
+function getGameStatus(id) { return statusMap.get(String(id)) || 'unplayed'; }
+
+function applyFilters() {
+  const search = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+  const genreF = document.getElementById('filter-genre')?.value || '';
+  const platF = document.getElementById('filter-platform')?.value || '';
+
+  filteredGames = games.filter(g => {
+    if (currentStatusFilter !== 'all' && getGameStatus(g.id) !== currentStatusFilter) return false;
+    if (platF && !g.userPlatforms.includes(platF)) return false;
+    if (genreF && !g.genres.includes(genreF)) return false;
+    if (search) {
+      const haystack = [
+        g.displayTitle, g.title, g.developer, g.publisher,
+        g.collectionName, ...(g.genres || [])
+      ].filter(Boolean).map(s => s.toLowerCase()).join(' ');
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+
+  filteredGames.sort((a, b) => {
+    switch (currentSort) {
+      case 'title':      return sortTitle(a.sortTitle || a.displayTitle || a.title).localeCompare(sortTitle(b.sortTitle || b.displayTitle || b.title));
+      case 'title-desc': return sortTitle(b.sortTitle || b.displayTitle || b.title).localeCompare(sortTitle(a.sortTitle || a.displayTitle || a.title));
+      case 'year':       return (a.year || 0) - (b.year || 0);
+      case 'year-desc':  return (b.year || 0) - (a.year || 0);
+      case 'rating':     return (b.rating || 0) - (a.rating || 0);
+      case 'added':      return new Date(b.dateAdded) - new Date(a.dateAdded);
+      default:           return 0;
+    }
+  });
+
+  renderGrid(filteredGames);
+  updateStats();
+
+  const countEl = document.getElementById('count-line');
+  if (countEl) countEl.textContent = `${filteredGames.length} of ${games.length} games`;
+}
+
+function buildFilterOptions() {
+  const genres = [...new Set(games.flatMap(g => g.genres || []))].sort();
+  const genreEl = document.getElementById('filter-genre');
+  genreEl.innerHTML = '<option value="">All Genres</option>' + genres.map(g => `<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
+
+  const platforms = [...new Set(games.flatMap(g => g.userPlatforms || []))].sort();
+  const platEl = document.getElementById('filter-platform');
+  platEl.innerHTML = '<option value="">All Platforms</option>' + platforms.map(p => `<option value="${escHtml(p)}">${escHtml(p)}</option>`).join('');
+}
+
+function renderGrid(gamesList) {
+  const grid = document.getElementById('game-grid');
+  if (!gamesList.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h2>No Games Found</h2><p>Try a different filter or search.</p></div>';
+    return;
+  }
+  grid.innerHTML = gamesList.map(game => {
+    const coverSrc = game.customCover || game.cover;
+    const displayedTitle = game.displayTitle || game.title;
+    const status = getGameStatus(game.id);
+    const platBadges = (game.userPlatforms || []).map(p => platBadgeHTML(p)).join('');
+    const imgHTML = coverSrc
+      ? `<img class="card-cover" src="${escHtml(coverSrc)}" alt="${escHtml(displayedTitle)}" loading="lazy" onerror="this.outerHTML='<div class=\\'card-cover-placeholder\\'>🎮</div>'">`
+      : `<div class="card-cover-placeholder">🎮</div>`;
+    const selectedClass = selectionMode && selectedIds.has(String(game.id)) ? 'selected-card' : '';
+    return `<div class="game-card ${game.notFound ? 'not-found-card' : ''} ${selectedClass}" onclick="${selectionMode ? `toggleCardSelection('${escJs(String(game.id))}')` : `openModal(${escJs(JSON.stringify({id:game.id}))})`}" data-id="${escHtml(String(game.id))}">
+      ${imgHTML}
+      ${statusDotHTML(status)}
+      ${platBadges ? `<div class="card-platforms">${platBadges}</div>` : ''}
+      <div class="card-title">${escHtml(displayedTitle)}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateStats() {
+  const total = games.length;
+  const played = [...statusMap.values()].filter(s => s && s !== 'unplayed').length;
+  const completed = [...statusMap.values()].filter(s => s === 'completed' || s === '100percent').length;
+  document.getElementById('header-stats').textContent = `${total} games · ${completed} completed`;
+}
+
+function setStatusFilter(status, btn) {
+  currentStatusFilter = status;
+  document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function changeSortOrder() {
+  currentSort = document.getElementById('sort-select').value;
+  applyFilters();
+}
+
+// ── GAME MODAL ─────────────────────────────────────────────────────────────
+function openModal(gameOrRef) {
+  // gameOrRef can be a game object or {id} stub from inline onclick
+  let game = typeof gameOrRef === 'string' ? JSON.parse(gameOrRef) : gameOrRef;
+  if (!game.title) game = games.find(g => g.id === game.id) || game;
+  if (!game) return;
+
+  currentModalGameId = game.id;
+  const status = getGameStatus(game.id);
+  const coverSrc = game.customCover || game.coverLg || game.cover;
+  const displayedTitle = game.displayTitle || game.title;
+
+  const coverHTML = coverSrc
+    ? `<img class="modal-cover" src="${escHtml(coverSrc)}" alt="${escHtml(displayedTitle)}" onerror="this.outerHTML='<div class=\\'modal-cover-placeholder\\'>🎮</div>'">`
+    : `<div class="modal-cover-placeholder">🎮</div>`;
+
+  const platBadges = (game.userPlatforms || []).map(p => {
+    const cfg = PLATFORM_CONFIG[p] || {};
+    return `<span class="modal-plat-badge plat-badge ${cfg.cls || ''}">${escHtml(p)}</span>`;
+  }).join('');
+
+  const seriesHTML = game.collectionName && game.collectionOrder
+    ? `<div class="modal-meta-item"><div class="modal-meta-label">Series</div><div class="modal-meta-value" style="color:var(--accent)">Game ${game.collectionOrder}${game.collectionTotal ? ' of ' + game.collectionTotal : ''} · ${escHtml(game.collectionName)}</div></div>`
+    : '';
+
+  const hltbHTML = (game.hltbMain || game.hltbExtra || game.hltbComplete) ? `
+    <div class="hltb-row">
+      ${game.hltbMain ? `<div class="hltb-item"><div class="hltb-label">Main Story</div><div class="hltb-value">${game.hltbMain}h</div></div>` : ''}
+      ${game.hltbExtra ? `<div class="hltb-item"><div class="hltb-label">Main + Extras</div><div class="hltb-value">${game.hltbExtra}h</div></div>` : ''}
+      ${game.hltbComplete ? `<div class="hltb-item"><div class="hltb-label">Completionist</div><div class="hltb-value">${game.hltbComplete}h</div></div>` : ''}
+    </div>` : '';
+
+  const statusBtns = Object.entries(STATUS_CONFIG).map(([key, cfg]) =>
+    `<button class="status-btn ${status === key ? `active-${key}` : ''}" onclick="setGameStatus('${escJs(String(game.id))}','${key}',this)">${cfg.label}</button>`
+  ).join('');
+
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-hero">
+      ${coverHTML}
+      <div class="modal-info">
+        <div class="modal-title">${escHtml(displayedTitle)}</div>
+        <div class="modal-sub">${[game.year, game.developer].filter(Boolean).join(' · ')}</div>
+        <div class="modal-platforms">${platBadges}</div>
+        <div class="modal-meta-row">
+          ${game.year ? `<div class="modal-meta-item"><div class="modal-meta-label">Year</div><div class="modal-meta-value">${game.year}</div></div>` : ''}
+          ${game.rating ? `<div class="modal-meta-item"><div class="modal-meta-label">Score</div><div class="modal-rating">${game.rating}</div></div>` : ''}
+          ${seriesHTML}
+        </div>
+        <div class="modal-genres">${(game.genres || []).map(g => `<span class="genre-pill">${escHtml(g)}</span>`).join('')}</div>
+        ${hltbHTML}
+        <div class="modal-credits" id="modal-credits">${buildModalCredits(game)}</div>
+        ${game.summary ? `<div class="modal-overview">${escHtml(game.summary.slice(0,280))}${game.summary.length > 280 ? '…' : ''}</div>` : ''}
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-status-row">${statusBtns}</div>
+    <div class="modal-actions">
+      <button class="btn-igdb-link" onclick="openFixModal('${escJs(String(game.id))}')">✎ Edit</button>
+      ${game.igdbId ? `<a class="btn-igdb-link" href="https://www.igdb.com/games/${game.igdbId}" target="_blank" rel="noopener">View on IGDB ↗</a>` : ''}
+    </div>`;
+
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function buildModalCredits(game) {
+  let html = '';
+  const devParts = [
+    game.developer ? `<span class="modal-meta-label" style="margin-right:4px">Dev</span><button class="person-chip" onclick="searchByPerson('${escJs(game.developer)}')">${escHtml(game.developer)}</button>` : '',
+    game.publisher && game.publisher !== game.developer ? `<span class="modal-meta-label" style="margin:0 4px 0 10px">Pub</span><button class="person-chip" onclick="searchByPerson('${escJs(game.publisher)}')">${escHtml(game.publisher)}</button>` : ''
+  ].filter(Boolean).join('');
+  if (devParts) html += `<div style="font-size:0.78rem;color:var(--text-muted)">${devParts}</div>`;
+  return html;
+}
+
+function searchByPerson(name) {
+  closeModal();
+  document.getElementById('search-input').value = name;
+  applyFilters();
+}
+
+function closeModal() {
+  currentModalGameId = null;
+  document.getElementById('modal-overlay').classList.remove('active');
+}
+
+function handleModalOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+// ── STATUS ─────────────────────────────────────────────────────────────────
+async function setGameStatus(id, status, btn) {
+  const strId = String(id);
+  statusMap.set(strId, status);
+  // update all status buttons in modal
+  document.querySelectorAll('.status-btn').forEach(b => {
+    Object.keys(STATUS_CONFIG).forEach(k => b.classList.remove(`active-${k}`));
+  });
+  if (btn) btn.classList.add(`active-${status}`);
+  // update card in grid
+  const card = document.querySelector(`.game-card[data-id="${CSS.escape(strId)}"]`);
+  if (card) {
+    const existing = card.querySelector('.status-dot');
+    if (existing) existing.remove();
+    const dotHTML = statusDotHTML(status);
+    if (dotHTML) card.insertAdjacentHTML('afterbegin', dotHTML);
+  }
+  updateStats();
+  try { await sbSetStatus(strId, status); } catch(e) { console.warn('Status sync failed', e); }
+}
+
+// ── BULK EDIT ──────────────────────────────────────────────────────────────
+function enterSelectionMode() {
+  selectionMode = true;
+  selectedIds.clear();
+  document.getElementById('bulk-bar').classList.add('active');
+  document.getElementById('bulk-count').textContent = '0 selected';
+  applyFilters();
+}
+
+function exitSelectionMode() {
+  selectionMode = false;
+  selectedIds.clear();
+  document.getElementById('bulk-bar').classList.remove('active');
+  applyFilters();
+}
+
+function toggleCardSelection(id) {
+  const strId = String(id);
+  if (selectedIds.has(strId)) selectedIds.delete(strId); else selectedIds.add(strId);
+  document.getElementById('bulk-count').textContent = `${selectedIds.size} selected`;
+  const card = document.querySelector(`.game-card[data-id="${CSS.escape(strId)}"]`);
+  if (card) card.classList.toggle('selected-card', selectedIds.has(strId));
+}
+
+async function saveBulkEdit() {
+  if (!selectedIds.size) return;
+  const statusVal = document.getElementById('bulk-status-select').value;
+  const platVal = document.getElementById('bulk-platform-select').value;
+  if (!statusVal && !platVal) { alert('Choose a status or platform to apply.'); return; }
+
+  const toUpdate = games.filter(g => selectedIds.has(String(g.id)));
+  if (platVal) {
+    toUpdate.forEach(g => { if (!g.userPlatforms.includes(platVal)) g.userPlatforms.push(platVal); });
+    await sbFetch('games', { method: 'POST', headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(toUpdate.map(g => ({ id: String(g.id), data: g, updated_at: new Date().toISOString() }))) });
+  }
+  if (statusVal) {
+    const nowIso = new Date().toISOString();
+    toUpdate.forEach(g => statusMap.set(String(g.id), statusVal));
+    await sbFetch('game_status', { method: 'POST', headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(toUpdate.map(g => ({ game_id: String(g.id), status: statusVal, updated_at: nowIso }))) });
+  }
+  exitSelectionMode();
+}
+
+// ── FIX MODAL ──────────────────────────────────────────────────────────────
+function openFixModal(id) {
+  closeModal();
+  fixTargetId = String(id);
+  const game = games.find(g => g.id === fixTargetId);
+  if (!game) return;
+
+  document.getElementById('fix-game-name').textContent = game.displayTitle || game.title;
+  document.getElementById('fix-display-title').value = game.displayTitle || '';
+  document.getElementById('fix-sort-title').value = game.sortTitle || '';
+  document.getElementById('fix-title-input').value = game.searchTitle || game.title || '';
+  document.getElementById('fix-igdbid-input').value = '';
+  document.getElementById('fix-refetch-results').innerHTML = '';
+  document.getElementById('fix-status').textContent = '';
+  document.getElementById('fix-art-status').textContent = '';
+  document.getElementById('fix-art-remove-btn').style.display = game.customCover ? '' : 'none';
+
+  fixPlatforms = [...(game.userPlatforms || [])];
+  document.querySelectorAll('#fix-platform-chips .platform-toggle').forEach(b => {
+    b.classList.toggle('active', fixPlatforms.includes(b.dataset.platform));
+  });
+
+  document.getElementById('fix-overlay').classList.add('active');
+}
+
+function closeFixModal() {
+  document.getElementById('fix-overlay').classList.remove('active');
+  fixTargetId = null;
+}
+
+function setFixStatus(msg, isErr) {
+  const el = document.getElementById('fix-status');
+  el.textContent = msg;
+  el.style.color = isErr ? 'var(--danger)' : 'var(--text-muted)';
+}
+
+async function saveTitleOverrides() {
+  const idx = games.findIndex(g => g.id === fixTargetId);
+  if (idx < 0) return;
+  games[idx].displayTitle = document.getElementById('fix-display-title').value.trim() || null;
+  games[idx].sortTitle = document.getElementById('fix-sort-title').value.trim() || null;
+  try {
+    await sbSaveGame(games[idx]);
+    setFixStatus('✓ Title overrides saved');
+    applyFilters();
+    setTimeout(closeFixModal, 800);
+  } catch(e) { setFixStatus('Error saving.', true); }
+}
+
+async function fixRefetchByTitle() {
+  const title = document.getElementById('fix-title-input').value.trim();
+  if (!title) return;
+  setFixStatus('Searching…');
+  try {
+    const results = await igdbSearch(title);
+    showFixResults(results);
+    setFixStatus('');
+  } catch(e) { setFixStatus('⚠ ' + e.message, true); }
+}
+
+async function fixRefetchById() {
+  const rawId = document.getElementById('fix-igdbid-input').value.trim();
+  if (!rawId || isNaN(parseInt(rawId))) { setFixStatus('Enter a valid IGDB ID.', true); return; }
+  setFixStatus('Fetching…');
+  try {
+    const detail = await igdbFetchById(parseInt(rawId));
+    if (!detail) { setFixStatus('Not found.', true); return; }
+    showFixResults([detail]);
+    setFixStatus('');
+  } catch(e) { setFixStatus('⚠ ' + e.message, true); }
+}
+
+function showFixResults(results) {
+  const el = document.getElementById('fix-refetch-results');
+  if (!results || !results.length) { el.innerHTML = '<div style="font-size:0.72rem;color:var(--text-dim)">No results.</div>'; return; }
+  el.innerHTML = results.slice(0,4).map((r,i) => {
+    const yr = r.first_release_date ? new Date(r.first_release_date * 1000).getFullYear() : '?';
+    const covUrl = igdbCoverUrl(r.cover);
+    return `<div class="igdb-result" onclick="applyFixResult(${i})" data-idx="${i}" style="margin-bottom:6px">
+      <div class="igdb-result-cover">${covUrl ? `<img src="${covUrl}" alt="">` : '<div class="no-cover">🎮</div>'}</div>
+      <div class="igdb-result-info"><div class="igdb-result-title">${escHtml(r.name)}</div><div class="igdb-result-meta">${yr} · IGDB ID: ${r.id}</div></div>
+    </div>`;
+  }).join('');
+  el._results = results;
+}
+
+async function applyFixResult(idx) {
+  const results = document.getElementById('fix-refetch-results')._results;
+  const r = results[idx];
+  setFixStatus('Fetching details…');
+  try {
+    const [detail, ttb] = await Promise.all([igdbFetchById(r.id), igdbFetchTimeToBeat(r.id)]);
+    const idx2 = games.findIndex(g => g.id === fixTargetId);
+    if (idx2 < 0) return;
+    const oldGame = games[idx2];
+    const newData = buildGameObject(r, detail, ttb, r.name, oldGame.userPlatforms);
+    newData.id = oldGame.id; // keep original id
+    newData.displayTitle = oldGame.displayTitle;
+    newData.sortTitle = oldGame.sortTitle;
+    newData.customCover = oldGame.customCover;
+    newData.dateAdded = oldGame.dateAdded;
+    games[idx2] = newData;
+    await sbSaveGame(newData);
+    setFixStatus('✓ Updated from IGDB');
+    applyFilters();
+    setTimeout(closeFixModal, 800);
+  } catch(e) { setFixStatus('⚠ ' + e.message, true); }
+}
+
+async function savePlatformsFix() {
+  fixPlatforms = getActivePlatforms('fix-platform-chips');
+  const idx = games.findIndex(g => g.id === fixTargetId);
+  if (idx < 0) return;
+  games[idx].userPlatforms = fixPlatforms;
+  try {
+    await sbSaveGame(games[idx]);
+    setFixStatus('✓ Platforms saved');
+    applyFilters();
+  } catch(e) { setFixStatus('⚠ ' + e.message, true); }
+}
+
+async function deleteGame() {
+  const game = games.find(g => g.id === fixTargetId);
+  if (!game) return;
+  if (!confirm(`Remove "${game.displayTitle || game.title}" from your collection? This cannot be undone.`)) return;
+  try {
+    await sbDeleteGame(game.id);
+    games = games.filter(g => g.id !== fixTargetId);
+    statusMap.delete(fixTargetId);
+    closeFixModal();
+    applyFilters();
+    updateStats();
+  } catch(e) { setFixStatus('⚠ ' + e.message, true); }
+}
+
+// ── CUSTOM COVER ART ───────────────────────────────────────────────────────
+async function uploadCustomCover(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+  const statusEl = document.getElementById('fix-art-status');
+  statusEl.textContent = 'Uploading…';
+  const ext = file.name.split('.').pop().toLowerCase();
+  const path = `games/${fixTargetId}.${ext}`;
+  try {
+    const res = await fetch(`${SB_URL}/storage/v1/object/shelf-posters/${path}`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': file.type, 'x-upsert': 'true' },
+      body: file
+    });
+    if (!res.ok) throw new Error('Upload failed');
+    const url = `${SB_URL}/storage/v1/object/public/shelf-posters/${path}?t=${Date.now()}`;
+    const idx = games.findIndex(g => g.id === fixTargetId);
+    if (idx >= 0) { games[idx].customCover = url; await sbSaveGame(games[idx]); applyFilters(); }
+    document.getElementById('fix-art-remove-btn').style.display = '';
+    statusEl.textContent = '✓ Custom cover uploaded';
+  } catch(e) { statusEl.textContent = '⚠ ' + e.message; }
+}
+
+async function removeCustomCover() {
+  const idx = games.findIndex(g => g.id === fixTargetId);
+  if (idx < 0) return;
+  games[idx].customCover = null;
+  await sbSaveGame(games[idx]);
+  document.getElementById('fix-art-remove-btn').style.display = 'none';
+  document.getElementById('fix-art-status').textContent = '✓ Custom art removed';
+  applyFilters();
+}
+
+// ── RANDOM PICKER ──────────────────────────────────────────────────────────
+function buildFranchiseGroups() {
+  const groups = {};
+  games.filter(g => !g.notFound && g.collectionId).forEach(g => {
+    if (!groups[g.collectionId]) groups[g.collectionId] = { name: g.collectionName, games: [] };
+    groups[g.collectionId].games.push(g);
+  });
+  Object.values(groups).forEach(gr => {
+    gr.games.sort((a, b) => (a.collectionOrder || 999) - (b.collectionOrder || 999));
+  });
+  return groups;
+}
+
+function pickRandom() {
+  const groups = buildFranchiseGroups();
+  const unplayed = s => getGameStatus(s) === 'unplayed';
+  const pool = [];
+
+  games.filter(g => !g.notFound && unplayed(g.id) && !g.collectionId).forEach(g => pool.push(g));
+
+  for (const gr of Object.values(groups)) {
+    const first = gr.games.find(g => unplayed(g.id));
+    if (first) pool.push(first);
+  }
+
+  if (!pool.length) { alert('No unplayed games left! Nice work.'); return; }
+  currentRandomGame = pool[Math.floor(Math.random() * pool.length)];
+  showRandom(currentRandomGame);
+}
+
+function showRandom(game) {
+  const coverSrc = game.customCover || game.coverLg || game.cover;
+  const img = document.getElementById('random-cover');
+  const ph = document.getElementById('random-cover-placeholder');
+  if (coverSrc) { img.src = coverSrc; img.style.display = ''; ph.style.display = 'none'; }
+  else { img.style.display = 'none'; ph.style.display = ''; }
+  document.getElementById('random-title').textContent = game.displayTitle || game.title;
+  const meta = [game.year, game.developer, (game.userPlatforms || []).join(' · ')].filter(Boolean).join(' · ');
+  document.getElementById('random-meta').textContent = meta;
+  document.getElementById('random-overlay').classList.add('active');
+}
+
+function closeRandom() { document.getElementById('random-overlay').classList.remove('active'); }
+function openModalFromRandom() { closeRandom(); if (currentRandomGame) openModal(currentRandomGame); }
+
+// ── BACKUP / RESTORE ───────────────────────────────────────────────────────
+async function downloadBackup() {
+  const statusEl = document.getElementById('backup-status');
+  statusEl.textContent = 'Preparing backup…';
+  try {
+    const [gameRows, statusRows] = await Promise.all([
+      sbLoadAll('games?select=id,data,updated_at&order=id'),
+      sbLoadAll('game_status?select=game_id,status,updated_at&order=game_id')
+    ]);
+    const backup = { version: 1, app: '1UP', exported: new Date().toISOString(), gameCount: gameRows.length, games: gameRows, statuses: statusRows };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `1up-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    statusEl.textContent = `✓ Backup downloaded — ${gameRows.length} games.`;
+  } catch(e) { statusEl.textContent = '⚠ Backup failed: ' + e.message; }
+}
+
+async function restoreBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+  const statusEl = document.getElementById('backup-status');
+  statusEl.textContent = 'Reading backup file…';
+  try {
+    const backup = JSON.parse(await file.text());
+    if (!backup.version || !Array.isArray(backup.games)) { statusEl.textContent = '⚠ Invalid backup file.'; return; }
+    if (!confirm(`Restore ${backup.games.length} games from backup dated ${backup.exported?.slice(0,10)}?\n\nThis merges into your current collection. Nothing is deleted.`)) { statusEl.textContent = ''; return; }
+    const chunk = 500;
+    for (let i = 0; i < backup.games.length; i += chunk) {
+      await sbFetch('games', { method: 'POST', headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(backup.games.slice(i, i+chunk)) });
+    }
+    if (backup.statuses?.length) {
+      for (let i = 0; i < backup.statuses.length; i += chunk) {
+        await sbFetch('game_status', { method: 'POST', headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(backup.statuses.slice(i, i+chunk)) });
+      }
+    }
+    statusEl.textContent = 'Reloading…';
+    const [g, s] = await Promise.all([sbLoadGames(), sbLoadStatus()]);
+    games = g; statusMap = s;
+    statusEl.textContent = `✓ Restored ${backup.games.length} games.`;
+    setTimeout(openApp, 1200);
+  } catch(e) { statusEl.textContent = '⚠ Restore failed: ' + e.message; }
+}
+
+async function resetAllStatus() {
+  if (!confirm('Reset ALL games to Unplayed? This clears every completion status and cannot be undone.')) return;
+  if (!confirm('Are you sure? All progress will be permanently deleted.')) return;
+  try {
+    const ids = [...statusMap.keys()];
+    for (const id of ids) await sbFetch(`game_status?game_id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' });
+    statusMap.clear();
+    updateStats(); applyFilters();
+    document.getElementById('danger-section').style.display = 'none';
+    alert('Done — all games reset to Unplayed.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── PROGRESS ───────────────────────────────────────────────────────────────
+function showProgress(title, sub) {
+  document.getElementById('progress-title').textContent = title;
+  document.getElementById('progress-sub').textContent = sub;
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('progress-overlay').classList.add('active');
+}
+function setProgress(sub, pct) {
+  document.getElementById('progress-sub').textContent = sub;
+  document.getElementById('progress-fill').style.width = `${Math.min(pct,100)}%`;
+}
+function hideProgress() { document.getElementById('progress-overlay').classList.remove('active'); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── BOOT ───────────────────────────────────────────────────────────────────
+(function boot() {
+  const stored = localStorage.getItem(HASH_KEY);
+  if (stored && parseInt(stored) === PASS_HASH) {
+    document.getElementById('gate').style.display = 'none';
+    init();
+  }
+})();
+</script>
+</body>
+</html>
