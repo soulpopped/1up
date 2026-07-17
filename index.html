@@ -339,7 +339,10 @@
       <div><label>Client ID</label><input type="password" id="client-id-input" placeholder="Twitch Client ID"></div>
       <div><label>Client Secret</label><input type="password" id="client-secret-input" placeholder="Twitch Client Secret"></div>
     </div>
-    <button class="btn" onclick="saveCredentials()">Save Credentials</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="saveCredentials()">Save Credentials</button>
+      <button class="btn" onclick="testCredentials()">Test Connection</button>
+    </div>
     <div id="cred-status" style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
   </div>
 
@@ -826,12 +829,36 @@ function updateHeaderHeight() {
 function saveCredentials() {
   clientId = document.getElementById('client-id-input').value.trim();
   clientSecret = document.getElementById('client-secret-input').value.trim();
+  if (!clientId || !clientSecret) { document.getElementById('cred-status').textContent = '⚠ Both Client ID and Secret are required.'; return; }
   localStorage.setItem('igdb_client_id', clientId);
   localStorage.setItem('igdb_client_secret', clientSecret);
   igdbToken = null;
   localStorage.removeItem('igdb_token');
-  document.getElementById('cred-status').textContent = '✓ Credentials saved';
-  setTimeout(() => document.getElementById('cred-status').textContent = '', 2000);
+  document.getElementById('cred-status').textContent = '✓ Credentials saved — click Test Connection to verify.';
+}
+
+async function testCredentials() {
+  const statusEl = document.getElementById('cred-status');
+  statusEl.style.color = 'var(--text-muted)';
+  statusEl.textContent = '⟳ Testing IGDB connection…';
+  try {
+    const ok = await igdbEnsureToken();
+    if (!ok) { statusEl.style.color = 'var(--danger)'; statusEl.textContent = '⚠ Could not get IGDB token — check Client ID and Secret.'; return; }
+    // Quick test query
+    const results = await igdbFetch('games', 'fields name; where id = 1942; limit 1;');
+    statusEl.style.color = 'var(--accent)';
+    statusEl.textContent = `✓ IGDB connected! (found: ${results[0]?.name || 'test game'})`;
+  } catch(e) {
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = '⚠ IGDB error: ' + e.message;
+  }
+  // Also test Supabase
+  try {
+    await sbFetch('games?limit=1');
+    statusEl.textContent += ' · Supabase ✓';
+  } catch(e) {
+    statusEl.textContent += ' · Supabase ⚠ ' + e.message;
+  }
 }
 
 // ── TABS ───────────────────────────────────────────────────────────────────
@@ -1021,7 +1048,7 @@ async function handleCSVFile(event) {
   const entries = [...titlePlatformMap.entries()];
   const total = entries.length;
   showProgress('Importing Games', `0 / ${total}`);
-  let done = 0, skipped = 0;
+  let done = 0, skipped = 0, errors = [];
 
   for (const [title, { platforms, row }] of entries) {
     setProgress(`${title}`, Math.round(done / total * 100));
@@ -1088,14 +1115,22 @@ async function handleCSVFile(event) {
         await sbSaveGame(game);
       }
     } catch(e) {
-      console.warn('Import error for', title, e);
+      errors.push(`"${title}": ${e.message}`);
     }
     done++;
   }
 
   hideProgress();
-  document.getElementById('csv-status').textContent = `✓ Imported ${done - skipped} new games${skipped ? `, ${skipped} already in collection (platforms merged)` : ''}.`;
-  setTimeout(() => openApp(), 1200);
+  const csvStatus = document.getElementById('csv-status');
+  if (errors.length) {
+    csvStatus.style.color = 'var(--danger)';
+    csvStatus.innerHTML = `⚠ ${errors.length} error(s) during import:<br><code style="font-size:0.65rem;line-height:1.8">${errors.slice(0,5).map(escHtml).join('<br>')}</code>${errors.length > 5 ? `<br>…and ${errors.length - 5} more` : ''}`;
+    if (done - skipped - errors.length > 0) setTimeout(() => openApp(), 3000);
+  } else {
+    csvStatus.style.color = '';
+    csvStatus.textContent = `✓ Imported ${done - skipped} new games${skipped ? `, ${skipped} already in collection (platforms merged)` : ''}.`;
+    setTimeout(() => openApp(), 1200);
+  }
 }
 
 function parseCSV(text) {
@@ -1640,44 +1675,4 @@ async function restoreBackup(event) {
     games = g; statusMap = s;
     statusEl.textContent = `✓ Restored ${backup.games.length} games.`;
     setTimeout(openApp, 1200);
-  } catch(e) { statusEl.textContent = '⚠ Restore failed: ' + e.message; }
-}
-
-async function resetAllStatus() {
-  if (!confirm('Reset ALL games to Unplayed? This clears every completion status and cannot be undone.')) return;
-  if (!confirm('Are you sure? All progress will be permanently deleted.')) return;
-  try {
-    const ids = [...statusMap.keys()];
-    for (const id of ids) await sbFetch(`game_status?game_id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' });
-    statusMap.clear();
-    updateStats(); applyFilters();
-    document.getElementById('danger-section').style.display = 'none';
-    alert('Done — all games reset to Unplayed.');
-  } catch(e) { alert('Error: ' + e.message); }
-}
-
-// ── PROGRESS ───────────────────────────────────────────────────────────────
-function showProgress(title, sub) {
-  document.getElementById('progress-title').textContent = title;
-  document.getElementById('progress-sub').textContent = sub;
-  document.getElementById('progress-fill').style.width = '0%';
-  document.getElementById('progress-overlay').classList.add('active');
-}
-function setProgress(sub, pct) {
-  document.getElementById('progress-sub').textContent = sub;
-  document.getElementById('progress-fill').style.width = `${Math.min(pct,100)}%`;
-}
-function hideProgress() { document.getElementById('progress-overlay').classList.remove('active'); }
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// ── BOOT ───────────────────────────────────────────────────────────────────
-(function boot() {
-  const stored = localStorage.getItem(HASH_KEY);
-  if (stored && parseInt(stored) === PASS_HASH) {
-    document.getElementById('gate').style.display = 'none';
-    init();
-  }
-})();
-</script>
-</body>
-</html>
+  } catch(e) { statusEl.textContent = '⚠ Restore fai
