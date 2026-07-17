@@ -739,7 +739,10 @@ function gateSubmit() {
   if (simpleHash(pw) === PASS_HASH) {
     localStorage.setItem(HASH_KEY, String(PASS_HASH));
     document.getElementById('gate').style.display = 'none';
-    init();
+    init().catch(e => {
+      document.getElementById('gate').style.display = '';
+      document.getElementById('gate-error').textContent = 'Init error: ' + e.message;
+    });
   } else {
     document.getElementById('gate-error').textContent = 'Wrong password.';
     document.getElementById('gate-input').value = '';
@@ -778,23 +781,30 @@ async function init() {
 }
 
 function createAppIcon() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 180; canvas.height = 180;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#0f0f0f';
-  ctx.beginPath(); ctx.roundRect(0,0,180,180,28); ctx.fill();
-  ctx.fillStyle = '#4ade80';
-  ctx.fillRect(18, 148, 144, 6);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 70px "Bebas Neue", sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('1UP', 90, 86);
-  const url = canvas.toDataURL('image/png');
-  [['icon','image/png'], ['apple-touch-icon','']].forEach(([rel, type]) => {
-    const l = document.createElement('link');
-    l.rel = rel; if (type) l.type = type; l.href = url;
-    document.head.appendChild(l);
-  });
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 180; canvas.height = 180;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#0f0f0f';
+    // roundRect not available in all browsers — fall back to fillRect
+    if (ctx.roundRect) {
+      ctx.beginPath(); ctx.roundRect(0,0,180,180,28); ctx.fill();
+    } else {
+      ctx.fillRect(0, 0, 180, 180);
+    }
+    ctx.fillStyle = '#4ade80';
+    ctx.fillRect(18, 148, 144, 6);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 70px "Bebas Neue", sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('1UP', 90, 86);
+    const url = canvas.toDataURL('image/png');
+    [['icon','image/png'], ['apple-touch-icon','']].forEach(([rel, type]) => {
+      const l = document.createElement('link');
+      l.rel = rel; if (type) l.type = type; l.href = url;
+      document.head.appendChild(l);
+    });
+  } catch(e) { /* non-critical, skip favicon */ }
 }
 
 function showImport() {
@@ -1675,4 +1685,48 @@ async function restoreBackup(event) {
     games = g; statusMap = s;
     statusEl.textContent = `✓ Restored ${backup.games.length} games.`;
     setTimeout(openApp, 1200);
-  } catch(e) { statusEl.textContent = '⚠ Restore fai
+  } catch(e) { statusEl.textContent = '⚠ Restore failed: ' + e.message; }
+}
+
+async function resetAllStatus() {
+  if (!confirm('Reset ALL games to Unplayed? This clears every completion status and cannot be undone.')) return;
+  if (!confirm('Are you sure? All progress will be permanently deleted.')) return;
+  try {
+    const ids = [...statusMap.keys()];
+    for (const id of ids) await sbFetch(`game_status?game_id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' });
+    statusMap.clear();
+    updateStats(); applyFilters();
+    document.getElementById('danger-section').style.display = 'none';
+    alert('Done — all games reset to Unplayed.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── PROGRESS ───────────────────────────────────────────────────────────────
+function showProgress(title, sub) {
+  document.getElementById('progress-title').textContent = title;
+  document.getElementById('progress-sub').textContent = sub;
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('progress-overlay').classList.add('active');
+}
+function setProgress(sub, pct) {
+  document.getElementById('progress-sub').textContent = sub;
+  document.getElementById('progress-fill').style.width = `${Math.min(pct,100)}%`;
+}
+function hideProgress() { document.getElementById('progress-overlay').classList.remove('active'); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── BOOT ───────────────────────────────────────────────────────────────────
+(function boot() {
+  const stored = localStorage.getItem(HASH_KEY);
+  if (stored && parseInt(stored) === PASS_HASH) {
+    document.getElementById('gate').style.display = 'none';
+    init().catch(e => {
+      document.getElementById('gate').style.display = '';
+      document.getElementById('gate-error').textContent = 'Session error — please log in again.';
+      localStorage.removeItem(HASH_KEY);
+    });
+  }
+})();
+</script>
+</body>
+</html>
