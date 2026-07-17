@@ -499,7 +499,8 @@ let rawgKey = '';
 async function sbFetch(path, opts = {}) {
   const res = await fetch(`${SB_URL}/rest/v1/${path}`, { ...opts, headers: { ...SB_HDR, ...(opts.headers||{}) } });
   if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`);
-  return res.status === 204 ? null : res.json();
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 async function sbLoadAll(path) {
   let offset = 0, all = [];
