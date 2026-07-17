@@ -443,6 +443,7 @@
       <button class="platform-toggle" data-platform="PlayStation" onclick="togglePlatformFix(this)">PlayStation</button>
       <button class="platform-toggle" data-platform="Xbox" onclick="togglePlatformFix(this)">Xbox</button>
       <button class="platform-toggle" data-platform="Switch" onclick="togglePlatformFix(this)">Switch</button>
+      <button class="platform-toggle" data-platform="PC" onclick="togglePlatformFix(this)">PC</button>
       <button class="platform-toggle" data-platform="Steam" onclick="togglePlatformFix(this)">Steam</button>
       <button class="platform-toggle" data-platform="Epic" onclick="togglePlatformFix(this)">Epic</button>
       <button class="platform-toggle" data-platform="UFO 50" onclick="togglePlatformFix(this)">UFO 50</button>
@@ -504,7 +505,7 @@
     <option value="">— Set Platform —</option>
     <option value="PlayStation">PlayStation</option><option value="Xbox">Xbox</option>
     <option value="Switch">Switch</option><option value="Steam">Steam</option>
-    <option value="Epic">Epic</option><option value="UFO 50">UFO 50</option>
+    <option value="PC">PC</option><option value="Epic">Epic</option><option value="UFO 50">UFO 50</option>
   </select>
   <input type="number" id="bulk-year-beaten" class="header-select" placeholder="Year Beaten" min="1970" max="2099" style="width:108px">
   <button class="btn btn-accent" onclick="saveBulkEdit()" style="font-size:.7rem;padding:7px 12px">Apply</button>
@@ -528,12 +529,13 @@ const HASH_KEY = 'up1_auth';
 const PASS_HASH = 90161058; // "paddington"
 
 const PLATFORM_CONFIG = {
-  'PlayStation':{ abbr:'PS',   cls:'plat-ps'    },
-  'Xbox':       { abbr:'XBOX', cls:'plat-xbox'  },
-  'Switch':     { abbr:'NSW',  cls:'plat-switch' },
-  'Steam':      { abbr:'STEAM', cls:'plat-steam'  },
-  'Epic':       { abbr:'EPIC', cls:'plat-epic'   },
-  'UFO 50':     { abbr:'UFO',  cls:'plat-ufo50'  },
+  'PlayStation':{ abbr:'PS',    cls:'plat-ps'     },
+  'Xbox':       { abbr:'XBOX',  cls:'plat-xbox'   },
+  'Switch':     { abbr:'NSW',   cls:'plat-switch'  },
+  'Steam':      { abbr:'STEAM', cls:'plat-steam'   },
+  'PC':         { abbr:'STEAM', cls:'plat-steam'   },
+  'Epic':       { abbr:'EPIC',  cls:'plat-epic'    },
+  'UFO 50':     { abbr:'UFO',   cls:'plat-ufo50'   },
 };
 // Normalize variant platform names → canonical
 const PLATFORM_ALIASES = {
@@ -988,7 +990,8 @@ function renderGrid(list) {
     const cover=game.customCover||game.cover;
     const title=game.displayTitle||game.title;
     const status=getGameStatus(game.id);
-    const platBadges=(game.userPlatforms||[]).map(p=>platBadgeHTML(p)).join('');
+    const _seenNorm=new Set();
+    const platBadges=(game.userPlatforms||[]).filter(p=>{const n=normalPlatform(p);return _seenNorm.has(n)?false:(_seenNorm.add(n),true);}).map(p=>platBadgeHTML(p)).join('');
     const imgHTML=cover
       ? `<img class="card-cover" src="${escHtml(cover)}" alt="${escHtml(title)}" loading="lazy" onerror="this.outerHTML='<div class=\\'card-cover-placeholder\\'>🎮</div>'">`
       : `<div class="card-cover-placeholder">🎮</div>`;
@@ -1142,7 +1145,7 @@ async function saveBulkEdit() {
   const toUpdate=games.filter(g=>selectedIds.has(String(g.id)));
   if (platVal||ybVal) {
     toUpdate.forEach(g=>{
-      if(platVal&&!g.userPlatforms.includes(platVal)) g.userPlatforms.push(platVal);
+      if(platVal) g.userPlatforms=[platVal];
       if(ybVal) g.yearBeaten=ybVal;
     });
     await sbFetch('games',{method:'POST',headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(toUpdate.map(g=>({id:String(g.id),data:g,updated_at:new Date().toISOString()})))});
