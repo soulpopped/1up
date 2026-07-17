@@ -94,7 +94,7 @@
   .app-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.12em;color:var(--accent);cursor:pointer;flex-shrink:0;line-height:1}
   .header-stats{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);flex:1}
   .header-btns{display:flex;gap:6px;align-items:center}
-  .icon-btn{background:none;border:1px solid var(--border);border-radius:2px;color:var(--text-muted);cursor:pointer;padding:4px 8px;font-size:.72rem;transition:all .15s;white-space:nowrap;font-family:inherit}
+  .icon-btn{background:none;border:1px solid var(--border);border-radius:2px;color:var(--text-muted);cursor:pointer;padding:8px 16px;font-size:.88rem;transition:all .15s;white-space:nowrap;font-family:inherit}
   .icon-btn:hover{border-color:var(--text-muted);color:var(--text)}
   /* compact row 2: all controls inline */
   .header-row2{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
@@ -107,8 +107,6 @@
   .status-pill.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
   .status-pill[data-status="playing"].active{border-color:var(--s-playing);color:var(--s-playing);background:rgba(74,222,128,.12)}
   .status-pill[data-status="completed"].active{border-color:var(--s-completed);color:var(--s-completed);background:rgba(96,165,250,.12)}
-  .status-pill[data-status="100percent"].active{border-color:var(--s-100);color:var(--s-100);background:rgba(251,191,36,.12)}
-  .status-pill[data-status="dropped"].active{border-color:var(--s-dropped);color:var(--s-dropped);background:rgba(248,113,113,.12)}
 
   /* GRID — landscape 16/9 cards */
   #grid-wrap{padding-top:calc(var(--header-height) + var(--safe-top) + 8px)}
@@ -207,12 +205,12 @@
   .bulk-count{font-size:.72rem;color:var(--text-muted);flex:1}
 
   /* PLATFORM COLOURS */
-  .plat-ps   {background:rgba(0,112,209,.2);color:#60a5fa}
-  .plat-xbox {background:rgba(16,124,16,.2);color:#4ade80}
-  .plat-switch{background:rgba(228,0,15,.2);color:#f87171}
-  .plat-steam{background:rgba(27,40,56,.55);color:#c7d5e0}
-  .plat-epic {background:rgba(180,180,180,.12);color:#aaa}
-  .plat-ufo50{background:rgba(192,132,252,.2);color:#c084fc}
+  .plat-ps    {background:rgba(0,90,190,.75);color:#fff}
+  .plat-xbox  {background:rgba(16,124,16,.75);color:#fff}
+  .plat-switch{background:rgba(200,0,12,.75);color:#fff}
+  .plat-steam {background:rgba(27,40,56,.92);color:#c7d5e0}
+  .plat-epic  {background:rgba(70,70,70,.8);color:#fff}
+  .plat-ufo50 {background:rgba(110,50,190,.75);color:#fff}
 
   @media(max-width:600px){
     #game-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
@@ -385,8 +383,6 @@
         <button class="status-pill" data-status="unplayed" onclick="setStatusFilter('unplayed',this)">Unplayed</button>
         <button class="status-pill" data-status="playing" onclick="setStatusFilter('playing',this)">Playing</button>
         <button class="status-pill" data-status="completed" onclick="setStatusFilter('completed',this)">Completed</button>
-        <button class="status-pill" data-status="100percent" onclick="setStatusFilter('100percent',this)">100%</button>
-        <button class="status-pill" data-status="dropped" onclick="setStatusFilter('dropped',this)">Dropped</button>
       </div>
     </div>
   </div>
@@ -486,8 +482,7 @@
   <select id="bulk-status-select" class="header-select">
     <option value="">— Set Status —</option>
     <option value="unplayed">Unplayed</option><option value="playing">Playing</option>
-    <option value="completed">Completed</option><option value="100percent">100%</option>
-    <option value="dropped">Dropped</option>
+    <option value="completed">Completed</option>
   </select>
   <select id="bulk-platform-select" class="header-select">
     <option value="">— Set Platform —</option>
@@ -531,11 +526,9 @@ const PLATFORM_ALIASES = {
 };
 function normalPlatform(p) { return PLATFORM_ALIASES[p] || p; }
 const STATUS_CONFIG = {
-  unplayed:    { label:'Unplayed',  icon:''  },
-  playing:     { label:'Playing',   icon:'▶', dotClass:'playing'    },
-  completed:   { label:'Completed', icon:'✓', dotClass:'completed'  },
-  '100percent':{ label:'100%',      icon:'★', dotClass:'100percent' },
-  dropped:     { label:'Dropped',   icon:'✕', dotClass:'dropped'    },
+  unplayed:  { label:'Unplayed',  icon:''  },
+  playing:   { label:'Playing',   icon:'▶', dotClass:'playing'   },
+  completed: { label:'Completed', icon:'✓', dotClass:'completed' },
 };
 
 // ── STATE ──────────────────────────────────────────────────────────────────────
@@ -967,7 +960,7 @@ function renderGrid(list) {
       ? `<img class="card-cover" src="${escHtml(cover)}" alt="${escHtml(title)}" loading="lazy" onerror="this.outerHTML='<div class=\\'card-cover-placeholder\\'>🎮</div>'">`
       : `<div class="card-cover-placeholder">🎮</div>`;
     const clickFn=selectionMode?`toggleCardSelection('${escJs(String(game.id))}')`:`openModalById('${escJs(String(game.id))}')`;
-    return `<div class="game-card ${game.notFound?'not-found-card':''} ${selectionMode&&selectedIds.has(String(game.id))?'selected-card':''}" onclick="${clickFn}" data-id="${escHtml(String(game.id))}">
+    return `<div class="game-card ${(game.notFound&&!game.customCover&&!game.cover)?'not-found-card':''} ${selectionMode&&selectedIds.has(String(game.id))?'selected-card':''}" onclick="${clickFn}" data-id="${escHtml(String(game.id))}">
       <div class="card-img-wrap">
         ${imgHTML}
         ${statusDotHTML(status)}
@@ -979,9 +972,15 @@ function renderGrid(list) {
   }).join('');
 }
 function updateStats() {
-  const completed=[...statusMap.values()].filter(s=>s==='completed'||s==='100percent').length;
+  const counts={all:games.length,unplayed:0,playing:0,completed:0};
+  games.forEach(g=>{const s=getGameStatus(g.id);if(counts[s]!==undefined)counts[s]++;});
+  document.querySelectorAll('.status-pill').forEach(pill=>{
+    const s=pill.dataset.status;
+    const label=s==='all'?'All':(STATUS_CONFIG[s]?.label||s);
+    pill.textContent=`${label} ${counts[s]??0}`;
+  });
   const el=document.getElementById('header-stats');
-  if(el) el.textContent=`${games.length} games · ${completed} completed`;
+  if(el) el.textContent='';
 }
 function setStatusFilter(status,btn) {
   currentStatusFilter=status;
@@ -1199,7 +1198,7 @@ async function applyArtUrl() {
   const url=document.getElementById('fix-art-url').value.trim();
   if (!url) { setFixStatus('Paste an image URL first.',true); return; }
   const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
-  games[i].customCover=url;
+  games[i].customCover=url; games[i].notFound=false;
   try {
     await sbSaveGame(games[i]);
     document.getElementById('fix-art-status').textContent='✓ Cover updated';
@@ -1220,7 +1219,7 @@ async function uploadCustomCover(event) {
     if(!res.ok) throw new Error('Upload failed');
     const url=`${SB_URL}/storage/v1/object/public/shelf-posters/${path}?t=${Date.now()}`;
     const i=games.findIndex(g=>g.id===fixTargetId);
-    if(i>=0){ games[i].customCover=url; await sbSaveGame(games[i]); applyFilters(); }
+    if(i>=0){ games[i].customCover=url; games[i].notFound=false; await sbSaveGame(games[i]); applyFilters(); }
     document.getElementById('fix-art-remove-btn').style.display='';
     statusEl.textContent='✓ Custom cover uploaded';
   } catch(e) { statusEl.textContent='⚠ '+e.message; }
