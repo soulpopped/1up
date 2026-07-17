@@ -12,200 +12,212 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a0a; --surface: #111111; --surface2: #1a1a1a; --border: #2a2a2a;
-    --text: #e8e8e8; --text-muted: #888; --text-dim: #555;
-    --accent: #4ade80; --accent-dim: rgba(74,222,128,0.12);
-    --danger: #c0392b;
-    --s-playing: #4ade80; --s-completed: #60a5fa; --s-100: #fbbf24; --s-dropped: #f87171;
-    --header-height: 60px; --safe-top: env(safe-area-inset-top, 0px);
+    --bg:#0a0a0a; --surface:#111; --surface2:#1a1a1a; --border:#2a2a2a;
+    --text:#e8e8e8; --text-muted:#888; --text-dim:#555;
+    --accent:#4ade80; --accent-dim:rgba(74,222,128,0.12);
+    --danger:#c0392b;
+    --s-playing:#4ade80; --s-completed:#60a5fa; --s-100:#fbbf24; --s-dropped:#f87171;
+    --header-height:96px; --safe-top:env(safe-area-inset-top,0px);
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
 
   /* GATE */
-  #gate { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg); padding: 24px; }
-  .gate-box { width: 100%; max-width: 340px; text-align: center; }
-  .gate-logo { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 6px; }
-  .gate-sub { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 32px; }
-  .gate-input { width: 100%; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 2px; color: var(--text); font-family: inherit; font-size: 1rem; text-align: center; letter-spacing: 0.2em; outline: none; transition: border-color 0.2s; }
-  .gate-input:focus { border-color: var(--accent); }
-  .gate-btn { width: 100%; margin-top: 12px; padding: 14px; background: var(--accent); color: #000; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; border: none; border-radius: 2px; cursor: pointer; transition: opacity 0.15s; }
-  .gate-btn:hover { opacity: 0.88; }
-  .gate-error { font-size: 0.72rem; color: var(--danger); margin-top: 10px; min-height: 18px; }
+  #gate{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);padding:24px}
+  .gate-box{width:100%;max-width:340px;text-align:center}
+  .gate-logo{font-family:'Bebas Neue',sans-serif;font-size:4rem;letter-spacing:.12em;color:var(--accent);margin-bottom:6px}
+  .gate-sub{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:32px}
+  .gate-input{width:100%;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:inherit;font-size:1rem;text-align:center;letter-spacing:.2em;outline:none;transition:border-color .2s}
+  .gate-input:focus{border-color:var(--accent)}
+  .gate-btn{width:100%;margin-top:12px;padding:14px;background:var(--accent);color:#000;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;transition:opacity .15s}
+  .gate-btn:hover{opacity:.88}
+  .gate-error{font-size:.72rem;color:var(--danger);margin-top:10px;min-height:18px}
 
   /* IMPORT PANEL */
-  #import-panel { display: none; min-height: 100vh; background: var(--bg); padding: calc(var(--safe-top) + 32px) 24px 60px; max-width: 640px; margin: 0 auto; }
-  .import-logo { font-family: 'Bebas Neue', sans-serif; font-size: 3.2rem; letter-spacing: 0.12em; color: var(--accent); }
-  .import-tagline { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 32px; }
-  .import-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
-  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 12px 20px; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; border-radius: 2px; transition: all 0.15s; white-space: nowrap; }
-  .btn:hover { border-color: var(--text-muted); color: var(--text); }
-  .btn-accent { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
-  .btn-accent:hover { opacity: 0.88; color: #000; border-color: var(--accent); }
-  .btn-danger { background: transparent; border-color: var(--danger); color: var(--danger); }
-  .btn-danger:hover { background: rgba(192,57,43,0.08); }
-  .section-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-dim); margin-bottom: 10px; }
-  label { display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 5px; letter-spacing: 0.05em; }
-  input[type=text], input[type=password], select, textarea { width: 100%; padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 2px; color: var(--text); font-family: inherit; font-size: 0.85rem; outline: none; transition: border-color 0.2s; }
-  input[type=text]:focus, input[type=password]:focus, select:focus, textarea:focus { border-color: var(--accent); }
-  select option { background: var(--surface2); }
+  #import-panel{display:none;min-height:100vh;background:var(--bg);padding:calc(var(--safe-top) + 32px) 24px 60px;max-width:640px;margin:0 auto}
+  .import-logo{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;letter-spacing:.12em;color:var(--accent)}
+  .import-tagline{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:32px}
+  .import-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:12px 20px;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;border-radius:2px;transition:all .15s;white-space:nowrap}
+  .btn:hover{border-color:var(--text-muted);color:var(--text)}
+  .btn-accent{background:var(--accent);color:#000;border-color:var(--accent);font-weight:700}
+  .btn-accent:hover{opacity:.88;color:#000;border-color:var(--accent)}
+  .btn-danger{background:transparent;border-color:var(--danger);color:var(--danger)}
+  .btn-danger:hover{background:rgba(192,57,43,.08)}
+  .section-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.2em;color:var(--text-dim);margin-bottom:10px}
+  label{display:block;font-size:.72rem;color:var(--text-muted);margin-bottom:5px;letter-spacing:.05em}
+  input[type=text],input[type=password],select,textarea{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:inherit;font-size:.85rem;outline:none;transition:border-color .2s}
+  input[type=text]:focus,input[type=password]:focus,select:focus,textarea:focus{border-color:var(--accent)}
+  select option{background:var(--surface2)}
 
-  /* tabs */
-  .tab-bar { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-  .tab-btn { padding: 8px 16px; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.15s; margin-bottom: -1px; }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab-pane { display: none; }
-  .tab-pane.active { display: block; }
+  /* TABS */
+  .tab-bar{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px}
+  .tab-btn{padding:8px 16px;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;margin-bottom:-1px}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tab-pane{display:none}
+  .tab-pane.active{display:block}
 
-  /* add form */
-  .add-form-group { margin-bottom: 14px; }
-  .add-form-label { font-size: 0.68rem; color: var(--text-dim); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.1em; }
-  .add-platform-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-  .platform-toggle { padding: 4px 10px; border: 1px solid var(--border); border-radius: 2px; font-size: 0.68rem; color: var(--text-dim); cursor: pointer; background: none; font-family: inherit; transition: all 0.15s; }
-  .platform-toggle.active { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+  /* ADD FORM */
+  .add-form-group{margin-bottom:14px}
+  .add-form-label{font-size:.68rem;color:var(--text-dim);margin-bottom:5px;text-transform:uppercase;letter-spacing:.1em}
+  .add-platform-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .platform-toggle{padding:4px 10px;border:1px solid var(--border);border-radius:2px;font-size:.68rem;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s}
+  .platform-toggle.active{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
 
-  /* search results */
-  #search-results { display: none; margin-top: 10px; }
-  .search-result { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border: 1px solid var(--border); border-radius: 2px; cursor: pointer; transition: all 0.15s; margin-bottom: 8px; background: var(--surface2); }
-  .search-result:hover { border-color: var(--accent); background: var(--accent-dim); }
-  .search-result.selected { border-color: var(--accent); background: var(--accent-dim); }
-  .search-result-cover { width: 40px; flex-shrink: 0; }
-  .search-result-cover img { width: 40px; height: 56px; object-fit: cover; border-radius: 1px; display: block; }
-  .search-result-cover .no-cover { width: 40px; height: 56px; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--text-dim); background: var(--border); border-radius: 1px; }
-  .search-result-info { flex: 1; }
-  .search-result-title { font-family: 'DM Serif Display', serif; font-size: 0.88rem; color: var(--text); margin-bottom: 3px; }
-  .search-result-meta { font-size: 0.68rem; color: var(--text-muted); }
+  /* SEARCH RESULTS */
+  #search-results{display:none;margin-top:10px}
+  .search-result{display:flex;gap:12px;align-items:flex-start;padding:10px;border:1px solid var(--border);border-radius:2px;cursor:pointer;transition:all .15s;margin-bottom:8px;background:var(--surface2)}
+  .search-result:hover,.search-result.selected{border-color:var(--accent);background:var(--accent-dim)}
+  .search-result-cover{width:40px;flex-shrink:0}
+  .search-result-cover img{width:40px;height:56px;object-fit:cover;border-radius:1px;display:block}
+  .search-result-cover .no-cover{width:40px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--text-dim);background:var(--border);border-radius:1px}
+  .search-result-info{flex:1}
+  .search-result-title{font-family:'DM Serif Display',serif;font-size:.88rem;color:var(--text);margin-bottom:3px}
+  .search-result-meta{font-size:.68rem;color:var(--text-muted)}
 
-  /* progress overlay */
-  #progress-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
-  #progress-overlay.active { display: flex; }
-  #progress-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.1em; color: var(--accent); }
-  #progress-sub { font-size: 0.75rem; color: var(--text-muted); max-width: 320px; text-align: center; }
-  #progress-bar { width: 280px; height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
-  #progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+  /* PROGRESS */
+  #progress-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:1000;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+  #progress-overlay.active{display:flex}
+  #progress-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.1em;color:var(--accent)}
+  #progress-sub{font-size:.75rem;color:var(--text-muted);max-width:320px;text-align:center}
+  #progress-bar{width:280px;height:2px;background:var(--border);border-radius:1px;overflow:hidden}
+  #progress-fill{height:100%;background:var(--accent);width:0%;transition:width .3s}
 
   /* MAIN APP */
-  #app { display: none; }
-  #app.active { display: block; }
-  #main-header { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: calc(var(--safe-top) + 10px) 16px 10px; }
-  #main-header.active { display: flex; flex-direction: column; gap: 8px; }
-  .header-row1 { display: flex; align-items: center; gap: 12px; }
-  .app-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.12em; color: var(--accent); cursor: pointer; flex-shrink: 0; line-height: 1; }
-  .header-stats { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); flex: 1; }
-  .header-btns { display: flex; gap: 8px; align-items: center; }
-  .icon-btn { background: none; border: 1px solid var(--border); border-radius: 2px; color: var(--text-muted); cursor: pointer; padding: 5px 8px; font-size: 0.75rem; transition: all 0.15s; white-space: nowrap; }
-  .icon-btn:hover { border-color: var(--text-muted); color: var(--text); }
-  #search-input { flex: 1; padding: 7px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 2px; color: var(--text); font-family: inherit; font-size: 0.8rem; outline: none; min-width: 0; }
-  #search-input:focus { border-color: var(--accent); }
-  .header-row2 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .header-select { padding: 5px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 2px; color: var(--text-muted); font-family: inherit; font-size: 0.68rem; outline: none; cursor: pointer; }
-  .status-pills { display: flex; gap: 5px; flex-wrap: wrap; }
-  .status-pill { padding: 3px 9px; border: 1px solid var(--border); border-radius: 2px; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); cursor: pointer; background: none; font-family: inherit; transition: all 0.15s; }
-  .status-pill:hover { border-color: var(--text-muted); color: var(--text-muted); }
-  .status-pill.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
-  .status-pill[data-status="playing"].active { border-color: var(--s-playing); color: var(--s-playing); background: rgba(74,222,128,0.12); }
-  .status-pill[data-status="completed"].active { border-color: var(--s-completed); color: var(--s-completed); background: rgba(96,165,250,0.12); }
-  .status-pill[data-status="100percent"].active { border-color: var(--s-100); color: var(--s-100); background: rgba(251,191,36,0.12); }
-  .status-pill[data-status="dropped"].active { border-color: var(--s-dropped); color: var(--s-dropped); background: rgba(248,113,113,0.12); }
+  #app{display:none}
+  #app.active{display:block}
 
-  /* grid */
-  #grid-wrap { padding-top: calc(var(--header-height) + var(--safe-top) + 16px); }
-  #game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; padding: 12px 12px 80px; }
-  .game-card { position: relative; cursor: pointer; border-radius: 2px; overflow: hidden; background: var(--surface2); transition: transform 0.15s, box-shadow 0.15s; }
-  .game-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-  .game-card.selected-card { outline: 2px solid var(--accent); }
-  .card-cover { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
-  .card-cover-placeholder { width: 100%; aspect-ratio: 3/4; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--text-dim); }
-  .card-title { padding: 6px 7px 8px; font-size: 0.68rem; line-height: 1.3; color: var(--text-muted); }
-  .status-dot { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
-  .status-dot.playing { background: var(--s-playing); color: #000; }
-  .status-dot.completed { background: var(--s-completed); color: #000; }
-  .status-dot[class*="100"] { background: var(--s-100); color: #000; }
-  .status-dot.dropped { background: var(--s-dropped); color: #000; }
-  .card-platforms { position: absolute; bottom: 0; left: 0; right: 0; padding: 3px 5px 4px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; gap: 3px; flex-wrap: wrap; min-height: 24px; align-items: flex-end; }
-  .plat-badge { font-size: 0.52rem; font-weight: 700; letter-spacing: 0.06em; padding: 1px 4px; border-radius: 1px; text-transform: uppercase; }
-  .not-found-card { opacity: 0.45; }
+  /* HEADER — compact 2-row */
+  #main-header{display:none;position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,10,10,.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:calc(var(--safe-top) + 8px) 14px 8px}
+  #main-header.active{display:flex;flex-direction:column;gap:6px}
+  .header-row1{display:flex;align-items:center;gap:10px}
+  .app-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.12em;color:var(--accent);cursor:pointer;flex-shrink:0;line-height:1}
+  .header-stats{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);flex:1}
+  .header-btns{display:flex;gap:6px;align-items:center}
+  .icon-btn{background:none;border:1px solid var(--border);border-radius:2px;color:var(--text-muted);cursor:pointer;padding:4px 8px;font-size:.72rem;transition:all .15s;white-space:nowrap;font-family:inherit}
+  .icon-btn:hover{border-color:var(--text-muted);color:var(--text)}
+  /* compact row 2: all controls inline */
+  .header-row2{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  #search-input{width:180px;flex-shrink:0;padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:inherit;font-size:.78rem;outline:none}
+  #search-input:focus{border-color:var(--accent)}
+  .header-select{padding:5px 7px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text-muted);font-family:inherit;font-size:.68rem;outline:none;cursor:pointer;max-width:130px}
+  .status-pills{display:flex;gap:4px;flex-wrap:wrap}
+  .status-pill{padding:3px 8px;border:1px solid var(--border);border-radius:2px;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s}
+  .status-pill:hover{border-color:var(--text-muted);color:var(--text-muted)}
+  .status-pill.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+  .status-pill[data-status="playing"].active{border-color:var(--s-playing);color:var(--s-playing);background:rgba(74,222,128,.12)}
+  .status-pill[data-status="completed"].active{border-color:var(--s-completed);color:var(--s-completed);background:rgba(96,165,250,.12)}
+  .status-pill[data-status="100percent"].active{border-color:var(--s-100);color:var(--s-100);background:rgba(251,191,36,.12)}
+  .status-pill[data-status="dropped"].active{border-color:var(--s-dropped);color:var(--s-dropped);background:rgba(248,113,113,.12)}
 
-  /* GAME MODAL */
-  #modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 200; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  #modal-overlay.active { display: flex; align-items: flex-start; justify-content: center; padding: calc(var(--safe-top) + 20px) 12px 40px; }
-  #modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; width: 100%; max-width: 680px; overflow: hidden; position: relative; }
-  .modal-hero { display: flex; }
-  .modal-cover { width: 180px; flex-shrink: 0; object-fit: cover; aspect-ratio: 3/4; display: block; }
-  .modal-cover-placeholder { width: 180px; flex-shrink: 0; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--text-dim); aspect-ratio: 3/4; }
-  .modal-info { flex: 1; padding: 20px 20px 20px 18px; min-width: 0; display: flex; flex-direction: column; }
-  .modal-title { font-family: 'DM Serif Display', serif; font-size: 1.4rem; line-height: 1.2; color: var(--text); margin-bottom: 4px; }
-  .modal-sub { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 10px; }
-  .modal-platforms { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
-  .modal-plat-badge { padding: 3px 8px; border-radius: 2px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; }
-  .modal-meta-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; }
-  .modal-meta-item { display: flex; flex-direction: column; gap: 2px; }
-  .modal-meta-label { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-dim); }
-  .modal-meta-value { font-size: 0.82rem; color: var(--text); }
-  .modal-rating { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--accent); }
-  .modal-genres { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
-  .genre-pill { padding: 2px 8px; border: 1px solid var(--border); border-radius: 2px; font-size: 0.62rem; color: var(--text-dim); letter-spacing: 0.06em; }
-  .hltb-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-  .hltb-item { display: flex; flex-direction: column; gap: 2px; }
-  .hltb-label { font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-dim); }
-  .hltb-value { font-size: 0.82rem; color: var(--text-muted); }
-  .modal-credits { margin-bottom: 10px; font-size: 0.78rem; color: var(--text-muted); }
-  .person-chip { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; transition: color 0.15s; }
-  .person-chip:hover { color: var(--accent); }
-  .modal-overview { font-size: 0.78rem; line-height: 1.6; color: var(--text-muted); font-style: italic; border-top: 1px solid var(--border); padding-top: 10px; margin-top: auto; }
-  .modal-close { position: absolute; top: 10px; right: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; cursor: pointer; color: var(--text-muted); transition: all 0.15s; z-index: 1; }
-  .modal-close:hover { border-color: var(--text-muted); color: var(--text); }
-  .modal-status-row { padding: 14px 18px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; }
-  .status-btn { padding: 7px 14px; border-radius: 2px; border: 1px solid var(--border); font-size: 0.68rem; font-family: inherit; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; background: none; color: var(--text-dim); transition: all 0.15s; }
-  .status-btn:hover { border-color: var(--text-muted); color: var(--text-muted); }
-  .status-btn.active-playing { background: rgba(74,222,128,0.12); border-color: var(--s-playing); color: var(--s-playing); }
-  .status-btn.active-completed { background: rgba(96,165,250,0.12); border-color: var(--s-completed); color: var(--s-completed); }
-  .status-btn.active-100percent { background: rgba(251,191,36,0.12); border-color: var(--s-100); color: var(--s-100); }
-  .status-btn.active-dropped { background: rgba(248,113,113,0.12); border-color: var(--s-dropped); color: var(--s-dropped); }
-  .modal-actions { padding: 10px 18px 16px; display: flex; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--border); }
-  .btn-link { padding: 10px 16px; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; border-radius: 2px; text-decoration: none; display: inline-flex; align-items: center; }
-  .btn-link:hover { border-color: var(--text-muted); color: var(--text); }
+  /* GRID — landscape 16/9 cards */
+  #grid-wrap{padding-top:calc(var(--header-height) + var(--safe-top) + 8px)}
+  #game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;padding:10px 10px 80px}
+  .game-card{position:relative;cursor:pointer;border-radius:2px;overflow:hidden;background:var(--surface2);transition:transform .15s,box-shadow .15s}
+  .game-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+  .game-card.selected-card{outline:2px solid var(--accent)}
+  /* image wrapper keeps badges + fix-btn scoped to image area */
+  .card-img-wrap{position:relative;overflow:hidden}
+  .card-cover{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+  .card-cover-placeholder{width:100%;aspect-ratio:16/9;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:var(--text-dim)}
+  /* fix button — appears on hover */
+  .card-fix-btn{position:absolute;top:6px;left:6px;display:none;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.18);color:#ccc;border-radius:2px;padding:3px 8px;font-size:.6rem;letter-spacing:.08em;cursor:pointer;font-family:inherit;z-index:2;text-transform:uppercase}
+  .game-card:hover .card-fix-btn{display:block}
+  .card-fix-btn:hover{background:rgba(0,0,0,.9);color:#fff}
+  /* status dot */
+  .status-dot{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+  .status-dot.playing{background:var(--s-playing);color:#000}
+  .status-dot.completed{background:var(--s-completed);color:#000}
+  .status-dot[class*="100"]{background:var(--s-100);color:#000}
+  .status-dot.dropped{background:var(--s-dropped);color:#000}
+  /* platform badges overlay bottom of image */
+  .card-platforms{position:absolute;bottom:0;left:0;right:0;padding:3px 5px 4px;background:linear-gradient(transparent,rgba(0,0,0,.88));display:flex;gap:3px;flex-wrap:wrap;min-height:24px;align-items:flex-end}
+  .plat-badge{font-size:.52rem;font-weight:700;letter-spacing:.06em;padding:1px 4px;border-radius:1px;text-transform:uppercase}
+  /* title below image — bigger */
+  .card-title{padding:6px 8px 9px;font-size:.82rem;line-height:1.3;color:var(--text-muted)}
+  .not-found-card{opacity:.45}
+  .empty-state{text-align:center;padding:80px 24px;color:var(--text-dim);grid-column:1/-1}
+  .empty-state h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.1em;margin-bottom:8px}
+  .count-line{font-size:.7rem;color:var(--text-dim);padding:0 12px 4px}
+
+  /* GAME MODAL — landscape banner hero */
+  #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  #modal-overlay.active{display:flex;align-items:flex-start;justify-content:center;padding:calc(var(--safe-top) + 20px) 12px 40px}
+  #modal-content{background:var(--surface);border:1px solid var(--border);border-radius:4px;width:100%;max-width:820px;overflow:hidden;position:relative}
+  /* banner */
+  .modal-banner{position:relative}
+  .modal-banner-img{width:100%;max-height:280px;object-fit:cover;display:block}
+  .modal-banner-overlay{position:absolute;bottom:0;left:0;right:0;padding:32px 20px 16px;background:linear-gradient(transparent,rgba(0,0,0,.92))}
+  .modal-banner-empty{padding:24px 20px 16px;background:var(--surface2);min-height:72px;display:flex;align-items:flex-end}
+  .modal-title{font-family:'DM Serif Display',serif;font-size:1.7rem;line-height:1.2;color:#fff;margin-bottom:3px}
+  .modal-sub{font-size:.78rem;color:rgba(255,255,255,.6)}
+  /* body */
+  .modal-body{padding:14px 20px 4px}
+  .modal-platforms{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+  .modal-plat-badge{padding:3px 8px;border-radius:2px;font-size:.68rem;font-weight:700;letter-spacing:.06em}
+  .modal-meta-row{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:10px}
+  .modal-meta-item{display:flex;flex-direction:column;gap:2px}
+  .modal-meta-label{font-size:.58rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-dim)}
+  .modal-meta-value{font-size:.85rem;color:var(--text)}
+  .modal-rating{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--accent)}
+  .modal-genres{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+  .genre-pill{padding:2px 8px;border:1px solid var(--border);border-radius:2px;font-size:.62rem;color:var(--text-dim);letter-spacing:.06em}
+  .hltb-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .hltb-item{display:flex;flex-direction:column;gap:2px}
+  .hltb-label{font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim)}
+  .hltb-value{font-size:.82rem;color:var(--text-muted)}
+  .modal-credits{margin-bottom:10px;font-size:.8rem;color:var(--text-muted)}
+  .person-chip{background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;transition:color .15s}
+  .person-chip:hover{color:var(--accent)}
+  .modal-overview{font-size:.78rem;line-height:1.6;color:var(--text-muted);font-style:italic;border-top:1px solid var(--border);padding-top:10px;margin-top:4px;margin-bottom:4px}
+  .modal-close{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;color:#ccc;transition:all .15s;z-index:1}
+  .modal-close:hover{background:rgba(0,0,0,.8);color:#fff}
+  .modal-status-row{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:7px;flex-wrap:wrap}
+  .status-btn{padding:6px 13px;border-radius:2px;border:1px solid var(--border);font-size:.68rem;font-family:inherit;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:none;color:var(--text-dim);transition:all .15s}
+  .status-btn:hover{border-color:var(--text-muted);color:var(--text-muted)}
+  .status-btn.active-playing{background:rgba(74,222,128,.12);border-color:var(--s-playing);color:var(--s-playing)}
+  .status-btn.active-completed{background:rgba(96,165,250,.12);border-color:var(--s-completed);color:var(--s-completed)}
+  .status-btn.active-100percent{background:rgba(251,191,36,.12);border-color:var(--s-100);color:var(--s-100)}
+  .status-btn.active-dropped{background:rgba(248,113,113,.12);border-color:var(--s-dropped);color:var(--s-dropped)}
+  .modal-actions{padding:10px 18px 16px;display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border)}
+  .btn-link{padding:9px 14px;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;border-radius:2px;text-decoration:none;display:inline-flex;align-items:center}
+  .btn-link:hover{border-color:var(--text-muted);color:var(--text)}
 
   /* FIX MODAL */
-  #fix-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; overflow-y: auto; }
-  #fix-overlay.active { display: flex; align-items: flex-start; justify-content: center; padding: 40px 12px; }
-  #fix-content { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; width: 100%; max-width: 540px; padding: 24px; position: relative; }
-  .fix-title { font-family: 'DM Serif Display', serif; font-size: 1.1rem; margin-bottom: 4px; }
-  .fix-sub { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 20px; }
-  .fix-section-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.18em; color: var(--text-dim); margin-bottom: 8px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; }
-  .fix-row { display: flex; gap: 10px; margin-bottom: 10px; }
-  .fix-status { font-size: 0.72rem; color: var(--text-muted); margin-top: 8px; min-height: 18px; }
+  #fix-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;overflow-y:auto}
+  #fix-overlay.active{display:flex;align-items:flex-start;justify-content:center;padding:40px 12px}
+  #fix-content{background:var(--surface);border:1px solid var(--border);border-radius:4px;width:100%;max-width:540px;padding:24px;position:relative}
+  .fix-title{font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px}
+  .fix-sub{font-size:.7rem;color:var(--text-muted);margin-bottom:20px}
+  .fix-section-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.18em;color:var(--text-dim);margin-bottom:8px;margin-top:20px;border-top:1px solid var(--border);padding-top:16px}
+  .fix-row{display:flex;gap:10px;margin-bottom:10px}
+  .fix-status{font-size:.72rem;color:var(--text-muted);margin-top:8px;min-height:18px}
 
-  /* RANDOM PICKER */
-  #random-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 250; align-items: center; justify-content: center; flex-direction: column; gap: 20px; padding: 24px; }
-  #random-overlay.active { display: flex; }
-  #random-cover { width: 160px; aspect-ratio: 3/4; object-fit: cover; border-radius: 2px; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
-  #random-title { font-family: 'DM Serif Display', serif; font-size: 1.6rem; text-align: center; max-width: 400px; }
-  #random-meta { font-size: 0.72rem; color: var(--text-muted); text-align: center; }
-  .random-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  /* RANDOM */
+  #random-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:250;align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:24px}
+  #random-overlay.active{display:flex}
+  #random-cover{width:280px;aspect-ratio:16/9;object-fit:cover;border-radius:2px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+  #random-title{font-family:'DM Serif Display',serif;font-size:1.6rem;text-align:center;max-width:400px}
+  #random-meta{font-size:.72rem;color:var(--text-muted);text-align:center}
+  .random-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 
   /* BULK BAR */
-  #bulk-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px calc(env(safe-area-inset-bottom,0px) + 12px); z-index: 150; gap: 10px; align-items: center; flex-wrap: wrap; }
-  #bulk-bar.active { display: flex; }
-  .bulk-count { font-size: 0.72rem; color: var(--text-muted); flex: 1; }
+  #bulk-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px);z-index:150;gap:10px;align-items:center;flex-wrap:wrap}
+  #bulk-bar.active{display:flex}
+  .bulk-count{font-size:.72rem;color:var(--text-muted);flex:1}
 
-  /* PLATFORM COLORS */
-  .plat-ps    { background: rgba(0,112,209,0.2); color: #60a5fa; }
-  .plat-xbox  { background: rgba(16,124,16,0.2); color: #4ade80; }
-  .plat-switch{ background: rgba(228,0,15,0.2); color: #f87171; }
-  .plat-steam { background: rgba(163,180,198,0.15); color: #a3b4c6; }
-  .plat-epic  { background: rgba(180,180,180,0.12); color: #aaa; }
-  .plat-ufo50 { background: rgba(192,132,252,0.2); color: #c084fc; }
+  /* PLATFORM COLOURS */
+  .plat-ps   {background:rgba(0,112,209,.2);color:#60a5fa}
+  .plat-xbox {background:rgba(16,124,16,.2);color:#4ade80}
+  .plat-switch{background:rgba(228,0,15,.2);color:#f87171}
+  .plat-steam{background:rgba(163,180,198,.15);color:#a3b4c6}
+  .plat-epic {background:rgba(180,180,180,.12);color:#aaa}
+  .plat-ufo50{background:rgba(192,132,252,.2);color:#c084fc}
 
-  .count-line { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 8px; }
-  .empty-state { text-align: center; padding: 80px 24px; color: var(--text-dim); grid-column: 1/-1; }
-  .empty-state h2 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.1em; margin-bottom: 8px; }
-
-  @media (max-width: 520px) {
-    .modal-hero { flex-direction: column; }
-    .modal-cover, .modal-cover-placeholder { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-    .modal-info { padding: 16px; }
-    #game-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  @media(max-width:600px){
+    #game-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+    .modal-banner-img{max-height:180px}
+    .modal-title{font-size:1.3rem}
   }
 </style>
 </head>
@@ -251,7 +263,7 @@
       <input type="text" id="rawg-search-input" placeholder="Search for a game… e.g. Hades" onkeydown="if(event.key==='Enter')searchRAWGUI()">
       <button class="btn btn-accent" onclick="searchRAWGUI()" style="white-space:nowrap">Search</button>
     </div>
-    <div id="rawg-search-status" style="font-size:0.72rem;color:var(--text-muted);min-height:18px;margin-bottom:6px"></div>
+    <div id="rawg-search-status" style="font-size:.72rem;color:var(--text-muted);min-height:18px;margin-bottom:6px"></div>
     <div id="search-results"></div>
     <div id="add-game-form" style="display:none;margin-top:16px">
       <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -259,11 +271,11 @@
         <button class="btn" onclick="addGame(true)">Add &amp; Stay</button>
         <button class="btn" onclick="cancelAddGame()">Cancel</button>
       </div>
-      <div id="add-game-status" style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
+      <div id="add-game-status" style="font-size:.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
     </div>
   </div>
 
-  <!-- Manual Entry tab -->
+  <!-- Manual tab -->
   <div class="tab-pane" id="tab-manual">
     <div class="add-form-group"><label>Title *</label><input type="text" id="manual-title" placeholder="e.g. Asteroids (UFO 50)"></div>
     <div class="add-form-group"><label>Year</label><input type="text" id="manual-year" placeholder="e.g. 2024"></div>
@@ -282,48 +294,47 @@
     <div class="add-form-group"><label>Genre(s) <span style="color:var(--text-dim);font-weight:400">(comma separated)</span></label><input type="text" id="manual-genres" placeholder="e.g. Action, Roguelike"></div>
     <div class="add-form-group"><label>Notes</label><input type="text" id="manual-notes" placeholder="optional"></div>
     <button class="btn btn-accent" onclick="addManualGame()">Add to Collection</button>
-    <div id="manual-status" style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
+    <div id="manual-status" style="font-size:.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
   </div>
 
-  <!-- CSV Import tab -->
+  <!-- CSV tab -->
   <div class="tab-pane" id="tab-csv">
-    <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:14px;line-height:1.6">
-      Import from a CSV. Required columns: <strong>Title</strong> and <strong>Platform</strong>. Optional: <strong>Metacritic</strong>, <strong>HLTBMain</strong>, <strong>HLTBExtra</strong>, <strong>HLTBComplete</strong>.<br>
+    <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:14px;line-height:1.6">
+      Required columns: <strong>Title</strong> and <strong>Platform</strong>. Optional: <strong>Metacritic</strong>, <strong>HLTBMain</strong>, <strong>HLTBExtra</strong>, <strong>HLTBComplete</strong>.<br>
       Each row will be looked up on RAWG automatically. You need a RAWG API key (below) first.
     </div>
     <input type="file" id="csv-file-input" accept=".csv,.txt" onchange="handleCSVFile(event)" style="display:none">
     <button class="btn" onclick="document.getElementById('csv-file-input').click()">📂 Choose CSV File</button>
-    <div id="csv-status" style="font-size:0.72rem;color:var(--text-muted);margin-top:12px;min-height:18px"></div>
+    <div id="csv-status" style="font-size:.72rem;color:var(--text-muted);margin-top:12px;min-height:18px"></div>
   </div>
 
   <!-- Credentials -->
   <div style="margin-top:32px;border-top:1px solid var(--border);padding-top:24px">
     <div class="section-label">RAWG API Key</div>
-    <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:14px;line-height:1.7">
-      RAWG is free — sign up at <strong>rawg.io/apidocs</strong>, click <strong>Get API key</strong>, and paste it below. No secret needed, no expiry.
+    <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:14px;line-height:1.7">
+      Free at <strong>rawg.io/apidocs</strong> — click Get API key, paste below.
     </div>
     <div style="margin-bottom:12px"><label>API Key</label><input type="password" id="rawg-key-input" placeholder="Paste your RAWG API key"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-accent" onclick="saveCredentials()">Save</button>
       <button class="btn" onclick="testCredentials()">Test Connection</button>
     </div>
-    <div id="cred-status" style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
+    <div id="cred-status" style="font-size:.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
   </div>
 
-  <!-- Backup & Restore -->
+  <!-- Backup -->
   <div id="data-section" style="display:none;margin-top:32px;border-top:1px solid var(--border);padding-top:24px">
     <div class="section-label">Backup &amp; Restore</div>
-    <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:10px">Download a full backup or restore from a previous one.</div>
+    <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px">Download a full backup or restore from a previous one.</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn" onclick="downloadBackup()" style="font-size:0.68rem;padding:8px 14px">⬇ Download Backup</button>
-      <button class="btn" onclick="document.getElementById('backup-file-input').click()" style="font-size:0.68rem;padding:8px 14px">⬆ Restore from Backup</button>
+      <button class="btn" onclick="downloadBackup()" style="font-size:.68rem;padding:8px 14px">⬇ Download Backup</button>
+      <button class="btn" onclick="document.getElementById('backup-file-input').click()" style="font-size:.68rem;padding:8px 14px">⬆ Restore from Backup</button>
       <input type="file" id="backup-file-input" accept=".json" style="display:none" onchange="restoreBackup(event)">
     </div>
-    <div id="backup-status" style="font-size:0.7rem;color:var(--text-muted);min-height:18px;margin-top:8px;font-style:italic"></div>
+    <div id="backup-status" style="font-size:.7rem;color:var(--text-muted);min-height:18px;margin-top:8px;font-style:italic"></div>
     <div id="danger-section" style="display:none;margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
       <div class="section-label">Danger Zone</div>
-      <button class="btn-danger" onclick="resetAllStatus()" style="width:auto;padding:8px 14px;font-size:0.68rem">↺ Reset All Progress to Unplayed</button>
-      <div style="font-size:0.7rem;color:var(--text-dim);font-style:italic;margin-top:7px">Clears every completion status.</div>
+      <button class="btn-danger" onclick="resetAllStatus()" style="width:auto;padding:8px 14px;font-size:.68rem">↺ Reset All Progress to Unplayed</button>
     </div>
   </div>
 </div>
@@ -331,6 +342,7 @@
 <!-- MAIN APP -->
 <div id="app">
   <div id="main-header">
+    <!-- row 1: logo + stats + buttons -->
     <div class="header-row1">
       <span class="app-title" onclick="showImportPanel()">1UP</span>
       <span class="header-stats" id="header-stats"></span>
@@ -340,16 +352,19 @@
         <button class="icon-btn" onclick="showImportPanel()">+ Add</button>
       </div>
     </div>
+    <!-- row 2: all filters inline -->
     <div class="header-row2">
-      <input type="text" id="search-input" placeholder="Search games, developers…" oninput="applyFilters()">
+      <input type="text" id="search-input" placeholder="Search…" oninput="applyFilters()">
       <select class="header-select" id="filter-genre" onchange="applyFilters()"><option value="">All Genres</option></select>
+      <select class="header-select" id="filter-platform" onchange="applyFilters()"><option value="">All Platforms</option></select>
       <select class="header-select" id="sort-select" onchange="changeSortOrder()">
-        <option value="title">A–Z</option><option value="title-desc">Z–A</option>
-        <option value="year">Year ↑</option><option value="year-desc">Year ↓</option>
-        <option value="rating">Rating ↓</option><option value="added">Recently Added</option>
+        <option value="title">A–Z</option>
+        <option value="title-desc">Z–A</option>
+        <option value="year">Year ↑</option>
+        <option value="year-desc">Year ↓</option>
+        <option value="rating">Rating ↓</option>
+        <option value="added">Recently Added</option>
       </select>
-    </div>
-    <div class="header-row2">
       <div class="status-pills">
         <button class="status-pill active" data-status="all" onclick="setStatusFilter('all',this)">All</button>
         <button class="status-pill" data-status="unplayed" onclick="setStatusFilter('unplayed',this)">Unplayed</button>
@@ -358,11 +373,10 @@
         <button class="status-pill" data-status="100percent" onclick="setStatusFilter('100percent',this)">100%</button>
         <button class="status-pill" data-status="dropped" onclick="setStatusFilter('dropped',this)">Dropped</button>
       </div>
-      <select class="header-select" id="filter-platform" onchange="applyFilters()"><option value="">All Platforms</option></select>
     </div>
   </div>
   <div id="grid-wrap">
-    <div id="count-line" class="count-line" style="padding:0 14px 4px"></div>
+    <div id="count-line" class="count-line"></div>
     <div id="game-grid"></div>
   </div>
 </div>
@@ -382,27 +396,33 @@
     <div class="fix-section-label">Display &amp; Sort Title</div>
     <div class="fix-row"><div style="flex:1"><label>Display title</label><input type="text" id="fix-display-title" placeholder="Shown in grid &amp; modal"></div></div>
     <div class="fix-row"><div style="flex:1"><label>Sort title</label><input type="text" id="fix-sort-title" placeholder="Used for A–Z sort only"></div></div>
-    <button class="btn" onclick="saveTitleOverrides()" style="font-size:0.68rem;padding:7px 14px">Save Title Overrides</button>
+    <button class="btn" onclick="saveTitleOverrides()" style="font-size:.68rem;padding:7px 14px">Save Title Overrides</button>
 
     <div class="fix-section-label">Re-fetch from RAWG</div>
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <input type="text" id="fix-title-input" placeholder="Search title">
-      <button class="btn btn-accent" onclick="fixRefetchByTitle()" style="white-space:nowrap;font-size:0.7rem;padding:8px 12px">Search</button>
+      <button class="btn btn-accent" onclick="fixRefetchByTitle()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px">Search</button>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <input type="text" id="fix-rawgid-input" placeholder="RAWG Game ID (e.g. 3498)">
-      <button class="btn btn-accent" onclick="fixRefetchById()" style="white-space:nowrap;font-size:0.7rem;padding:8px 12px">Fetch</button>
+      <button class="btn btn-accent" onclick="fixRefetchById()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px">Fetch</button>
     </div>
     <div id="fix-refetch-results" style="margin-bottom:10px"></div>
 
-    <div class="fix-section-label">Custom Cover Art</div>
-    <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:10px">Upload your own art for games with missing or wrong covers.</div>
+    <div class="fix-section-label">Cover Art</div>
+    <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px">Paste a direct image URL or upload a file.</div>
+    <!-- URL paste -->
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <input type="text" id="fix-art-url" placeholder="https://… direct image URL">
+      <button class="btn btn-accent" onclick="applyArtUrl()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px">Apply URL</button>
+    </div>
+    <!-- File upload -->
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" onclick="document.getElementById('fix-art-file').click()" style="font-size:0.7rem;padding:8px 12px">📷 Upload Image</button>
-      <button class="btn" id="fix-art-remove-btn" onclick="removeCustomCover()" style="display:none;font-size:0.7rem;padding:8px 12px">✕ Remove Custom Art</button>
+      <button class="btn" onclick="document.getElementById('fix-art-file').click()" style="font-size:.7rem;padding:8px 12px">📷 Upload File</button>
+      <button class="btn" id="fix-art-remove-btn" onclick="removeCustomCover()" style="display:none;font-size:.7rem;padding:8px 12px">✕ Remove Custom Art</button>
     </div>
     <input type="file" id="fix-art-file" accept="image/*" style="display:none" onchange="uploadCustomCover(event)">
-    <div id="fix-art-status" style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
+    <div id="fix-art-status" style="font-size:.7rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
 
     <div class="fix-section-label">Platforms</div>
     <div class="add-platform-chips" id="fix-platform-chips">
@@ -413,10 +433,10 @@
       <button class="platform-toggle" data-platform="Epic" onclick="togglePlatformFix(this)">Epic</button>
       <button class="platform-toggle" data-platform="UFO 50" onclick="togglePlatformFix(this)">UFO 50</button>
     </div>
-    <button class="btn btn-accent" onclick="savePlatformsFix()" style="margin-top:10px;font-size:0.7rem;padding:8px 12px">Save Platforms</button>
+    <button class="btn btn-accent" onclick="savePlatformsFix()" style="margin-top:10px;font-size:.7rem;padding:8px 12px">Save Platforms</button>
 
     <div class="fix-section-label" style="color:var(--danger)">Remove Game</div>
-    <button class="btn-danger" onclick="deleteGame()" style="width:auto;padding:8px 14px;font-size:0.68rem">🗑 Remove from Collection</button>
+    <button class="btn-danger" onclick="deleteGame()" style="width:auto;padding:8px 14px;font-size:.68rem">🗑 Remove from Collection</button>
     <div class="fix-status" id="fix-status"></div>
   </div>
 </div>
@@ -424,7 +444,7 @@
 <!-- RANDOM PICKER -->
 <div id="random-overlay">
   <img id="random-cover" src="" alt="" style="display:none">
-  <div id="random-cover-placeholder" style="width:160px;aspect-ratio:3/4;background:var(--surface2);border-radius:2px;display:none;align-items:center;justify-content:center;font-size:3rem;color:var(--text-dim)">🎮</div>
+  <div id="random-cover-placeholder" style="width:280px;aspect-ratio:16/9;background:var(--surface2);border-radius:2px;display:none;align-items:center;justify-content:center;font-size:3rem;color:var(--text-dim)">🎮</div>
   <div id="random-title"></div>
   <div id="random-meta"></div>
   <div class="random-btns">
@@ -449,8 +469,8 @@
     <option value="Switch">Switch</option><option value="Steam">Steam</option>
     <option value="Epic">Epic</option><option value="UFO 50">UFO 50</option>
   </select>
-  <button class="btn btn-accent" onclick="saveBulkEdit()" style="font-size:0.7rem;padding:7px 12px">Apply</button>
-  <button class="btn" onclick="exitSelectionMode()" style="font-size:0.7rem;padding:7px 12px">Cancel</button>
+  <button class="btn btn-accent" onclick="saveBulkEdit()" style="font-size:.7rem;padding:7px 12px">Apply</button>
+  <button class="btn" onclick="exitSelectionMode()" style="font-size:.7rem;padding:7px 12px">Cancel</button>
 </div>
 
 <!-- PROGRESS -->
@@ -461,23 +481,22 @@
 </div>
 
 <script>
-// ── CONSTANTS ───────────────────────────────────────────────────────────────
-const SB_URL  = 'https://lpfixzzzboopszwueidp.supabase.co';
-const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZml4enp6Ym9vcHN6d3VlaWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4NDg4MjIsImV4cCI6MjA4NjQyNDgyMn0.xeX1dMHsJGVZPnMwIyZASQoVo7OWC-0Qj7Eq5V8KwW8';
-const SB_HDR  = { 'Content-Type':'application/json', 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}` };
-const RAWG    = 'https://api.rawg.io/api';
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+const SB_URL = 'https://lpfixzzzboopszwueidp.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZml4enp6Ym9vcHN6d3VlaWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4NDg4MjIsImV4cCI6MjA4NjQyNDgyMn0.xeX1dMHsJGVZPnMwIyZASQoVo7OWC-0Qj7Eq5V8KwW8';
+const SB_HDR = { 'Content-Type':'application/json', 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}` };
+const RAWG = 'https://api.rawg.io/api';
 const HASH_KEY = 'up1_auth';
 const PASS_HASH = 90161058; // "paddington"
 
 const PLATFORM_CONFIG = {
-  'PlayStation':{ abbr:'PS',  cls:'plat-ps'     },
-  'Xbox':       { abbr:'XB',  cls:'plat-xbox'   },
-  'Switch':     { abbr:'NSW', cls:'plat-switch'  },
-  'Steam':      { abbr:'PC',  cls:'plat-steam'   },
-  'Epic':       { abbr:'EPC', cls:'plat-epic'    },
-  'UFO 50':     { abbr:'U50', cls:'plat-ufo50'   },
+  'PlayStation':{ abbr:'PS',  cls:'plat-ps'    },
+  'Xbox':       { abbr:'XB',  cls:'plat-xbox'  },
+  'Switch':     { abbr:'NSW', cls:'plat-switch' },
+  'Steam':      { abbr:'PC',  cls:'plat-steam'  },
+  'Epic':       { abbr:'EPC', cls:'plat-epic'   },
+  'UFO 50':     { abbr:'U50', cls:'plat-ufo50'  },
 };
-
 const STATUS_CONFIG = {
   unplayed:    { label:'Unplayed',  icon:''  },
   playing:     { label:'Playing',   icon:'▶', dotClass:'playing'    },
@@ -486,460 +505,387 @@ const STATUS_CONFIG = {
   dropped:     { label:'Dropped',   icon:'✕', dotClass:'dropped'    },
 };
 
-// ── STATE ───────────────────────────────────────────────────────────────────
-let games = [], filteredGames = [], statusMap = new Map();
-let currentSort = 'title', currentStatusFilter = 'all';
-let currentPlatformFilter = '', currentGenreFilter = '';
-let selectionMode = false, selectedIds = new Set();
-let currentRandomGame = null, selectedSearchResult = null;
-let currentModalGameId = null, fixTargetId = null;
-let rawgKey = '';
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let games=[], filteredGames=[], statusMap=new Map();
+let currentSort='title', currentStatusFilter='all';
+let currentPlatformFilter='', currentGenreFilter='';
+let selectionMode=false, selectedIds=new Set();
+let currentRandomGame=null, selectedSearchResult=null;
+let currentModalGameId=null, fixTargetId=null;
+let rawgKey='';
 
-// ── SUPABASE ────────────────────────────────────────────────────────────────
-async function sbFetch(path, opts = {}) {
-  const res = await fetch(`${SB_URL}/rest/v1/${path}`, { ...opts, headers: { ...SB_HDR, ...(opts.headers||{}) } });
+// ── SUPABASE ───────────────────────────────────────────────────────────────────
+async function sbFetch(path, opts={}) {
+  const res = await fetch(`${SB_URL}/rest/v1/${path}`, { ...opts, headers:{ ...SB_HDR, ...(opts.headers||{}) } });
   if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`);
   const text = await res.text();
   return text ? JSON.parse(text) : null;
 }
 async function sbLoadAll(path) {
-  let offset = 0, all = [];
-  while (true) {
+  let offset=0, all=[];
+  while(true) {
     const rows = await sbFetch(`${path}&limit=1000&offset=${offset}`);
     if (!rows?.length) break;
-    all = all.concat(rows);
-    if (rows.length < 1000) break;
-    offset += 1000;
+    all=all.concat(rows);
+    if (rows.length<1000) break;
+    offset+=1000;
   }
   return all;
 }
 async function sbLoadGames() {
   const rows = await sbLoadAll('games?select=id,data,updated_at&order=id');
-  return rows.map(r => { const d = typeof r.data==='string'?JSON.parse(r.data):r.data; return { ...d, id:String(r.id), _updatedAt:r.updated_at }; });
+  return rows.map(r=>{ const d=typeof r.data==='string'?JSON.parse(r.data):r.data; return {...d,id:String(r.id),_updatedAt:r.updated_at}; });
 }
 async function sbLoadStatus() {
   const rows = await sbLoadAll('game_status?select=game_id,status&order=game_id');
-  return new Map(rows.map(r => [String(r.game_id), r.status]));
+  return new Map(rows.map(r=>[String(r.game_id),r.status]));
 }
 async function sbSaveGame(game) {
-  await sbFetch('games', { method:'POST', headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'}, body:JSON.stringify({ id:String(game.id), data:game, updated_at:new Date().toISOString() }) });
+  await sbFetch('games', { method:'POST', headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'}, body:JSON.stringify({id:String(game.id),data:game,updated_at:new Date().toISOString()}) });
 }
 async function sbSetStatus(id, status) {
-  await sbFetch('game_status', { method:'POST', headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'}, body:JSON.stringify({ game_id:String(id), status, updated_at:new Date().toISOString() }) });
+  await sbFetch('game_status', { method:'POST', headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'}, body:JSON.stringify({game_id:String(id),status,updated_at:new Date().toISOString()}) });
 }
 async function sbDeleteGame(id) {
   await Promise.all([
-    sbFetch(`games?id=eq.${encodeURIComponent(id)}`, { method:'DELETE' }),
-    sbFetch(`game_status?game_id=eq.${encodeURIComponent(id)}`, { method:'DELETE' })
+    sbFetch(`games?id=eq.${encodeURIComponent(id)}`, {method:'DELETE'}),
+    sbFetch(`game_status?game_id=eq.${encodeURIComponent(id)}`, {method:'DELETE'})
   ]);
 }
 
-// ── RAWG API ────────────────────────────────────────────────────────────────
-async function rawgFetch(endpoint, params = {}) {
+// ── RAWG ───────────────────────────────────────────────────────────────────────
+async function rawgFetch(endpoint, params={}) {
   if (!rawgKey) throw new Error('No RAWG API key — add one in the credentials section.');
-  const qs = new URLSearchParams({ key: rawgKey, ...params }).toString();
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (attempt > 0) await sleep(1500 * attempt);
+  const qs = new URLSearchParams({key:rawgKey,...params}).toString();
+  for (let attempt=0; attempt<3; attempt++) {
+    if (attempt>0) await sleep(1500*attempt);
     const res = await fetch(`${RAWG}/${endpoint}?${qs}`);
-    if (res.status === 429) { await sleep(3000); continue; }
+    if (res.status===429) { await sleep(3000); continue; }
     if (!res.ok) throw new Error(`RAWG ${res.status}: ${res.statusText}`);
     const text = await res.text();
     if (!text.trim()) { await sleep(1500); continue; }
-    try { return JSON.parse(text); }
-    catch(e) { if (attempt === 2) throw new Error('RAWG returned invalid response'); await sleep(1000); }
+    try { return JSON.parse(text); } catch(e) { if(attempt===2) throw new Error('RAWG returned invalid response'); await sleep(1000); }
   }
-  throw new Error('RAWG rate limited — try importing a smaller batch');
+  throw new Error('RAWG rate limited — try again in a moment');
 }
-
 async function rawgSearch(title) {
-  const data = await rawgFetch('games', { search: title, page_size: 8, search_exact: false });
-  return data.results || [];
+  const data = await rawgFetch('games', {search:title,page_size:8});
+  return data.results||[];
 }
-
-async function rawgFetchGame(id) {
-  return rawgFetch(`games/${id}`);
-}
+async function rawgFetchGame(id) { return rawgFetch(`games/${id}`); }
 
 function buildGameObject(result, detail, csvData, userPlatforms) {
-  const d = detail || result;
-  const developer  = d.developers?.[0]?.name || result.developers?.[0]?.name || null;
-  const publisher  = d.publishers?.[0]?.name || null;
-  const released   = d.released || result.released;
+  const d = detail||result;
+  const developer  = d.developers?.[0]?.name||result.developers?.[0]?.name||null;
+  const publisher  = d.publishers?.[0]?.name||null;
+  const released   = d.released||result.released;
   const year       = released ? new Date(released).getFullYear() : null;
-  const genres     = (d.genres || result.genres || []).map(g => g.name);
-  const cover      = d.background_image || result.background_image || null;
-  const rating     = d.metacritic || result.metacritic || null;
-  const slug       = d.slug || result.slug || null;
+  const genres     = (d.genres||result.genres||[]).map(g=>g.name);
+  const cover      = d.background_image||result.background_image||null;
+  const rating     = d.metacritic||result.metacritic||null;
+  const slug       = d.slug||result.slug||null;
   return {
-    id:            String(result.id),
-    rawgId:        String(result.id),
-    rawgSlug:      slug,
-    searchTitle:   csvData?.title || result.name,
-    title:         result.name,
-    displayTitle:  null,
-    sortTitle:     null,
-    cover,
-    coverLg:       cover,
-    customCover:   null,
-    year,
-    summary:       d.description_raw ? d.description_raw.slice(0, 600) : null,
-    developer,
-    publisher,
-    genres,
-    rawgPlatforms: (d.platforms || result.platforms || []).map(p => p.platform.name),
-    userPlatforms: userPlatforms || [],
-    rating,
-    hltbMain:      csvData?.hltbMain    || null,
-    hltbExtra:     csvData?.hltbExtra   || null,
-    hltbComplete:  csvData?.hltbComplete || null,
-    dateAdded:     new Date().toISOString(),
-    notFound:      false,
+    id:String(result.id), rawgId:String(result.id), rawgSlug:slug,
+    searchTitle:csvData?.title||result.name, title:result.name,
+    displayTitle:null, sortTitle:null,
+    cover, coverLg:cover, customCover:null,
+    year, summary:d.description_raw?d.description_raw.slice(0,600):null,
+    developer, publisher, genres,
+    rawgPlatforms:(d.platforms||result.platforms||[]).map(p=>p.platform.name),
+    userPlatforms:userPlatforms||[], rating,
+    hltbMain:csvData?.hltbMain||null, hltbExtra:csvData?.hltbExtra||null, hltbComplete:csvData?.hltbComplete||null,
+    dateAdded:new Date().toISOString(), notFound:false,
   };
 }
 
-// ── AUTH ────────────────────────────────────────────────────────────────────
+// ── AUTH ───────────────────────────────────────────────────────────────────────
 function simpleHash(str) { let h=0; for(let i=0;i<str.length;i++){h=Math.imul(31,h)+str.charCodeAt(i)|0;} return h; }
 
 function gateSubmit() {
   const pw = document.getElementById('gate-input').value;
-  if (simpleHash(pw) === PASS_HASH) {
+  if (simpleHash(pw)===PASS_HASH) {
     localStorage.setItem(HASH_KEY, String(PASS_HASH));
-    document.getElementById('gate').style.display = 'none';
-    init().catch(e => {
-      document.getElementById('gate').style.display = '';
-      document.getElementById('gate-error').textContent = 'Error: ' + e.message;
-    });
+    document.getElementById('gate').style.display='none';
+    init().catch(e=>{ document.getElementById('gate').style.display=''; document.getElementById('gate-error').textContent='Error: '+e.message; });
   } else {
-    document.getElementById('gate-error').textContent = 'Wrong password.';
-    document.getElementById('gate-input').value = '';
+    document.getElementById('gate-error').textContent='Wrong password.';
+    document.getElementById('gate-input').value='';
   }
 }
 
-// ── INIT ────────────────────────────────────────────────────────────────────
+// ── INIT ───────────────────────────────────────────────────────────────────────
 async function init() {
-  rawgKey = localStorage.getItem('rawg_key') || '';
-  if (rawgKey) document.getElementById('rawg-key-input').value = rawgKey;
-
+  rawgKey = localStorage.getItem('rawg_key')||'';
+  if (rawgKey) document.getElementById('rawg-key-input').value=rawgKey;
   createAppIcon();
-  document.getElementById('import-panel').style.display = 'block';
-  document.getElementById('add-tabs').style.display = 'none';
-  document.getElementById('import-actions').innerHTML = `<span style="font-size:0.8rem;color:var(--text-dim)">Loading collection…</span>`;
-
+  document.getElementById('import-panel').style.display='block';
+  document.getElementById('add-tabs').style.display='none';
+  document.getElementById('import-actions').innerHTML=`<span style="font-size:.8rem;color:var(--text-dim)">Loading collection…</span>`;
   const [loadedGames, loadedStatus] = await Promise.all([sbLoadGames(), sbLoadStatus()]);
-  games = loadedGames; statusMap = loadedStatus;
-  games.length > 0 ? openApp() : showImport();
+  games=loadedGames; statusMap=loadedStatus;
+  games.length>0 ? openApp() : showImport();
 }
 
 function createAppIcon() {
   try {
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas.height = 180;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#0f0f0f';
-    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(0,0,180,180,28); ctx.fill(); }
-    else ctx.fillRect(0,0,180,180);
-    ctx.fillStyle = '#4ade80'; ctx.fillRect(18,148,144,6);
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 70px "Bebas Neue",sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('1UP',90,86);
-    const url = canvas.toDataURL('image/png');
-    ['icon','apple-touch-icon'].forEach(rel => { const l=document.createElement('link'); l.rel=rel; l.href=url; document.head.appendChild(l); });
-  } catch(e) {}
+    const canvas=document.createElement('canvas'); canvas.width=canvas.height=180;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#0f0f0f';
+    if(ctx.roundRect){ctx.beginPath();ctx.roundRect(0,0,180,180,28);ctx.fill();}else ctx.fillRect(0,0,180,180);
+    ctx.fillStyle='#4ade80'; ctx.fillRect(18,148,144,6);
+    ctx.fillStyle='#fff'; ctx.font='bold 70px "Bebas Neue",sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('1UP',90,86);
+    const url=canvas.toDataURL('image/png');
+    ['icon','apple-touch-icon'].forEach(rel=>{ const l=document.createElement('link'); l.rel=rel; l.href=url; document.head.appendChild(l); });
+  } catch(e){}
 }
 
 function showImport() {
-  document.getElementById('import-panel').style.display = 'block';
-  document.getElementById('main-header').style.display = 'none';
+  document.getElementById('import-panel').style.display='block';
+  document.getElementById('main-header').style.display='none';
   document.getElementById('app').classList.remove('active');
-  document.getElementById('add-tabs').style.display = 'flex';
-  document.getElementById('import-actions').innerHTML = games.length > 0
-    ? `<button class="btn btn-accent" onclick="openApp()">← My Collection</button>`
-    : '';
-  document.getElementById('data-section').style.display = games.length > 0 ? 'block' : 'none';
-  document.getElementById('danger-section').style.display = [...statusMap.values()].some(s => s && s !== 'unplayed') ? 'block' : 'none';
+  document.getElementById('add-tabs').style.display='flex';
+  document.getElementById('import-actions').innerHTML = games.length>0 ? `<button class="btn btn-accent" onclick="openApp()">← My Collection</button>` : '';
+  document.getElementById('data-section').style.display = games.length>0?'block':'none';
+  document.getElementById('danger-section').style.display = [...statusMap.values()].some(s=>s&&s!=='unplayed')?'block':'none';
 }
 function showImportPanel() { showImport(); }
 
 function openApp() {
-  document.getElementById('import-panel').style.display = 'none';
+  document.getElementById('import-panel').style.display='none';
   document.getElementById('main-header').classList.add('active');
   document.getElementById('app').classList.add('active');
   buildFilterOptions(); applyFilters(); updateStats();
-  requestAnimationFrame(() => {
-    const h = document.getElementById('main-header');
-    if (h) document.documentElement.style.setProperty('--header-height', h.offsetHeight + 'px');
+  requestAnimationFrame(()=>{
+    const h=document.getElementById('main-header');
+    if(h) document.documentElement.style.setProperty('--header-height', h.offsetHeight+'px');
   });
 }
 
-// ── CREDENTIALS ─────────────────────────────────────────────────────────────
+// ── CREDENTIALS ────────────────────────────────────────────────────────────────
 function saveCredentials() {
-  const key = document.getElementById('rawg-key-input').value.trim();
-  const statusEl = document.getElementById('cred-status');
-  if (!key) { statusEl.style.color = 'var(--danger)'; statusEl.textContent = '⚠ Paste your RAWG API key first.'; return; }
-  rawgKey = key;
-  localStorage.setItem('rawg_key', key);
-  statusEl.style.color = 'var(--text-muted)';
-  statusEl.textContent = '✓ Key saved — click Test Connection to verify.';
+  const key=document.getElementById('rawg-key-input').value.trim();
+  const el=document.getElementById('cred-status');
+  if (!key) { el.style.color='var(--danger)'; el.textContent='⚠ Paste your RAWG API key first.'; return; }
+  rawgKey=key; localStorage.setItem('rawg_key',key);
+  el.style.color='var(--text-muted)'; el.textContent='✓ Key saved — click Test Connection to verify.';
 }
-
 async function testCredentials() {
-  const statusEl = document.getElementById('cred-status');
-  statusEl.style.color = 'var(--text-muted)';
-  statusEl.textContent = '⟳ Testing…';
+  const el=document.getElementById('cred-status');
+  el.style.color='var(--text-muted)'; el.textContent='⟳ Testing…';
   try {
-    const data = await rawgFetch('games', { search: 'Hades', page_size: 1 });
-    statusEl.style.color = 'var(--accent)';
-    statusEl.textContent = `✓ RAWG connected! (found: ${data.results?.[0]?.name || 'results'}) · Supabase `;
-  } catch(e) {
-    statusEl.style.color = 'var(--danger)';
-    statusEl.textContent = '⚠ RAWG error: ' + e.message + ' · Supabase ';
-  }
-  try { await sbFetch('games?limit=1'); statusEl.textContent += '✓'; }
-  catch(e) { statusEl.textContent += '⚠ ' + e.message; }
+    const data=await rawgFetch('games',{search:'Hades',page_size:1});
+    el.style.color='var(--accent)';
+    el.textContent=`✓ RAWG connected! (${data.results?.[0]?.name||'ok'}) · Supabase `;
+  } catch(e) { el.style.color='var(--danger)'; el.textContent='⚠ RAWG error: '+e.message+' · Supabase '; }
+  try { await sbFetch('games?limit=1'); el.textContent+='✓'; } catch(e) { el.textContent+='⚠ '+e.message; }
 }
 
-// ── TABS ─────────────────────────────────────────────────────────────────────
+// ── TABS ───────────────────────────────────────────────────────────────────────
 function switchTab(name) {
-  const names = ['search','manual','csv'];
-  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', names[i]===name));
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  const names=['search','manual','csv'];
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',names[i]===name));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.getElementById(`tab-${name}`).classList.add('active');
 }
 
-// ── PLATFORM TOGGLES ─────────────────────────────────────────────────────────
+// ── PLATFORM TOGGLES ───────────────────────────────────────────────────────────
 function togglePlatform(btn)       { btn.classList.toggle('active'); }
 function togglePlatformManual(btn) { btn.classList.toggle('active'); }
 function togglePlatformFix(btn)    { btn.classList.toggle('active'); }
-function getActivePlatforms(id)    { return [...document.querySelectorAll(`#${id} .platform-toggle.active`)].map(b => b.dataset.platform); }
-function resetPlatformToggles(id)  { document.querySelectorAll(`#${id} .platform-toggle`).forEach(b => b.classList.remove('active')); }
+function getActivePlatforms(id)    { return [...document.querySelectorAll(`#${id} .platform-toggle.active`)].map(b=>b.dataset.platform); }
+function resetPlatformToggles(id)  { document.querySelectorAll(`#${id} .platform-toggle`).forEach(b=>b.classList.remove('active')); }
 
-// ── RAWG SEARCH (ADD TAB) ─────────────────────────────────────────────────────
+// ── RAWG SEARCH (ADD TAB) ──────────────────────────────────────────────────────
 async function searchRAWGUI() {
-  const query = document.getElementById('rawg-search-input').value.trim();
-  if (!query) return;
-  const statusEl = document.getElementById('rawg-search-status');
-  const resultsEl = document.getElementById('search-results');
-  statusEl.textContent = '⟳ Searching…';
-  resultsEl.style.display = 'none'; resultsEl.innerHTML = '';
-  selectedSearchResult = null;
-  document.getElementById('add-game-form').style.display = 'none';
+  const query=document.getElementById('rawg-search-input').value.trim(); if(!query) return;
+  const statusEl=document.getElementById('rawg-search-status');
+  const resultsEl=document.getElementById('search-results');
+  statusEl.textContent='⟳ Searching…'; resultsEl.style.display='none'; resultsEl.innerHTML='';
+  selectedSearchResult=null; document.getElementById('add-game-form').style.display='none';
   try {
-    const results = await rawgSearch(query);
-    if (!results.length) { statusEl.textContent = 'No results found.'; return; }
-    statusEl.textContent = `${results.length} result${results.length!==1?'s':''} — tap to select`;
-    resultsEl.style.display = 'block';
-    resultsEl.innerHTML = results.map((r,i) => {
-      const yr = r.released ? new Date(r.released).getFullYear() : '?';
+    const results=await rawgSearch(query);
+    if (!results.length) { statusEl.textContent='No results found.'; return; }
+    statusEl.textContent=`${results.length} result${results.length!==1?'s':''} — tap to select`;
+    resultsEl.style.display='block';
+    resultsEl.innerHTML=results.map((r,i)=>{
+      const yr=r.released?new Date(r.released).getFullYear():'?';
       return `<div class="search-result" onclick="selectSearchResult(${i},this)">
-        <div class="search-result-cover">${r.background_image ? `<img src="${escHtml(r.background_image)}" alt="" loading="lazy">` : '<div class="no-cover">🎮</div>'}</div>
-        <div class="search-result-info">
-          <div class="search-result-title">${escHtml(r.name)}</div>
-          <div class="search-result-meta">${yr}${r.metacritic ? ' · MC: ' + r.metacritic : ''}${r.genres?.length ? ' · ' + r.genres.map(g=>g.name).join(', ') : ''}</div>
-        </div>
+        <div class="search-result-cover">${r.background_image?`<img src="${escHtml(r.background_image)}" alt="" loading="lazy">`:'<div class="no-cover">🎮</div>'}</div>
+        <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr}${r.metacritic?' · MC: '+r.metacritic:''}${r.genres?.length?' · '+r.genres.map(g=>g.name).join(', '):''}</div></div>
       </div>`;
     }).join('');
-    resultsEl._results = results;
-  } catch(e) { statusEl.textContent = '⚠ ' + e.message; }
+    resultsEl._results=results;
+  } catch(e) { statusEl.textContent='⚠ '+e.message; }
 }
-
-function selectSearchResult(idx, el) {
-  document.querySelectorAll('.search-result').forEach(d => d.classList.remove('selected'));
+function selectSearchResult(idx,el) {
+  document.querySelectorAll('.search-result').forEach(d=>d.classList.remove('selected'));
   el.classList.add('selected');
-  selectedSearchResult = document.getElementById('search-results')._results[idx];
-  document.getElementById('add-game-form').style.display = 'block';
+  selectedSearchResult=document.getElementById('search-results')._results[idx];
+  document.getElementById('add-game-form').style.display='block';
 }
-
 function cancelAddGame() {
-  selectedSearchResult = null;
-  document.getElementById('add-game-form').style.display = 'none';
-  document.querySelectorAll('.search-result').forEach(d => d.classList.remove('selected'));
+  selectedSearchResult=null;
+  document.getElementById('add-game-form').style.display='none';
+  document.querySelectorAll('.search-result').forEach(d=>d.classList.remove('selected'));
 }
-
 async function addGame(stayInMode) {
   if (!selectedSearchResult) return;
-  const platforms = getActivePlatforms('add-platform-chips');
-  const statusEl = document.getElementById('add-game-status');
-  statusEl.textContent = 'Fetching details…';
+  const platforms=getActivePlatforms('add-platform-chips');
+  const statusEl=document.getElementById('add-game-status');
+  statusEl.textContent='Fetching details…';
   try {
-    const r = selectedSearchResult;
-    const detail = await rawgFetchGame(r.id);
-    const existing = games.find(g => g.id === String(r.id));
+    const r=selectedSearchResult;
+    const detail=await rawgFetchGame(r.id);
+    const existing=games.find(g=>g.id===String(r.id));
     if (existing) {
-      platforms.forEach(p => { if (!existing.userPlatforms.includes(p)) existing.userPlatforms.push(p); });
+      platforms.forEach(p=>{ if(!existing.userPlatforms.includes(p)) existing.userPlatforms.push(p); });
       await sbSaveGame(existing);
-      statusEl.textContent = `✓ Updated platforms for ${existing.displayTitle||existing.title}`;
+      statusEl.textContent=`✓ Updated ${existing.displayTitle||existing.title}`;
     } else {
-      const game = buildGameObject(r, detail, null, platforms);
-      games.push(game);
-      await sbSaveGame(game);
-      statusEl.textContent = `✓ Added ${game.title}`;
+      const game=buildGameObject(r,detail,null,platforms);
+      games.push(game); await sbSaveGame(game);
+      statusEl.textContent=`✓ Added ${game.title}`;
     }
-    if (!stayInMode) {
-      setTimeout(() => openApp(), 800);
-    } else {
-      selectedSearchResult = null;
-      document.getElementById('add-game-form').style.display = 'none';
-      document.getElementById('search-results').innerHTML = '';
-      document.getElementById('search-results').style.display = 'none';
-      document.getElementById('rawg-search-input').value = '';
-      document.getElementById('rawg-search-status').textContent = '';
+    if (!stayInMode) { setTimeout(()=>openApp(),800); }
+    else {
+      selectedSearchResult=null;
+      document.getElementById('add-game-form').style.display='none';
+      document.getElementById('search-results').innerHTML='';
+      document.getElementById('search-results').style.display='none';
+      document.getElementById('rawg-search-input').value='';
+      document.getElementById('rawg-search-status').textContent='';
     }
-  } catch(e) { statusEl.textContent = '⚠ ' + e.message; }
+  } catch(e) { statusEl.textContent='⚠ '+e.message; }
 }
 
-// ── MANUAL ENTRY ─────────────────────────────────────────────────────────────
+// ── MANUAL ENTRY ───────────────────────────────────────────────────────────────
 async function addManualGame() {
-  const title = document.getElementById('manual-title').value.trim();
-  if (!title) { document.getElementById('manual-status').textContent = 'Title is required.'; return; }
-  const platforms = getActivePlatforms('manual-platform-chips');
-  const year = document.getElementById('manual-year').value.trim();
-  const developer = document.getElementById('manual-developer').value.trim();
-  const genres = document.getElementById('manual-genres').value.trim().split(',').map(s=>s.trim()).filter(Boolean);
-  const notes = document.getElementById('manual-notes').value.trim();
-  const id = 'manual_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
-  const game = { id, rawgId:null, rawgSlug:null, searchTitle:title, title, displayTitle:null, sortTitle:null, cover:null, coverLg:null, customCover:null, year:year?parseInt(year):null, summary:notes||null, developer:developer||null, publisher:null, genres, rawgPlatforms:[], userPlatforms:platforms, rating:null, hltbMain:null, hltbExtra:null, hltbComplete:null, dateAdded:new Date().toISOString(), notFound:true };
+  const title=document.getElementById('manual-title').value.trim();
+  if (!title) { document.getElementById('manual-status').textContent='Title is required.'; return; }
+  const platforms=getActivePlatforms('manual-platform-chips');
+  const year=document.getElementById('manual-year').value.trim();
+  const developer=document.getElementById('manual-developer').value.trim();
+  const genres=document.getElementById('manual-genres').value.trim().split(',').map(s=>s.trim()).filter(Boolean);
+  const notes=document.getElementById('manual-notes').value.trim();
+  const id='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  const game={id,rawgId:null,rawgSlug:null,searchTitle:title,title,displayTitle:null,sortTitle:null,cover:null,coverLg:null,customCover:null,year:year?parseInt(year):null,summary:notes||null,developer:developer||null,publisher:null,genres,rawgPlatforms:[],userPlatforms:platforms,rating:null,hltbMain:null,hltbExtra:null,hltbComplete:null,dateAdded:new Date().toISOString(),notFound:true};
   try {
     games.push(game); await sbSaveGame(game);
-    document.getElementById('manual-status').textContent = `✓ Added ${title}`;
-    ['manual-title','manual-year','manual-developer','manual-genres','manual-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('manual-status').textContent=`✓ Added ${title}`;
+    ['manual-title','manual-year','manual-developer','manual-genres','manual-notes'].forEach(id=>document.getElementById(id).value='');
     resetPlatformToggles('manual-platform-chips');
-  } catch(e) { document.getElementById('manual-status').textContent = '⚠ ' + e.message; }
+  } catch(e) { document.getElementById('manual-status').textContent='⚠ '+e.message; }
 }
 
-// ── CSV IMPORT ───────────────────────────────────────────────────────────────
+// ── CSV IMPORT ─────────────────────────────────────────────────────────────────
 async function handleCSVFile(event) {
-  const file = event.target.files[0]; if (!file) return;
-  event.target.value = '';
-  const statusEl = document.getElementById('csv-status');
-  statusEl.style.color = ''; statusEl.textContent = 'Reading file…';
-  const rows = parseCSV(await file.text());
-  if (!rows.length) { statusEl.textContent = 'No rows found.'; return; }
-
-  const headers = rows[0].map(h => h.toLowerCase().trim());
-  const colTitle    = headers.findIndex(h => h==='title'||h==='game'||h==='name');
-  const colPlatform = headers.findIndex(h => h==='platform'||h==='console'||h==='system');
-  if (colTitle < 0) { statusEl.textContent = '⚠ No "Title" column found.'; return; }
-
-  const colMeta     = headers.findIndex(h => h.includes('metacritic')||h==='score');
-  const colHltbMain = headers.findIndex(h => h.includes('hltbmain')||h==='main');
-  const colHltbExtra= headers.findIndex(h => h.includes('hltbextra')||h.includes('extra'));
-  const colHltbComp = headers.findIndex(h => h.includes('hltbcomplete')||h.includes('complet'));
-
-  const dataRows = rows.slice(1).filter(r => r[colTitle]?.trim());
-  const titlePlatformMap = new Map();
-  dataRows.forEach(row => {
-    const title = row[colTitle].trim();
-    const plat = colPlatform>=0 ? (row[colPlatform]?.trim()||'') : '';
-    if (!titlePlatformMap.has(title)) titlePlatformMap.set(title, { platforms:[], row });
-    if (plat && !titlePlatformMap.get(title).platforms.includes(plat)) titlePlatformMap.get(title).platforms.push(plat);
+  const file=event.target.files[0]; if(!file) return;
+  event.target.value='';
+  const statusEl=document.getElementById('csv-status');
+  statusEl.style.color=''; statusEl.textContent='Reading file…';
+  const rows=parseCSV(await file.text());
+  if (!rows.length) { statusEl.textContent='No rows found.'; return; }
+  const headers=rows[0].map(h=>h.toLowerCase().trim());
+  const colTitle    = headers.findIndex(h=>h==='title'||h==='game'||h==='name');
+  const colPlatform = headers.findIndex(h=>h==='platform'||h==='console'||h==='system');
+  if (colTitle<0) { statusEl.textContent='⚠ No "Title" column found.'; return; }
+  const colMeta     = headers.findIndex(h=>h.includes('metacritic')||h==='score');
+  const colHltbMain = headers.findIndex(h=>h.includes('hltbmain')||h==='main');
+  const colHltbExtra= headers.findIndex(h=>h.includes('hltbextra')||h.includes('extra'));
+  const colHltbComp = headers.findIndex(h=>h.includes('hltbcomplete')||h.includes('complet'));
+  const dataRows=rows.slice(1).filter(r=>r[colTitle]?.trim());
+  const titlePlatformMap=new Map();
+  dataRows.forEach(row=>{
+    const title=row[colTitle].trim(), plat=colPlatform>=0?(row[colPlatform]?.trim()||''):'';
+    if (!titlePlatformMap.has(title)) titlePlatformMap.set(title,{platforms:[],row});
+    if (plat&&!titlePlatformMap.get(title).platforms.includes(plat)) titlePlatformMap.get(title).platforms.push(plat);
   });
-
-  const entries = [...titlePlatformMap.entries()];
-  const total = entries.length;
-  showProgress('Importing Games', `0 / ${total}`);
+  const entries=[...titlePlatformMap.entries()];
+  const total=entries.length;
+  showProgress('Importing Games',`0 / ${total}`);
   let done=0, skipped=0, errors=[];
-
-  for (const [title, { platforms, row }] of entries) {
+  for (const [title,{platforms,row}] of entries) {
     setProgress(title, Math.round(done/total*100));
-    const existing = games.find(g =>
-      [g.title, g.displayTitle, g.searchTitle].some(t => t?.toLowerCase() === title.toLowerCase())
-    );
+    const existing=games.find(g=>[g.title,g.displayTitle,g.searchTitle].some(t=>t?.toLowerCase()===title.toLowerCase()));
     if (existing) {
       let changed=false;
-      platforms.forEach(p => { if (!existing.userPlatforms.includes(p)) { existing.userPlatforms.push(p); changed=true; } });
-      if (changed) await sbSaveGame(existing).catch(()=>{});
+      platforms.forEach(p=>{ if(!existing.userPlatforms.includes(p)){existing.userPlatforms.push(p);changed=true;} });
+      if(changed) await sbSaveGame(existing).catch(()=>{});
       skipped++; done++; continue;
     }
-
-    const csvData = {
-      title,
-      hltbMain:     colHltbMain>=0 ? parseFloat(row[colHltbMain])||null : null,
-      hltbExtra:    colHltbExtra>=0 ? parseFloat(row[colHltbExtra])||null : null,
-      hltbComplete: colHltbComp>=0 ? parseFloat(row[colHltbComp])||null : null,
-    };
-    const csvMeta = colMeta>=0 ? parseInt(row[colMeta])||null : null;
-
+    const csvData={ title, hltbMain:colHltbMain>=0?parseFloat(row[colHltbMain])||null:null, hltbExtra:colHltbExtra>=0?parseFloat(row[colHltbExtra])||null:null, hltbComplete:colHltbComp>=0?parseFloat(row[colHltbComp])||null:null };
+    const csvMeta=colMeta>=0?parseInt(row[colMeta])||null:null;
     try {
-      const results = await rawgSearch(title);
+      const results=await rawgSearch(title);
       await sleep(500);
       if (results.length) {
-        const r = results[0];
-        const game = buildGameObject(r, null, csvData, platforms);
-        if (!game.rating && csvMeta) game.rating = csvMeta;
-        games.push(game);
-        await sbSaveGame(game);
+        const r=results[0];
+        const game=buildGameObject(r,null,csvData,platforms);
+        if(!game.rating&&csvMeta) game.rating=csvMeta;
+        games.push(game); await sbSaveGame(game);
       } else {
-        const id = 'manual_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
-        const game = { id, rawgId:null, rawgSlug:null, searchTitle:title, title, displayTitle:null, sortTitle:null, cover:null, coverLg:null, customCover:null, year:null, summary:null, developer:null, publisher:null, genres:[], rawgPlatforms:[], userPlatforms:platforms, rating:csvMeta, ...csvData, dateAdded:new Date().toISOString(), notFound:true };
+        const id='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+        const game={id,rawgId:null,rawgSlug:null,searchTitle:title,title,displayTitle:null,sortTitle:null,cover:null,coverLg:null,customCover:null,year:null,summary:null,developer:null,publisher:null,genres:[],rawgPlatforms:[],userPlatforms:platforms,rating:csvMeta,...csvData,dateAdded:new Date().toISOString(),notFound:true};
         games.push(game); await sbSaveGame(game);
       }
     } catch(e) { errors.push(`"${title}": ${e.message}`); }
     done++;
   }
-
   hideProgress();
   if (errors.length) {
-    statusEl.style.color = 'var(--danger)';
-    statusEl.innerHTML = `⚠ ${errors.length} error(s):<br><code style="font-size:0.65rem;line-height:1.8">${errors.slice(0,5).map(escHtml).join('<br>')}${errors.length>5?`<br>…and ${errors.length-5} more`:''}</code>`;
-    if (done-skipped-errors.length > 0) setTimeout(()=>openApp(), 3000);
+    statusEl.style.color='var(--danger)';
+    statusEl.innerHTML=`⚠ ${errors.length} error(s):<br><code style="font-size:.65rem;line-height:1.8">${errors.slice(0,5).map(escHtml).join('<br>')}${errors.length>5?`<br>…and ${errors.length-5} more`:''}</code>`;
+    if(done-skipped-errors.length>0) setTimeout(()=>openApp(),3000);
   } else {
-    statusEl.style.color = '';
-    statusEl.textContent = `✓ Imported ${done-skipped} new games${skipped?`, ${skipped} already in collection`:''}.`;
-    setTimeout(()=>openApp(), 1200);
+    statusEl.style.color='';
+    statusEl.textContent=`✓ Imported ${done-skipped} new games${skipped?`, ${skipped} already in collection`:''}. `;
+    setTimeout(()=>openApp(),1200);
   }
 }
-
 function parseCSV(text) {
-  return text.split(/\r?\n/).filter(l=>l.trim()).map(line => {
+  return text.split(/\r?\n/).filter(l=>l.trim()).map(line=>{
     const cells=[]; let cur='', inQ=false;
-    for (let i=0;i<line.length;i++) {
-      if (line[i]==='"'&&!inQ) inQ=true;
-      else if (line[i]==='"'&&inQ) { if(line[i+1]==='"'){cur+='"';i++;}else inQ=false; }
-      else if (line[i]===','&&!inQ) { cells.push(cur); cur=''; }
+    for(let i=0;i<line.length;i++){
+      if(line[i]==='"'&&!inQ) inQ=true;
+      else if(line[i]==='"'&&inQ){if(line[i+1]==='"'){cur+='"';i++;}else inQ=false;}
+      else if(line[i]===','&&!inQ){cells.push(cur);cur='';}
       else cur+=line[i];
     }
     cells.push(cur); return cells;
   });
 }
 
-// ── RENDERING ────────────────────────────────────────────────────────────────
+// ── RENDERING ──────────────────────────────────────────────────────────────────
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escJs(s)   { return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 function sortTitle(t) { return (t||'').toLowerCase().replace(/^(the |a |an )/i,''); }
 
 function platBadgeHTML(p, modal=false) {
-  const cfg = PLATFORM_CONFIG[p];
-  if (!cfg) return `<span class="plat-badge${modal?' modal-plat-badge':''}" style="background:rgba(100,100,100,0.15);color:#888">${escHtml(modal?p:p.slice(0,3))}</span>`;
+  const cfg=PLATFORM_CONFIG[p];
+  if (!cfg) return `<span class="plat-badge${modal?' modal-plat-badge':''}" style="background:rgba(100,100,100,.15);color:#888">${escHtml(modal?p:p.slice(0,3))}</span>`;
   return `<span class="plat-badge${modal?' modal-plat-badge':''} ${cfg.cls}">${modal?escHtml(p):cfg.abbr}</span>`;
 }
-
 function statusDotHTML(status) {
-  const cfg = STATUS_CONFIG[status];
-  if (!cfg?.icon) return '';
+  const cfg=STATUS_CONFIG[status]; if(!cfg?.icon) return '';
   return `<div class="status-dot ${cfg.dotClass}">${cfg.icon}</div>`;
 }
-
-function getGameStatus(id) { return statusMap.get(String(id)) || 'unplayed'; }
+function getGameStatus(id) { return statusMap.get(String(id))||'unplayed'; }
 
 function applyFilters() {
-  const search = (document.getElementById('search-input')?.value||'').toLowerCase().trim();
-  const genreF  = document.getElementById('filter-genre')?.value||'';
-  const platF   = document.getElementById('filter-platform')?.value||'';
-
-  filteredGames = games.filter(g => {
-    if (currentStatusFilter!=='all' && getGameStatus(g.id)!==currentStatusFilter) return false;
-    if (platF && !g.userPlatforms.includes(platF)) return false;
-    if (genreF && !g.genres?.includes(genreF)) return false;
-    if (search) {
-      const hay = [g.displayTitle,g.title,g.developer,g.publisher,...(g.genres||[])].filter(Boolean).join(' ').toLowerCase();
-      if (!hay.includes(search)) return false;
-    }
+  const search=(document.getElementById('search-input')?.value||'').toLowerCase().trim();
+  const genreF=document.getElementById('filter-genre')?.value||'';
+  const platF=document.getElementById('filter-platform')?.value||'';
+  filteredGames=games.filter(g=>{
+    if (currentStatusFilter!=='all'&&getGameStatus(g.id)!==currentStatusFilter) return false;
+    if (platF&&!g.userPlatforms.includes(platF)) return false;
+    if (genreF&&!g.genres?.includes(genreF)) return false;
+    if (search) { const hay=[g.displayTitle,g.title,g.developer,g.publisher,...(g.genres||[])].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(search)) return false; }
     return true;
   });
-
-  filteredGames.sort((a,b) => {
-    const ta = sortTitle(a.sortTitle||a.displayTitle||a.title);
-    const tb = sortTitle(b.sortTitle||b.displayTitle||b.title);
-    switch(currentSort) {
+  filteredGames.sort((a,b)=>{
+    const ta=sortTitle(a.sortTitle||a.displayTitle||a.title), tb=sortTitle(b.sortTitle||b.displayTitle||b.title);
+    switch(currentSort){
       case 'title':      return ta.localeCompare(tb);
       case 'title-desc': return tb.localeCompare(ta);
       case 'year':       return (a.year||0)-(b.year||0);
@@ -949,107 +895,93 @@ function applyFilters() {
       default: return 0;
     }
   });
-
   renderGrid(filteredGames); updateStats();
-  const el = document.getElementById('count-line');
-  if (el) el.textContent = `${filteredGames.length} of ${games.length} games`;
+  const el=document.getElementById('count-line');
+  if(el) el.textContent=`${filteredGames.length} of ${games.length} games`;
 }
-
 function buildFilterOptions() {
-  const genres = [...new Set(games.flatMap(g=>g.genres||[]))].sort();
-  document.getElementById('filter-genre').innerHTML = '<option value="">All Genres</option>' + genres.map(g=>`<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
-  const platforms = [...new Set(games.flatMap(g=>g.userPlatforms||[]))].sort();
-  document.getElementById('filter-platform').innerHTML = '<option value="">All Platforms</option>' + platforms.map(p=>`<option value="${escHtml(p)}">${escHtml(p)}</option>`).join('');
+  const genres=[...new Set(games.flatMap(g=>g.genres||[]))].sort();
+  document.getElementById('filter-genre').innerHTML='<option value="">All Genres</option>'+genres.map(g=>`<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
+  const platforms=[...new Set(games.flatMap(g=>g.userPlatforms||[]))].sort();
+  document.getElementById('filter-platform').innerHTML='<option value="">All Platforms</option>'+platforms.map(p=>`<option value="${escHtml(p)}">${escHtml(p)}</option>`).join('');
 }
-
 function renderGrid(list) {
-  const grid = document.getElementById('game-grid');
-  if (!list.length) { grid.innerHTML = '<div class="empty-state"><h2>No Games Found</h2><p>Try a different filter.</p></div>'; return; }
-  grid.innerHTML = list.map(game => {
-    const cover = game.customCover || game.cover;
-    const title = game.displayTitle || game.title;
-    const status = getGameStatus(game.id);
-    const platBadges = (game.userPlatforms||[]).map(p=>platBadgeHTML(p)).join('');
-    const imgHTML = cover
+  const grid=document.getElementById('game-grid');
+  if (!list.length) { grid.innerHTML='<div class="empty-state"><h2>No Games Found</h2><p>Try a different filter.</p></div>'; return; }
+  grid.innerHTML=list.map(game=>{
+    const cover=game.customCover||game.cover;
+    const title=game.displayTitle||game.title;
+    const status=getGameStatus(game.id);
+    const platBadges=(game.userPlatforms||[]).map(p=>platBadgeHTML(p)).join('');
+    const imgHTML=cover
       ? `<img class="card-cover" src="${escHtml(cover)}" alt="${escHtml(title)}" loading="lazy" onerror="this.outerHTML='<div class=\\'card-cover-placeholder\\'>🎮</div>'">`
       : `<div class="card-cover-placeholder">🎮</div>`;
-    const clickFn = selectionMode ? `toggleCardSelection('${escJs(String(game.id))}')` : `openModalById('${escJs(String(game.id))}')`;
+    const clickFn=selectionMode?`toggleCardSelection('${escJs(String(game.id))}')`:`openModalById('${escJs(String(game.id))}')`;
     return `<div class="game-card ${game.notFound?'not-found-card':''} ${selectionMode&&selectedIds.has(String(game.id))?'selected-card':''}" onclick="${clickFn}" data-id="${escHtml(String(game.id))}">
-      ${imgHTML}${statusDotHTML(status)}
-      ${platBadges?`<div class="card-platforms">${platBadges}</div>`:''}
+      <div class="card-img-wrap">
+        ${imgHTML}
+        ${statusDotHTML(status)}
+        ${platBadges?`<div class="card-platforms">${platBadges}</div>`:''}
+        <button class="card-fix-btn" onclick="event.stopPropagation();openFixModal('${escJs(String(game.id))}')">✎ Edit</button>
+      </div>
       <div class="card-title">${escHtml(title)}</div>
     </div>`;
   }).join('');
 }
-
 function updateStats() {
-  const total = games.length;
-  const completed = [...statusMap.values()].filter(s=>s==='completed'||s==='100percent').length;
-  const el = document.getElementById('header-stats');
-  if (el) el.textContent = `${total} games · ${completed} completed`;
+  const completed=[...statusMap.values()].filter(s=>s==='completed'||s==='100percent').length;
+  const el=document.getElementById('header-stats');
+  if(el) el.textContent=`${games.length} games · ${completed} completed`;
 }
-
-function setStatusFilter(status, btn) {
-  currentStatusFilter = status;
-  document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('active'));
+function setStatusFilter(status,btn) {
+  currentStatusFilter=status;
+  document.querySelectorAll('.status-pill').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active'); applyFilters();
 }
-function changeSortOrder() { currentSort = document.getElementById('sort-select').value; applyFilters(); }
+function changeSortOrder() { currentSort=document.getElementById('sort-select').value; applyFilters(); }
 
-// ── GAME MODAL ───────────────────────────────────────────────────────────────
-function openModalById(id) {
-  const game = games.find(g => g.id === id);
-  if (game) openModal(game);
-}
+// ── GAME MODAL ─────────────────────────────────────────────────────────────────
+function openModalById(id) { const game=games.find(g=>g.id===id); if(game) openModal(game); }
 
 function openModal(game) {
-  currentModalGameId = game.id;
-  const status = getGameStatus(game.id);
-  const cover = game.customCover || game.coverLg || game.cover;
-  const title = game.displayTitle || game.title;
-
-  const coverHTML = cover
-    ? `<img class="modal-cover" src="${escHtml(cover)}" alt="${escHtml(title)}" onerror="this.outerHTML='<div class=\\'modal-cover-placeholder\\'>🎮</div>'">`
-    : `<div class="modal-cover-placeholder">🎮</div>`;
-
-  const platBadges = (game.userPlatforms||[]).map(p=>platBadgeHTML(p,true)).join('');
-
-  const hltbHTML = (game.hltbMain||game.hltbExtra||game.hltbComplete) ? `<div class="hltb-row">
-    ${game.hltbMain    ? `<div class="hltb-item"><div class="hltb-label">Main Story</div><div class="hltb-value">${game.hltbMain}h</div></div>`    : ''}
-    ${game.hltbExtra   ? `<div class="hltb-item"><div class="hltb-label">Main+Extras</div><div class="hltb-value">${game.hltbExtra}h</div></div>`   : ''}
-    ${game.hltbComplete? `<div class="hltb-item"><div class="hltb-label">Completionist</div><div class="hltb-value">${game.hltbComplete}h</div></div>`: ''}
-  </div>` : '';
-
-  const statusBtns = Object.entries(STATUS_CONFIG).map(([key,cfg]) =>
+  currentModalGameId=game.id;
+  const status=getGameStatus(game.id);
+  const cover=game.customCover||game.coverLg||game.cover;
+  const title=game.displayTitle||game.title;
+  const platBadges=(game.userPlatforms||[]).map(p=>platBadgeHTML(p,true)).join('');
+  const hltbHTML=(game.hltbMain||game.hltbExtra||game.hltbComplete)?`<div class="hltb-row">
+    ${game.hltbMain   ?`<div class="hltb-item"><div class="hltb-label">Main Story</div><div class="hltb-value">${game.hltbMain}h</div></div>`:''}
+    ${game.hltbExtra  ?`<div class="hltb-item"><div class="hltb-label">Main+Extras</div><div class="hltb-value">${game.hltbExtra}h</div></div>`:''}
+    ${game.hltbComplete?`<div class="hltb-item"><div class="hltb-label">Completionist</div><div class="hltb-value">${game.hltbComplete}h</div></div>`:''}
+  </div>`:'';
+  const statusBtns=Object.entries(STATUS_CONFIG).map(([key,cfg])=>
     `<button class="status-btn ${status===key?`active-${key}`:''}" onclick="setGameStatus('${escJs(String(game.id))}','${key}',this)">${cfg.label}</button>`
   ).join('');
-
-  const rawgLink = game.rawgSlug
-    ? `<a class="btn-link" href="https://rawg.io/games/${escHtml(game.rawgSlug)}" target="_blank" rel="noopener">View on RAWG ↗</a>`
-    : '';
-
-  const devCredits = [
-    game.developer ? `<span class="modal-meta-label" style="margin-right:4px">Dev</span><button class="person-chip" onclick="searchByPerson('${escJs(game.developer)}')">${escHtml(game.developer)}</button>` : '',
-    game.publisher && game.publisher!==game.developer ? `<span class="modal-meta-label" style="margin:0 4px 0 10px">Pub</span><button class="person-chip" onclick="searchByPerson('${escJs(game.publisher)}')">${escHtml(game.publisher)}</button>` : ''
+  const rawgLink=game.rawgSlug?`<a class="btn-link" href="https://rawg.io/games/${escHtml(game.rawgSlug)}" target="_blank" rel="noopener">View on RAWG ↗</a>`:'';
+  const devCredits=[
+    game.developer?`<span class="modal-meta-label" style="margin-right:4px">Dev</span><button class="person-chip" onclick="searchByPerson('${escJs(game.developer)}')">${escHtml(game.developer)}</button>`:'',
+    game.publisher&&game.publisher!==game.developer?`<span class="modal-meta-label" style="margin:0 4px 0 10px">Pub</span><button class="person-chip" onclick="searchByPerson('${escJs(game.publisher)}')">${escHtml(game.publisher)}</button>`:''
   ].filter(Boolean).join('');
 
-  document.getElementById('modal-content').innerHTML = `
-    <div class="modal-hero">
-      ${coverHTML}
-      <div class="modal-info">
-        <div class="modal-title">${escHtml(title)}</div>
-        <div class="modal-sub">${[game.year, game.developer].filter(Boolean).join(' · ')}</div>
-        <div class="modal-platforms">${platBadges}</div>
-        <div class="modal-meta-row">
-          ${game.year   ? `<div class="modal-meta-item"><div class="modal-meta-label">Year</div><div class="modal-meta-value">${game.year}</div></div>` : ''}
-          ${game.rating ? `<div class="modal-meta-item"><div class="modal-meta-label">Metacritic</div><div class="modal-rating">${game.rating}</div></div>` : ''}
-        </div>
-        <div class="modal-genres">${(game.genres||[]).map(g=>`<span class="genre-pill">${escHtml(g)}</span>`).join('')}</div>
-        ${hltbHTML}
-        ${devCredits ? `<div class="modal-credits">${devCredits}</div>` : ''}
-        ${game.summary ? `<div class="modal-overview">${escHtml(game.summary.slice(0,300))}${game.summary.length>300?'…':''}</div>` : ''}
+  const titleSafeJs=escJs(title);
+  const subText=escHtml([game.year,game.developer].filter(Boolean).join(' · '));
+  const bannerHTML=cover
+    ? `<div class="modal-banner"><img class="modal-banner-img" src="${escHtml(cover)}" alt="${escHtml(title)}" onerror="this.style.display='none'"><div class="modal-banner-overlay"><div class="modal-title">${escHtml(title)}</div>${subText?`<div class="modal-sub">${subText}</div>`:''}</div></div>`
+    : `<div class="modal-banner modal-banner-empty"><div><div class="modal-title" style="color:var(--text)">${escHtml(title)}</div>${subText?`<div class="modal-sub" style="color:var(--text-muted)">${subText}</div>`:''}</div></div>`;
+
+  document.getElementById('modal-content').innerHTML=`
+    ${bannerHTML}
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-body">
+      ${platBadges?`<div class="modal-platforms">${platBadges}</div>`:''}
+      <div class="modal-meta-row">
+        ${game.year  ?`<div class="modal-meta-item"><div class="modal-meta-label">Year</div><div class="modal-meta-value">${game.year}</div></div>`:''}
+        ${game.rating?`<div class="modal-meta-item"><div class="modal-meta-label">Metacritic</div><div class="modal-rating">${game.rating}</div></div>`:''}
       </div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-genres">${(game.genres||[]).map(g=>`<span class="genre-pill">${escHtml(g)}</span>`).join('')}</div>
+      ${hltbHTML}
+      ${devCredits?`<div class="modal-credits">${devCredits}</div>`:''}
+      ${game.summary?`<div class="modal-overview">${escHtml(game.summary.slice(0,300))}${game.summary.length>300?'…':''}</div>`:''}
     </div>
     <div class="modal-status-row">${statusBtns}</div>
     <div class="modal-actions">
@@ -1059,35 +991,26 @@ function openModal(game) {
 
   document.getElementById('modal-overlay').classList.add('active');
 }
+function closeModal() { currentModalGameId=null; document.getElementById('modal-overlay').classList.remove('active'); }
+function handleModalOverlayClick(e) { if(e.target===document.getElementById('modal-overlay')) closeModal(); }
+function searchByPerson(name) { closeModal(); document.getElementById('search-input').value=name; applyFilters(); }
 
-function closeModal() {
-  currentModalGameId = null;
-  document.getElementById('modal-overlay').classList.remove('active');
-}
-function handleModalOverlayClick(e) { if (e.target===document.getElementById('modal-overlay')) closeModal(); }
-
-function searchByPerson(name) {
-  closeModal();
-  document.getElementById('search-input').value = name;
-  applyFilters();
-}
-
-// ── STATUS ───────────────────────────────────────────────────────────────────
+// ── STATUS ─────────────────────────────────────────────────────────────────────
 async function setGameStatus(id, status, btn) {
   statusMap.set(String(id), status);
-  document.querySelectorAll('.status-btn').forEach(b => { Object.keys(STATUS_CONFIG).forEach(k => b.classList.remove(`active-${k}`)); });
-  if (btn) btn.classList.add(`active-${status}`);
-  const card = document.querySelector(`.game-card[data-id="${CSS.escape(String(id))}"]`);
-  if (card) { const d=card.querySelector('.status-dot'); if(d) d.remove(); const h=statusDotHTML(status); if(h) card.insertAdjacentHTML('afterbegin',h); }
+  document.querySelectorAll('.status-btn').forEach(b=>{ Object.keys(STATUS_CONFIG).forEach(k=>b.classList.remove(`active-${k}`)); });
+  if(btn) btn.classList.add(`active-${status}`);
+  const card=document.querySelector(`.game-card[data-id="${CSS.escape(String(id))}"]`);
+  if(card){ const d=card.querySelector('.status-dot'); if(d) d.remove(); const h=statusDotHTML(status); if(h) card.querySelector('.card-img-wrap').insertAdjacentHTML('afterbegin',h); }
   updateStats();
   try { await sbSetStatus(String(id), status); } catch(e) { console.warn(e); }
 }
 
-// ── BULK EDIT ────────────────────────────────────────────────────────────────
+// ── BULK EDIT ──────────────────────────────────────────────────────────────────
 function enterSelectionMode() {
   selectionMode=true; selectedIds.clear();
   document.getElementById('bulk-bar').classList.add('active');
-  document.getElementById('bulk-count').textContent = '0 selected';
+  document.getElementById('bulk-count').textContent='0 selected';
   applyFilters();
 }
 function exitSelectionMode() {
@@ -1096,111 +1019,98 @@ function exitSelectionMode() {
   applyFilters();
 }
 function toggleCardSelection(id) {
-  const s=String(id);
-  selectedIds.has(s)?selectedIds.delete(s):selectedIds.add(s);
-  document.getElementById('bulk-count').textContent = `${selectedIds.size} selected`;
-  const card = document.querySelector(`.game-card[data-id="${CSS.escape(s)}"]`);
-  if (card) card.classList.toggle('selected-card', selectedIds.has(s));
+  const s=String(id); selectedIds.has(s)?selectedIds.delete(s):selectedIds.add(s);
+  document.getElementById('bulk-count').textContent=`${selectedIds.size} selected`;
+  const card=document.querySelector(`.game-card[data-id="${CSS.escape(s)}"]`);
+  if(card) card.classList.toggle('selected-card',selectedIds.has(s));
 }
 async function saveBulkEdit() {
   if (!selectedIds.size) return;
-  const statusVal = document.getElementById('bulk-status-select').value;
-  const platVal   = document.getElementById('bulk-platform-select').value;
-  if (!statusVal && !platVal) { alert('Choose a status or platform to apply.'); return; }
-  const toUpdate = games.filter(g => selectedIds.has(String(g.id)));
+  const statusVal=document.getElementById('bulk-status-select').value;
+  const platVal=document.getElementById('bulk-platform-select').value;
+  if (!statusVal&&!platVal) { alert('Choose a status or platform to apply.'); return; }
+  const toUpdate=games.filter(g=>selectedIds.has(String(g.id)));
   if (platVal) {
-    toUpdate.forEach(g => { if (!g.userPlatforms.includes(platVal)) g.userPlatforms.push(platVal); });
-    await sbFetch('games', { method:'POST', headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'}, body:JSON.stringify(toUpdate.map(g=>({id:String(g.id),data:g,updated_at:new Date().toISOString()}))) });
+    toUpdate.forEach(g=>{ if(!g.userPlatforms.includes(platVal)) g.userPlatforms.push(platVal); });
+    await sbFetch('games',{method:'POST',headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(toUpdate.map(g=>({id:String(g.id),data:g,updated_at:new Date().toISOString()})))});
   }
   if (statusVal) {
-    const now = new Date().toISOString();
-    toUpdate.forEach(g => statusMap.set(String(g.id), statusVal));
-    await sbFetch('game_status', { method:'POST', headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'}, body:JSON.stringify(toUpdate.map(g=>({game_id:String(g.id),status:statusVal,updated_at:now}))) });
+    const now=new Date().toISOString();
+    toUpdate.forEach(g=>statusMap.set(String(g.id),statusVal));
+    await sbFetch('game_status',{method:'POST',headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(toUpdate.map(g=>({game_id:String(g.id),status:statusVal,updated_at:now})))});
   }
   exitSelectionMode();
 }
 
-// ── FIX MODAL ────────────────────────────────────────────────────────────────
+// ── FIX MODAL ──────────────────────────────────────────────────────────────────
 function openFixModal(id) {
-  closeModal(); fixTargetId = String(id);
-  const game = games.find(g=>g.id===fixTargetId); if (!game) return;
-  document.getElementById('fix-game-name').textContent = game.displayTitle||game.title;
-  document.getElementById('fix-display-title').value = game.displayTitle||'';
-  document.getElementById('fix-sort-title').value = game.sortTitle||'';
-  document.getElementById('fix-title-input').value = game.searchTitle||game.title||'';
-  document.getElementById('fix-rawgid-input').value = '';
-  document.getElementById('fix-refetch-results').innerHTML = '';
-  document.getElementById('fix-status').textContent = '';
-  document.getElementById('fix-art-status').textContent = '';
-  document.getElementById('fix-art-remove-btn').style.display = game.customCover?'':'none';
-  document.querySelectorAll('#fix-platform-chips .platform-toggle').forEach(b => b.classList.toggle('active',(game.userPlatforms||[]).includes(b.dataset.platform)));
+  closeModal(); fixTargetId=String(id);
+  const game=games.find(g=>g.id===fixTargetId); if(!game) return;
+  document.getElementById('fix-game-name').textContent=game.displayTitle||game.title;
+  document.getElementById('fix-display-title').value=game.displayTitle||'';
+  document.getElementById('fix-sort-title').value=game.sortTitle||'';
+  document.getElementById('fix-title-input').value=game.searchTitle||game.title||'';
+  document.getElementById('fix-rawgid-input').value='';
+  document.getElementById('fix-art-url').value='';
+  document.getElementById('fix-refetch-results').innerHTML='';
+  document.getElementById('fix-status').textContent='';
+  document.getElementById('fix-art-status').textContent='';
+  document.getElementById('fix-art-remove-btn').style.display=game.customCover?'':'none';
+  document.querySelectorAll('#fix-platform-chips .platform-toggle').forEach(b=>b.classList.toggle('active',(game.userPlatforms||[]).includes(b.dataset.platform)));
   document.getElementById('fix-overlay').classList.add('active');
 }
 function closeFixModal() { document.getElementById('fix-overlay').classList.remove('active'); fixTargetId=null; }
-
-function setFixStatus(msg,isErr) {
-  const el=document.getElementById('fix-status');
-  el.textContent=msg; el.style.color=isErr?'var(--danger)':'var(--text-muted)';
-}
+function setFixStatus(msg,isErr) { const el=document.getElementById('fix-status'); el.textContent=msg; el.style.color=isErr?'var(--danger)':'var(--text-muted)'; }
 
 async function saveTitleOverrides() {
   const idx=games.findIndex(g=>g.id===fixTargetId); if(idx<0) return;
-  games[idx].displayTitle = document.getElementById('fix-display-title').value.trim()||null;
-  games[idx].sortTitle    = document.getElementById('fix-sort-title').value.trim()||null;
+  games[idx].displayTitle=document.getElementById('fix-display-title').value.trim()||null;
+  games[idx].sortTitle=document.getElementById('fix-sort-title').value.trim()||null;
   try { await sbSaveGame(games[idx]); setFixStatus('✓ Saved'); applyFilters(); setTimeout(closeFixModal,800); }
   catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
-
 async function fixRefetchByTitle() {
   const title=document.getElementById('fix-title-input').value.trim(); if(!title) return;
   setFixStatus('Searching…');
-  try { showFixResults(await rawgSearch(title)); setFixStatus(''); }
-  catch(e) { setFixStatus('⚠ '+e.message,true); }
+  try { showFixResults(await rawgSearch(title)); setFixStatus(''); } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
-
 async function fixRefetchById() {
   const rawId=document.getElementById('fix-rawgid-input').value.trim();
   if (!rawId||isNaN(parseInt(rawId))) { setFixStatus('Enter a valid RAWG ID.',true); return; }
   setFixStatus('Fetching…');
-  try { showFixResults([await rawgFetchGame(parseInt(rawId))]); setFixStatus(''); }
-  catch(e) { setFixStatus('⚠ '+e.message,true); }
+  try { showFixResults([await rawgFetchGame(parseInt(rawId))]); setFixStatus(''); } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
-
 function showFixResults(results) {
   const el=document.getElementById('fix-refetch-results');
-  if (!results?.length) { el.innerHTML='<div style="font-size:0.72rem;color:var(--text-dim)">No results.</div>'; return; }
+  if (!results?.length) { el.innerHTML='<div style="font-size:.72rem;color:var(--text-dim)">No results.</div>'; return; }
   el.innerHTML=results.slice(0,4).map((r,i)=>{
     const yr=r.released?new Date(r.released).getFullYear():'?';
     return `<div class="search-result" onclick="applyFixResult(${i})" style="margin-bottom:6px">
-      <div class="search-result-cover">${r.background_image?`<img src="${escHtml(r.background_image)}" alt="" style="width:40px;height:56px;object-fit:cover;border-radius:1px">` :'<div class="no-cover">🎮</div>'}</div>
+      <div class="search-result-cover">${r.background_image?`<img src="${escHtml(r.background_image)}" alt="" style="width:40px;height:56px;object-fit:cover;border-radius:1px">`:'<div class="no-cover">🎮</div>'}</div>
       <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr} · RAWG ID: ${r.id}</div></div>
     </div>`;
   }).join('');
   el._results=results;
 }
-
 async function applyFixResult(idx) {
-  const r = document.getElementById('fix-refetch-results')._results[idx];
+  const r=document.getElementById('fix-refetch-results')._results[idx];
   setFixStatus('Fetching details…');
   try {
-    const detail = await rawgFetchGame(r.id);
-    const i = games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
-    const old = games[i];
-    const newData = buildGameObject(r, detail, { hltbMain:old.hltbMain, hltbExtra:old.hltbExtra, hltbComplete:old.hltbComplete }, old.userPlatforms);
+    const detail=await rawgFetchGame(r.id);
+    const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
+    const old=games[i];
+    const newData=buildGameObject(r,detail,{hltbMain:old.hltbMain,hltbExtra:old.hltbExtra,hltbComplete:old.hltbComplete},old.userPlatforms);
     newData.id=old.id; newData.displayTitle=old.displayTitle; newData.sortTitle=old.sortTitle; newData.customCover=old.customCover; newData.dateAdded=old.dateAdded;
     games[i]=newData; await sbSaveGame(newData);
     setFixStatus('✓ Updated'); applyFilters(); setTimeout(closeFixModal,800);
   } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
-
 async function savePlatformsFix() {
   const plats=getActivePlatforms('fix-platform-chips');
   const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
   games[i].userPlatforms=plats;
-  try { await sbSaveGame(games[i]); setFixStatus('✓ Platforms saved'); applyFilters(); }
-  catch(e) { setFixStatus('⚠ '+e.message,true); }
+  try { await sbSaveGame(games[i]); setFixStatus('✓ Platforms saved'); applyFilters(); } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
-
 async function deleteGame() {
   const game=games.find(g=>g.id===fixTargetId); if(!game) return;
   if (!confirm(`Remove "${game.displayTitle||game.title}" from your collection?`)) return;
@@ -1211,7 +1121,20 @@ async function deleteGame() {
   } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
 
-// ── CUSTOM COVER ─────────────────────────────────────────────────────────────
+// ── CUSTOM COVER ───────────────────────────────────────────────────────────────
+async function applyArtUrl() {
+  const url=document.getElementById('fix-art-url').value.trim();
+  if (!url) { setFixStatus('Paste an image URL first.',true); return; }
+  const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
+  games[i].customCover=url;
+  try {
+    await sbSaveGame(games[i]);
+    document.getElementById('fix-art-status').textContent='✓ Cover updated';
+    document.getElementById('fix-art-remove-btn').style.display='';
+    document.getElementById('fix-art-url').value='';
+    applyFilters();
+  } catch(e) { setFixStatus('⚠ '+e.message,true); }
+}
 async function uploadCustomCover(event) {
   const file=event.target.files[0]; if(!file) return;
   event.target.value='';
@@ -1224,7 +1147,7 @@ async function uploadCustomCover(event) {
     if(!res.ok) throw new Error('Upload failed');
     const url=`${SB_URL}/storage/v1/object/public/shelf-posters/${path}?t=${Date.now()}`;
     const i=games.findIndex(g=>g.id===fixTargetId);
-    if(i>=0){games[i].customCover=url; await sbSaveGame(games[i]); applyFilters();}
+    if(i>=0){ games[i].customCover=url; await sbSaveGame(games[i]); applyFilters(); }
     document.getElementById('fix-art-remove-btn').style.display='';
     statusEl.textContent='✓ Custom cover uploaded';
   } catch(e) { statusEl.textContent='⚠ '+e.message; }
@@ -1237,24 +1160,13 @@ async function removeCustomCover() {
   applyFilters();
 }
 
-// ── RANDOM PICKER ─────────────────────────────────────────────────────────────
+// ── RANDOM PICKER ──────────────────────────────────────────────────────────────
 function pickRandom() {
-  const unplayed = id => getGameStatus(id)==='unplayed';
-  const pool=[];
-  const groups={};
-  games.filter(g=>!g.notFound).forEach(g => {
-    if (g.collectionId) { if(!groups[g.collectionId]) groups[g.collectionId]=[]; groups[g.collectionId].push(g); }
-    else if (unplayed(g.id)) pool.push(g);
-  });
-  Object.values(groups).forEach(gr => {
-    gr.sort((a,b)=>(a.collectionOrder||99)-(b.collectionOrder||99));
-    const first=gr.find(g=>unplayed(g.id)); if(first) pool.push(first);
-  });
-  if (!pool.length) { alert('No unplayed games left! Nice work.'); return; }
+  const pool=games.filter(g=>!g.notFound&&getGameStatus(g.id)==='unplayed');
+  if (!pool.length) { alert('No unplayed games left!'); return; }
   currentRandomGame=pool[Math.floor(Math.random()*pool.length)];
   const cover=currentRandomGame.customCover||currentRandomGame.cover;
-  const img=document.getElementById('random-cover');
-  const ph=document.getElementById('random-cover-placeholder');
+  const img=document.getElementById('random-cover'), ph=document.getElementById('random-cover-placeholder');
   if(cover){img.src=cover;img.style.display='';ph.style.display='none';}
   else{img.style.display='none';ph.style.display='flex';}
   document.getElementById('random-title').textContent=currentRandomGame.displayTitle||currentRandomGame.title;
@@ -1264,12 +1176,11 @@ function pickRandom() {
 function closeRandom() { document.getElementById('random-overlay').classList.remove('active'); }
 function openModalFromRandom() { closeRandom(); if(currentRandomGame) openModal(currentRandomGame); }
 
-// ── BACKUP / RESTORE ──────────────────────────────────────────────────────────
+// ── BACKUP / RESTORE ───────────────────────────────────────────────────────────
 async function downloadBackup() {
-  const statusEl=document.getElementById('backup-status');
-  statusEl.textContent='Preparing…';
+  const statusEl=document.getElementById('backup-status'); statusEl.textContent='Preparing…';
   try {
-    const [gameRows, statusRows]=await Promise.all([sbLoadAll('games?select=id,data,updated_at&order=id'),sbLoadAll('game_status?select=game_id,status,updated_at&order=game_id')]);
+    const [gameRows,statusRows]=await Promise.all([sbLoadAll('games?select=id,data,updated_at&order=id'),sbLoadAll('game_status?select=game_id,status,updated_at&order=game_id')]);
     const blob=new Blob([JSON.stringify({version:1,app:'1UP',exported:new Date().toISOString(),gameCount:gameRows.length,games:gameRows,statuses:statusRows},null,2)],{type:'application/json'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`1up-backup-${new Date().toISOString().slice(0,10)}.json`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
@@ -1278,8 +1189,7 @@ async function downloadBackup() {
 }
 async function restoreBackup(event) {
   const file=event.target.files[0]; if(!file) return; event.target.value='';
-  const statusEl=document.getElementById('backup-status');
-  statusEl.textContent='Reading file…';
+  const statusEl=document.getElementById('backup-status'); statusEl.textContent='Reading file…';
   try {
     const backup=JSON.parse(await file.text());
     if (!backup.version||!Array.isArray(backup.games)) { statusEl.textContent='⚠ Invalid backup file.'; return; }
@@ -1292,39 +1202,35 @@ async function restoreBackup(event) {
   } catch(e) { statusEl.textContent='⚠ '+e.message; }
 }
 async function resetAllStatus() {
-  if(!confirm('Reset ALL games to Unplayed? Cannot be undone.')||!confirm('Are you sure?')) return;
+  if (!confirm('Reset ALL games to Unplayed?')||!confirm('Are you sure?')) return;
   for(const id of statusMap.keys()) await sbFetch(`game_status?game_id=eq.${encodeURIComponent(id)}`,{method:'DELETE'}).catch(()=>{});
   statusMap.clear(); updateStats(); applyFilters();
   document.getElementById('danger-section').style.display='none';
   alert('Done — all games reset to Unplayed.');
 }
 
-// ── PROGRESS ──────────────────────────────────────────────────────────────────
-function showProgress(title,sub) {
-  document.getElementById('progress-title').textContent=title;
-  document.getElementById('progress-sub').textContent=sub;
-  document.getElementById('progress-fill').style.width='0%';
-  document.getElementById('progress-overlay').classList.add('active');
-}
-function setProgress(sub,pct) {
-  document.getElementById('progress-sub').textContent=sub;
-  document.getElementById('progress-fill').style.width=`${Math.min(pct,100)}%`;
-}
+// ── PROGRESS ───────────────────────────────────────────────────────────────────
+function showProgress(title,sub) { document.getElementById('progress-title').textContent=title; document.getElementById('progress-sub').textContent=sub; document.getElementById('progress-fill').style.width='0%'; document.getElementById('progress-overlay').classList.add('active'); }
+function setProgress(sub,pct) { document.getElementById('progress-sub').textContent=sub; document.getElementById('progress-fill').style.width=`${Math.min(pct,100)}%`; }
 function hideProgress() { document.getElementById('progress-overlay').classList.remove('active'); }
 function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
 
-// ── BOOT ──────────────────────────────────────────────────────────────────────
+// ── ESC KEY ────────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('fix-overlay').classList.contains('active'))    { closeFixModal(); return; }
+  if (document.getElementById('modal-overlay').classList.contains('active'))  { closeModal();    return; }
+  if (document.getElementById('random-overlay').classList.contains('active')) { closeRandom();   return; }
+});
+
+// ── BOOT ───────────────────────────────────────────────────────────────────────
 (function boot() {
   const stored=localStorage.getItem(HASH_KEY);
-  if (stored && parseInt(stored)===PASS_HASH) {
+  if (stored&&parseInt(stored)===PASS_HASH) {
     document.getElementById('gate').style.display='none';
-    init().catch(e=>{
-      document.getElementById('gate').style.display='';
-      document.getElementById('gate-error').textContent='Session error — please log in again.';
-      localStorage.removeItem(HASH_KEY);
-    });
+    init().catch(e=>{ document.getElementById('gate').style.display=''; document.getElementById('gate-error').textContent='Session error — please log in again.'; localStorage.removeItem(HASH_KEY); });
   }
 })();
 </script>
 </body>
-</html> 
+</html>
