@@ -98,11 +98,11 @@
   .icon-btn:hover{border-color:var(--text-muted);color:var(--text)}
   /* compact row 2: all controls inline */
   .header-row2{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-  #search-input{width:180px;flex-shrink:0;padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:inherit;font-size:.78rem;outline:none}
+  #search-input{width:210px;flex-shrink:0;padding:7px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:inherit;font-size:.9rem;outline:none}
   #search-input:focus{border-color:var(--accent)}
-  .header-select{padding:5px 7px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text-muted);font-family:inherit;font-size:.68rem;outline:none;cursor:pointer;max-width:130px}
+  .header-select{padding:6px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text-muted);font-family:inherit;font-size:.8rem;outline:none;cursor:pointer;max-width:150px}
   .status-pills{display:flex;gap:4px;flex-wrap:wrap}
-  .status-pill{padding:3px 8px;border:1px solid var(--border);border-radius:2px;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s}
+  .status-pill{padding:5px 11px;border:1px solid var(--border);border-radius:2px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s}
   .status-pill:hover{border-color:var(--text-muted);color:var(--text-muted)}
   .status-pill.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
   .status-pill[data-status="playing"].active{border-color:var(--s-playing);color:var(--s-playing);background:rgba(74,222,128,.12)}
@@ -134,7 +134,7 @@
   .card-platforms{position:absolute;bottom:0;left:0;right:0;padding:3px 5px 4px;background:linear-gradient(transparent,rgba(0,0,0,.88));display:flex;gap:3px;flex-wrap:wrap;min-height:24px;align-items:flex-end}
   .plat-badge{font-size:1rem;font-weight:700;letter-spacing:.06em;padding:3px 8px;border-radius:2px;text-transform:uppercase}
   /* title below image — bigger */
-  .card-title{padding:8px 10px 12px;font-size:1.64rem;line-height:1.25;color:var(--text-muted)}
+  .card-title{padding:8px 10px 12px;font-size:1.2rem;line-height:1.25;color:var(--text-muted)}
   .not-found-card{opacity:.45}
   .empty-state{text-align:center;padding:80px 24px;color:var(--text-dim);grid-column:1/-1}
   .empty-state h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.1em;margin-bottom:8px}
@@ -210,7 +210,7 @@
   .plat-ps   {background:rgba(0,112,209,.2);color:#60a5fa}
   .plat-xbox {background:rgba(16,124,16,.2);color:#4ade80}
   .plat-switch{background:rgba(228,0,15,.2);color:#f87171}
-  .plat-steam{background:rgba(163,180,198,.15);color:#a3b4c6}
+  .plat-steam{background:rgba(27,40,56,.55);color:#c7d5e0}
   .plat-epic {background:rgba(180,180,180,.12);color:#aaa}
   .plat-ufo50{background:rgba(192,132,252,.2);color:#c084fc}
 
@@ -344,7 +344,7 @@
   <div id="main-header">
     <!-- row 1: logo + stats + buttons -->
     <div class="header-row1">
-      <span class="app-title" onclick="window.scrollTo({top:0,behavior:'smooth'})">1UP</span>
+      <span class="app-title" onclick="resetFilters()">1UP</span>
       <span class="header-stats" id="header-stats"></span>
       <div class="header-btns">
         <button class="icon-btn" id="select-btn-app" onclick="enterSelectionMode()" style="display:none">Select</button>
@@ -359,18 +359,18 @@
       <select class="header-select" id="filter-platform" onchange="applyFilters()"><option value="">All Platforms</option></select>
       <select class="header-select" id="filter-hltb" onchange="applyFilters()">
         <option value="">Any Length</option>
-        <option value="missing">⚠ No HLTB Data</option>
         <option value="5">Under 5h</option>
         <option value="15">5–15h</option>
         <option value="30">15–30h</option>
         <option value="30plus">30h+</option>
+        <option value="missing">(no data)</option>
       </select>
       <select class="header-select" id="filter-mc" onchange="applyFilters()">
         <option value="">Any Score</option>
-        <option value="missing">⚠ No Score</option>
         <option value="70">MC 70+</option>
         <option value="80">MC 80+</option>
         <option value="90">MC 90+</option>
+        <option value="missing">(no data)</option>
       </select>
       <select class="header-select" id="sort-select" onchange="changeSortOrder()">
         <option value="title">A–Z</option>
@@ -450,6 +450,17 @@
     </div>
     <button class="btn btn-accent" onclick="savePlatformsFix()" style="margin-top:10px;font-size:.7rem;padding:8px 12px">Save Platforms</button>
 
+    <div class="fix-section-label">Scores &amp; Times</div>
+    <div class="fix-row">
+      <div style="flex:1"><label>Metacritic Score</label><input type="text" id="fix-mc" placeholder="e.g. 87"></div>
+      <div style="flex:1"><label>Main Story (hrs)</label><input type="text" id="fix-hltb-main" placeholder="e.g. 12.5"></div>
+    </div>
+    <div class="fix-row">
+      <div style="flex:1"><label>Main+Extras (hrs)</label><input type="text" id="fix-hltb-extra" placeholder="e.g. 20"></div>
+      <div style="flex:1"><label>Completionist (hrs)</label><input type="text" id="fix-hltb-complete" placeholder="e.g. 35"></div>
+    </div>
+    <button class="btn" onclick="saveMcHltbFix()" style="font-size:.68rem;padding:7px 14px">Save Scores &amp; Times</button>
+
     <div class="fix-section-label" style="color:var(--danger)">Remove Game</div>
     <button class="btn-danger" onclick="deleteGame()" style="width:auto;padding:8px 14px;font-size:.68rem">🗑 Remove from Collection</button>
     <div class="fix-status" id="fix-status"></div>
@@ -505,13 +516,20 @@ const HASH_KEY = 'up1_auth';
 const PASS_HASH = 90161058; // "paddington"
 
 const PLATFORM_CONFIG = {
-  'PlayStation':{ abbr:'PS',  cls:'plat-ps'    },
-  'Xbox':       { abbr:'XB',  cls:'plat-xbox'  },
-  'Switch':     { abbr:'NSW', cls:'plat-switch' },
-  'Steam':      { abbr:'PC',  cls:'plat-steam'  },
-  'Epic':       { abbr:'EPC', cls:'plat-epic'   },
-  'UFO 50':     { abbr:'U50', cls:'plat-ufo50'  },
+  'PlayStation':{ abbr:'PS',   cls:'plat-ps'    },
+  'Xbox':       { abbr:'XBOX', cls:'plat-xbox'  },
+  'Switch':     { abbr:'NSW',  cls:'plat-switch' },
+  'Steam':      { abbr:'PC',   cls:'plat-steam'  },
+  'Epic':       { abbr:'EPIC', cls:'plat-epic'   },
+  'UFO 50':     { abbr:'UFO',  cls:'plat-ufo50'  },
 };
+// Normalize variant platform names → canonical
+const PLATFORM_ALIASES = {
+  'Switch 2':'Switch','Nintendo Switch 2':'Switch','Switch OLED':'Switch',
+  'PS5':'PlayStation','PS4':'PlayStation','PlayStation 5':'PlayStation','PlayStation 4':'PlayStation',
+  'XGP':'Xbox','Xbox Game Pass':'Xbox','Xbox One':'Xbox','Xbox Series X':'Xbox','Xbox Series S':'Xbox',
+};
+function normalPlatform(p) { return PLATFORM_ALIASES[p] || p; }
 const STATUS_CONFIG = {
   unplayed:    { label:'Unplayed',  icon:''  },
   playing:     { label:'Playing',   icon:'▶', dotClass:'playing'    },
@@ -896,7 +914,8 @@ function applyFilters() {
   const mcF=document.getElementById('filter-mc')?.value||'';
   filteredGames=games.filter(g=>{
     if (currentStatusFilter!=='all'&&getGameStatus(g.id)!==currentStatusFilter) return false;
-    if (platF&&!g.userPlatforms.includes(platF)) return false;
+    if (platF==='none') { if((g.userPlatforms||[]).length>0) return false; }
+    else if (platF) { if(!(g.userPlatforms||[]).some(p=>normalPlatform(p)===platF)) return false; }
     if (genreF&&!g.genres?.includes(genreF)) return false;
     if (search) { const hay=[g.displayTitle,g.title,g.developer,g.publisher,...(g.genres||[])].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(search)) return false; }
     // HLTB filter (main story)
@@ -929,8 +948,12 @@ function applyFilters() {
 function buildFilterOptions() {
   const genres=[...new Set(games.flatMap(g=>g.genres||[]))].sort();
   document.getElementById('filter-genre').innerHTML='<option value="">All Genres</option>'+genres.map(g=>`<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
-  const platforms=[...new Set(games.flatMap(g=>g.userPlatforms||[]))].sort();
-  document.getElementById('filter-platform').innerHTML='<option value="">All Platforms</option>'+platforms.map(p=>`<option value="${escHtml(p)}">${escHtml(p)}</option>`).join('');
+  // Normalize variant names, deduplicate
+  const platforms=[...new Set(games.flatMap(g=>(g.userPlatforms||[]).map(normalPlatform)).filter(Boolean))].sort();
+  const hasNoPlatform=games.some(g=>!(g.userPlatforms||[]).length);
+  document.getElementById('filter-platform').innerHTML='<option value="">All Platforms</option>'+
+    platforms.map(p=>`<option value="${escHtml(p)}">${escHtml(p)}</option>`).join('')+
+    (hasNoPlatform?'<option value="none">(no data)</option>':'');
 }
 function renderGrid(list) {
   const grid=document.getElementById('game-grid');
@@ -966,6 +989,15 @@ function setStatusFilter(status,btn) {
   btn.classList.add('active'); applyFilters();
 }
 function changeSortOrder() { currentSort=document.getElementById('sort-select').value; applyFilters(); }
+function resetFilters() {
+  ['search-input','filter-genre','filter-platform','filter-hltb','filter-mc'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const sortEl=document.getElementById('sort-select'); if(sortEl) sortEl.value='title';
+  currentSort='title'; currentStatusFilter='all';
+  document.querySelectorAll('.status-pill').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.status-pill[data-status="all"]')?.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  applyFilters();
+}
 
 // ── GAME MODAL ─────────────────────────────────────────────────────────────────
 function openModalById(id) { const game=games.find(g=>g.id===id); if(game) openModal(game); }
@@ -1084,6 +1116,10 @@ function openFixModal(id) {
   document.getElementById('fix-art-status').textContent='';
   document.getElementById('fix-art-remove-btn').style.display=game.customCover?'':'none';
   document.querySelectorAll('#fix-platform-chips .platform-toggle').forEach(b=>b.classList.toggle('active',(game.userPlatforms||[]).includes(b.dataset.platform)));
+  document.getElementById('fix-mc').value=game.rating||'';
+  document.getElementById('fix-hltb-main').value=game.hltbMain||'';
+  document.getElementById('fix-hltb-extra').value=game.hltbExtra||'';
+  document.getElementById('fix-hltb-complete').value=game.hltbComplete||'';
   document.getElementById('fix-overlay').classList.add('active');
 }
 function closeFixModal() { document.getElementById('fix-overlay').classList.remove('active'); fixTargetId=null; }
@@ -1131,6 +1167,16 @@ async function applyFixResult(idx) {
     games[i]=newData; await sbSaveGame(newData);
     setFixStatus('✓ Updated'); applyFilters(); setTimeout(closeFixModal,800);
   } catch(e) { setFixStatus('⚠ '+e.message,true); }
+}
+async function saveMcHltbFix() {
+  const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
+  const mc=parseInt(document.getElementById('fix-mc').value)||null;
+  const hltbMain=parseFloat(document.getElementById('fix-hltb-main').value)||null;
+  const hltbExtra=parseFloat(document.getElementById('fix-hltb-extra').value)||null;
+  const hltbComplete=parseFloat(document.getElementById('fix-hltb-complete').value)||null;
+  games[i].rating=mc; games[i].hltbMain=hltbMain; games[i].hltbExtra=hltbExtra; games[i].hltbComplete=hltbComplete;
+  try { await sbSaveGame(games[i]); setFixStatus('✓ Scores saved'); }
+  catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
 async function savePlatformsFix() {
   const plats=getActivePlatforms('fix-platform-chips');
