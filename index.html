@@ -508,6 +508,9 @@
     <option value="PC">PC</option><option value="Epic">Epic</option><option value="UFO 50">UFO 50</option>
   </select>
   <input type="number" id="bulk-year-beaten" class="header-select" placeholder="Year Beaten" min="1970" max="2099" style="width:108px">
+  <input type="text" id="bulk-developer" class="header-select" placeholder="Developer" style="width:120px">
+  <input type="text" id="bulk-publisher" class="header-select" placeholder="Publisher" style="width:120px">
+  <label style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--text-muted);white-space:nowrap;cursor:pointer"><input type="checkbox" id="bulk-clear-desc"> Clear desc</label>
   <button class="btn btn-accent" onclick="saveBulkEdit()" style="font-size:.7rem;padding:7px 12px">Apply</button>
   <button class="btn" onclick="exitSelectionMode()" style="font-size:.7rem;padding:7px 12px">Cancel</button>
 </div>
@@ -1138,15 +1141,21 @@ function updateSelectAllBtn() {
 }
 async function saveBulkEdit() {
   if (!selectedIds.size) return;
-  const statusVal=document.getElementById('bulk-status-select').value;
-  const platVal=document.getElementById('bulk-platform-select').value;
-  const ybVal=parseInt(document.getElementById('bulk-year-beaten').value)||null;
-  if (!statusVal&&!platVal&&!ybVal) { alert('Choose a status, platform, or year beaten to apply.'); return; }
+  const statusVal  = document.getElementById('bulk-status-select').value;
+  const platVal    = document.getElementById('bulk-platform-select').value;
+  const ybVal      = parseInt(document.getElementById('bulk-year-beaten').value)||null;
+  const devVal     = document.getElementById('bulk-developer').value.trim();
+  const pubVal     = document.getElementById('bulk-publisher').value.trim();
+  const clearDesc  = document.getElementById('bulk-clear-desc').checked;
+  if (!statusVal&&!platVal&&!ybVal&&!devVal&&!pubVal&&!clearDesc) { alert('Choose at least one field to apply.'); return; }
   const toUpdate=games.filter(g=>selectedIds.has(String(g.id)));
-  if (platVal||ybVal) {
+  if (platVal||ybVal||devVal||pubVal||clearDesc) {
     toUpdate.forEach(g=>{
-      if(platVal) g.userPlatforms=[platVal];
-      if(ybVal) g.yearBeaten=ybVal;
+      if(platVal)    g.userPlatforms=[platVal];
+      if(ybVal)      g.yearBeaten=ybVal;
+      if(devVal)     g.developer=devVal;
+      if(pubVal)     g.publisher=pubVal;
+      if(clearDesc)  g.summary=null;
     });
     await sbFetch('games',{method:'POST',headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(toUpdate.map(g=>({id:String(g.id),data:g,updated_at:new Date().toISOString()})))});
   }
@@ -1156,6 +1165,9 @@ async function saveBulkEdit() {
     await sbFetch('game_status',{method:'POST',headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(toUpdate.map(g=>({game_id:String(g.id),status:statusVal,updated_at:now})))});
   }
   document.getElementById('bulk-year-beaten').value='';
+  document.getElementById('bulk-developer').value='';
+  document.getElementById('bulk-publisher').value='';
+  document.getElementById('bulk-clear-desc').checked=false;
   exitSelectionMode();
 }
 
