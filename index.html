@@ -298,8 +298,8 @@
   <!-- CSV tab -->
   <div class="tab-pane" id="tab-csv">
     <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:14px;line-height:1.6">
-      Required columns: <strong>Title</strong> and <strong>Platform</strong>. Optional: <strong>Metacritic</strong>, <strong>HLTBMain</strong>, <strong>HLTBExtra</strong>, <strong>HLTBComplete</strong>.<br>
-      Each row will be looked up on RAWG automatically. You need a RAWG API key (below) first.
+      Required: <strong>Title</strong>. Optional: <strong>Platform</strong>, <strong>Metacritic</strong>, <strong>Status</strong> (unplayed/playing/completed), <strong>YearBeaten</strong>, <strong>HLTBMain</strong>, <strong>HLTBExtra</strong>, <strong>HLTBComplete</strong>.<br>
+      Each row is looked up on RAWG automatically. RAWG API key required (below).
     </div>
     <input type="file" id="csv-file-input" accept=".csv,.txt" onchange="handleCSVFile(event)" style="display:none">
     <button class="btn" onclick="document.getElementById('csv-file-input').click()">📂 Choose CSV File</button>
@@ -369,6 +369,9 @@
         <option value="80">MC 80+</option>
         <option value="90">MC 90+</option>
         <option value="missing">(no data)</option>
+      </select>
+      <select class="header-select" id="filter-year-beaten" onchange="applyFilters()" style="display:none">
+        <option value="">Any Year</option>
       </select>
       <select class="header-select" id="sort-select" onchange="changeSortOrder()">
         <option value="title">A–Z</option>
@@ -514,7 +517,7 @@ const PLATFORM_CONFIG = {
   'PlayStation':{ abbr:'PS',   cls:'plat-ps'    },
   'Xbox':       { abbr:'XBOX', cls:'plat-xbox'  },
   'Switch':     { abbr:'NSW',  cls:'plat-switch' },
-  'Steam':      { abbr:'PC',   cls:'plat-steam'  },
+  'Steam':      { abbr:'STEAM', cls:'plat-steam'  },
   'Epic':       { abbr:'EPIC', cls:'plat-epic'   },
   'UFO 50':     { abbr:'UFO',  cls:'plat-ufo50'  },
 };
@@ -523,6 +526,7 @@ const PLATFORM_ALIASES = {
   'Switch 2':'Switch','Nintendo Switch 2':'Switch','Switch OLED':'Switch',
   'PS5':'PlayStation','PS4':'PlayStation','PlayStation 5':'PlayStation','PlayStation 4':'PlayStation',
   'XGP':'Xbox','Xbox Game Pass':'Xbox','Xbox One':'Xbox','Xbox Series X':'Xbox','Xbox Series S':'Xbox',
+  'Steam':'PC','Epic':'PC','Epic Games':'PC','GOG':'PC','Itch.io':'PC',
 };
 function normalPlatform(p) { return PLATFORM_ALIASES[p] || p; }
 const STATUS_CONFIG = {
@@ -620,6 +624,7 @@ function buildGameObject(result, detail, csvData, userPlatforms) {
     rawgPlatforms:(d.platforms||result.platforms||[]).map(p=>p.platform.name),
     userPlatforms:userPlatforms||[], rating,
     hltbMain:csvData?.hltbMain||null, hltbExtra:csvData?.hltbExtra||null, hltbComplete:csvData?.hltbComplete||null,
+    yearBeaten:csvData?.yearBeaten||null,
     dateAdded:new Date().toISOString(), notFound:false,
   };
 }
@@ -817,10 +822,12 @@ async function handleCSVFile(event) {
   const colTitle    = headers.findIndex(h=>h==='title'||h==='game'||h==='name');
   const colPlatform = headers.findIndex(h=>h==='platform'||h==='console'||h==='system');
   if (colTitle<0) { statusEl.textContent='⚠ No "Title" column found.'; return; }
-  const colMeta     = headers.findIndex(h=>h.includes('metacritic')||h==='score');
-  const colHltbMain = headers.findIndex(h=>h.includes('hltbmain')||h==='main');
-  const colHltbExtra= headers.findIndex(h=>h.includes('hltbextra')||h.includes('extra'));
-  const colHltbComp = headers.findIndex(h=>h.includes('hltbcomplete')||h.includes('complet'));
+  const colMeta      = headers.findIndex(h=>h.includes('metacritic')||h==='score'||h==='mc');
+  const colHltbMain  = headers.findIndex(h=>h.includes('hltbmain')||h==='main');
+  const colHltbExtra = headers.findIndex(h=>h.includes('hltbextra')||h.includes('extra'));
+  const colHltbComp  = headers.findIndex(h=>h.includes('hltbcomplete')||h.includes('complet'));
+  const colStatus    = headers.findIndex(h=>h==='status');
+  const colYearBeaten= headers.findIndex(h=>['yearbeaten','year beaten','year_beaten','year finished','year finished','beaten','year'].includes(h));
   const dataRows=rows.slice(1).filter(r=>r[colTitle]?.trim());
   const titlePlatformMap=new Map();
   dataRows.forEach(row=>{
@@ -841,8 +848,11 @@ async function handleCSVFile(event) {
       if(changed) await sbSaveGame(existing).catch(()=>{});
       skipped++; done++; continue;
     }
-    const csvData={ title, hltbMain:colHltbMain>=0?parseFloat(row[colHltbMain])||null:null, hltbExtra:colHltbExtra>=0?parseFloat(row[colHltbExtra])||null:null, hltbComplete:colHltbComp>=0?parseFloat(row[colHltbComp])||null:null };
+    const csvYearBeaten=colYearBeaten>=0?parseInt(row[colYearBeaten])||null:null;
+    const csvData={ title, hltbMain:colHltbMain>=0?parseFloat(row[colHltbMain])||null:null, hltbExtra:colHltbExtra>=0?parseFloat(row[colHltbExtra])||null:null, hltbComplete:colHltbComp>=0?parseFloat(row[colHltbComp])||null:null, yearBeaten:csvYearBeaten };
     const csvMeta=colMeta>=0?parseInt(row[colMeta])||null:null;
+    const csvStatusRaw=colStatus>=0?row[colStatus]?.trim().toLowerCase():null;
+    const csvStatus=['unplayed','playing','completed'].includes(csvStatusRaw)?csvStatusRaw:null;
     try {
       const results=await rawgSearch(title);
       await sleep(500);
@@ -851,10 +861,12 @@ async function handleCSVFile(event) {
         const game=buildGameObject(r,null,csvData,platforms);
         if(!game.rating&&csvMeta) game.rating=csvMeta;
         games.push(game); await sbSaveGame(game);
+        if(csvStatus){ statusMap.set(game.id,csvStatus); await sbSetStatus(game.id,csvStatus).catch(()=>{}); }
       } else {
         const id='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
         const game={id,rawgId:null,rawgSlug:null,searchTitle:title,title,displayTitle:null,sortTitle:null,cover:null,coverLg:null,customCover:null,year:null,summary:null,developer:null,publisher:null,genres:[],rawgPlatforms:[],userPlatforms:platforms,rating:csvMeta,...csvData,dateAdded:new Date().toISOString(),notFound:true};
         games.push(game); await sbSaveGame(game);
+        if(csvStatus){ statusMap.set(game.id,csvStatus); await sbSetStatus(game.id,csvStatus).catch(()=>{}); }
       }
     } catch(e) { errors.push(`"${title}": ${e.message}`); }
     done++;
@@ -920,6 +932,9 @@ function applyFilters() {
     // Metacritic filter
     if (mcF==='missing') { if (g.rating) return false; }
     else if (mcF) { const min=parseInt(mcF); if (!g.rating||g.rating<min) return false; }
+    // Year Beaten filter (only active when Completed pill is selected)
+    const ybF=document.getElementById('filter-year-beaten')?.value||'';
+    if (ybF && String(g.yearBeaten||'')!==ybF) return false;
     return true;
   });
   filteredGames.sort((a,b)=>{
@@ -947,6 +962,10 @@ function buildFilterOptions() {
   document.getElementById('filter-platform').innerHTML='<option value="">All Platforms</option>'+
     platforms.map(p=>`<option value="${escHtml(p)}">${escHtml(p)}</option>`).join('')+
     (hasNoPlatform?'<option value="none">(no data)</option>':'');
+  // Year Beaten — sorted newest first
+  const years=[...new Set(games.filter(g=>g.yearBeaten).map(g=>String(g.yearBeaten)))].sort().reverse();
+  const ybEl=document.getElementById('filter-year-beaten');
+  if(ybEl) ybEl.innerHTML='<option value="">Any Year</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
 }
 function renderGrid(list) {
   const grid=document.getElementById('game-grid');
@@ -985,11 +1004,15 @@ function updateStats() {
 function setStatusFilter(status,btn) {
   currentStatusFilter=status;
   document.querySelectorAll('.status-pill').forEach(p=>p.classList.remove('active'));
-  btn.classList.add('active'); applyFilters();
+  btn.classList.add('active');
+  const ybEl=document.getElementById('filter-year-beaten');
+  if(ybEl){ if(status==='completed'){ybEl.style.display='';}else{ybEl.style.display='none';ybEl.value='';} }
+  applyFilters();
 }
 function changeSortOrder() { currentSort=document.getElementById('sort-select').value; applyFilters(); }
 function resetFilters() {
-  ['search-input','filter-genre','filter-platform','filter-hltb','filter-mc'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['search-input','filter-genre','filter-platform','filter-hltb','filter-mc','filter-year-beaten'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const ybEl=document.getElementById('filter-year-beaten'); if(ybEl) ybEl.style.display='none';
   const sortEl=document.getElementById('sort-select'); if(sortEl) sortEl.value='title';
   currentSort='title'; currentStatusFilter='all';
   document.querySelectorAll('.status-pill').forEach(p=>p.classList.remove('active'));
