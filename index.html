@@ -110,7 +110,7 @@
 
   /* grid */
   #grid-wrap { padding-top: calc(var(--header-height) + var(--safe-top) + 16px); }
-  #game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; padding: 12px 12px 80px; }
+  #game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; padding: 12px 12px 80px; }
   .game-card { position: relative; cursor: pointer; border-radius: 2px; overflow: hidden; background: var(--surface2); transition: transform 0.15s, box-shadow 0.15s; }
   .game-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
   .game-card.selected-card { outline: 2px solid var(--accent); }
@@ -205,7 +205,7 @@
     .modal-hero { flex-direction: column; }
     .modal-cover, .modal-cover-placeholder { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
     .modal-info { padding: 16px; }
-    #game-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+    #game-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
   }
 </style>
 </head>
@@ -537,9 +537,17 @@ async function sbDeleteGame(id) {
 async function rawgFetch(endpoint, params = {}) {
   if (!rawgKey) throw new Error('No RAWG API key — add one in the credentials section.');
   const qs = new URLSearchParams({ key: rawgKey, ...params }).toString();
-  const res = await fetch(`${RAWG}/${endpoint}?${qs}`);
-  if (!res.ok) throw new Error(`RAWG ${res.status}: ${res.statusText}`);
-  return res.json();
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await sleep(1500 * attempt);
+    const res = await fetch(`${RAWG}/${endpoint}?${qs}`);
+    if (res.status === 429) { await sleep(3000); continue; }
+    if (!res.ok) throw new Error(`RAWG ${res.status}: ${res.statusText}`);
+    const text = await res.text();
+    if (!text.trim()) { await sleep(1500); continue; }
+    try { return JSON.parse(text); }
+    catch(e) { if (attempt === 2) throw new Error('RAWG returned invalid response'); await sleep(1000); }
+  }
+  throw new Error('RAWG rate limited — try importing a smaller batch');
 }
 
 async function rawgSearch(title) {
@@ -851,12 +859,10 @@ async function handleCSVFile(event) {
 
     try {
       const results = await rawgSearch(title);
-      await sleep(200);
+      await sleep(500);
       if (results.length) {
         const r = results[0];
-        const detail = await rawgFetchGame(r.id);
-        await sleep(200);
-        const game = buildGameObject(r, detail, csvData, platforms);
+        const game = buildGameObject(r, null, csvData, platforms);
         if (!game.rating && csvMeta) game.rating = csvMeta;
         games.push(game);
         await sbSaveGame(game);
@@ -966,7 +972,8 @@ function renderGrid(list) {
     const imgHTML = cover
       ? `<img class="card-cover" src="${escHtml(cover)}" alt="${escHtml(title)}" loading="lazy" onerror="this.outerHTML='<div class=\\'card-cover-placeholder\\'>🎮</div>'">`
       : `<div class="card-cover-placeholder">🎮</div>`;
-    return `<div class="game-card ${game.notFound?'not-found-card':''} ${selectionMode&&selectedIds.has(String(game.id))?'selected-card':''}" onclick="${selectionMode?`toggleCardSelection('${escJs(String(game.id))}')`:''}" data-id="${escHtml(String(game.id))}" ${!selectionMode?`onclick="openModalById('${escJs(String(game.id))}')"`:''}>
+    const clickFn = selectionMode ? `toggleCardSelection('${escJs(String(game.id))}')` : `openModalById('${escJs(String(game.id))}')`;
+    return `<div class="game-card ${game.notFound?'not-found-card':''} ${selectionMode&&selectedIds.has(String(game.id))?'selected-card':''}" onclick="${clickFn}" data-id="${escHtml(String(game.id))}">
       ${imgHTML}${statusDotHTML(status)}
       ${platBadges?`<div class="card-platforms">${platBadges}</div>`:''}
       <div class="card-title">${escHtml(title)}</div>
