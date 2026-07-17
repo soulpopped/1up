@@ -345,7 +345,7 @@
       <span class="app-title" onclick="resetFilters()">1UP</span>
       <span class="header-stats" id="header-stats"></span>
       <div class="header-btns">
-        <button class="icon-btn" id="select-btn-app" onclick="enterSelectionMode()" style="display:none">Select</button>
+        <button class="icon-btn" id="select-btn-app" onclick="enterSelectionMode()">Select</button>
         <button class="icon-btn" onclick="pickRandom()">🎲</button>
         <button class="icon-btn" onclick="showImportPanel()">+ Add</button>
       </div>
@@ -460,6 +460,18 @@
     </div>
     <button class="btn" onclick="saveMcHltbFix()" style="font-size:.68rem;padding:7px 14px">Save Scores &amp; Times</button>
 
+    <div class="fix-section-label">Game Info</div>
+    <div class="fix-row">
+      <div style="flex:1"><label>Release Year</label><input type="text" id="fix-year" placeholder="e.g. 2023"></div>
+      <div style="flex:1"><label>Year Beaten</label><input type="text" id="fix-year-beaten" placeholder="e.g. 2024"></div>
+    </div>
+    <div class="fix-row">
+      <div style="flex:1"><label>Developer</label><input type="text" id="fix-developer" placeholder="Studio name"></div>
+      <div style="flex:1"><label>Publisher</label><input type="text" id="fix-publisher" placeholder="Publisher name"></div>
+    </div>
+    <div class="fix-row"><div style="flex:1"><label>Description</label><textarea id="fix-description" rows="3" placeholder="Game summary…" style="resize:vertical"></textarea></div></div>
+    <button class="btn" onclick="saveGameInfoFix()" style="font-size:.68rem;padding:7px 14px">Save Game Info</button>
+
     <div class="fix-section-label" style="color:var(--danger)">Remove Game</div>
     <button class="btn-danger" onclick="deleteGame()" style="width:auto;padding:8px 14px;font-size:.68rem">🗑 Remove from Collection</button>
     <div class="fix-status" id="fix-status"></div>
@@ -493,6 +505,7 @@
     <option value="Switch">Switch</option><option value="Steam">Steam</option>
     <option value="Epic">Epic</option><option value="UFO 50">UFO 50</option>
   </select>
+  <input type="number" id="bulk-year-beaten" class="header-select" placeholder="Year Beaten" min="1970" max="2099" style="width:108px">
   <button class="btn btn-accent" onclick="saveBulkEdit()" style="font-size:.7rem;padding:7px 12px">Apply</button>
   <button class="btn" onclick="exitSelectionMode()" style="font-size:.7rem;padding:7px 12px">Cancel</button>
 </div>
@@ -1109,10 +1122,14 @@ async function saveBulkEdit() {
   if (!selectedIds.size) return;
   const statusVal=document.getElementById('bulk-status-select').value;
   const platVal=document.getElementById('bulk-platform-select').value;
-  if (!statusVal&&!platVal) { alert('Choose a status or platform to apply.'); return; }
+  const ybVal=parseInt(document.getElementById('bulk-year-beaten').value)||null;
+  if (!statusVal&&!platVal&&!ybVal) { alert('Choose a status, platform, or year beaten to apply.'); return; }
   const toUpdate=games.filter(g=>selectedIds.has(String(g.id)));
-  if (platVal) {
-    toUpdate.forEach(g=>{ if(!g.userPlatforms.includes(platVal)) g.userPlatforms.push(platVal); });
+  if (platVal||ybVal) {
+    toUpdate.forEach(g=>{
+      if(platVal&&!g.userPlatforms.includes(platVal)) g.userPlatforms.push(platVal);
+      if(ybVal) g.yearBeaten=ybVal;
+    });
     await sbFetch('games',{method:'POST',headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(toUpdate.map(g=>({id:String(g.id),data:g,updated_at:new Date().toISOString()})))});
   }
   if (statusVal) {
@@ -1120,6 +1137,7 @@ async function saveBulkEdit() {
     toUpdate.forEach(g=>statusMap.set(String(g.id),statusVal));
     await sbFetch('game_status',{method:'POST',headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(toUpdate.map(g=>({game_id:String(g.id),status:statusVal,updated_at:now})))});
   }
+  document.getElementById('bulk-year-beaten').value='';
   exitSelectionMode();
 }
 
@@ -1142,6 +1160,11 @@ function openFixModal(id) {
   document.getElementById('fix-hltb-main').value=game.hltbMain||'';
   document.getElementById('fix-hltb-extra').value=game.hltbExtra||'';
   document.getElementById('fix-hltb-complete').value=game.hltbComplete||'';
+  document.getElementById('fix-year').value=game.year||'';
+  document.getElementById('fix-year-beaten').value=game.yearBeaten||'';
+  document.getElementById('fix-developer').value=game.developer||'';
+  document.getElementById('fix-publisher').value=game.publisher||'';
+  document.getElementById('fix-description').value=game.summary||'';
   document.getElementById('fix-overlay').classList.add('active');
 }
 function closeFixModal() { document.getElementById('fix-overlay').classList.remove('active'); fixTargetId=null; }
@@ -1151,7 +1174,7 @@ async function saveTitleOverrides() {
   const idx=games.findIndex(g=>g.id===fixTargetId); if(idx<0) return;
   games[idx].displayTitle=document.getElementById('fix-display-title').value.trim()||null;
   games[idx].sortTitle=document.getElementById('fix-sort-title').value.trim()||null;
-  try { await sbSaveGame(games[idx]); setFixStatus('✓ Saved'); applyFilters(); setTimeout(closeFixModal,800); }
+  try { await sbSaveGame(games[idx]); setFixStatus('✓ Saved'); applyFilters(); setTimeout(closeFixModal,500); }
   catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
 async function fixRefetchByTitle() {
@@ -1197,14 +1220,25 @@ async function saveMcHltbFix() {
   const hltbExtra=parseFloat(document.getElementById('fix-hltb-extra').value)||null;
   const hltbComplete=parseFloat(document.getElementById('fix-hltb-complete').value)||null;
   games[i].rating=mc; games[i].hltbMain=hltbMain; games[i].hltbExtra=hltbExtra; games[i].hltbComplete=hltbComplete;
-  try { await sbSaveGame(games[i]); setFixStatus('✓ Scores saved'); }
+  try { await sbSaveGame(games[i]); setFixStatus('✓ Saved'); applyFilters(); setTimeout(closeFixModal,500); }
+  catch(e) { setFixStatus('⚠ '+e.message,true); }
+}
+async function saveGameInfoFix() {
+  const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
+  const yr=parseInt(document.getElementById('fix-year').value)||null;
+  const yb=parseInt(document.getElementById('fix-year-beaten').value)||null;
+  const dev=document.getElementById('fix-developer').value.trim()||null;
+  const pub=document.getElementById('fix-publisher').value.trim()||null;
+  const desc=document.getElementById('fix-description').value.trim()||null;
+  games[i].year=yr; games[i].yearBeaten=yb; games[i].developer=dev; games[i].publisher=pub; games[i].summary=desc;
+  try { await sbSaveGame(games[i]); setFixStatus('✓ Saved'); applyFilters(); setTimeout(closeFixModal,500); }
   catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
 async function savePlatformsFix() {
   const plats=getActivePlatforms('fix-platform-chips');
   const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
   games[i].userPlatforms=plats;
-  try { await sbSaveGame(games[i]); setFixStatus('✓ Platforms saved'); applyFilters(); } catch(e) { setFixStatus('⚠ '+e.message,true); }
+  try { await sbSaveGame(games[i]); setFixStatus('✓ Saved'); applyFilters(); setTimeout(closeFixModal,500); } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
 async function deleteGame() {
   const game=games.find(g=>g.id===fixTargetId); if(!game) return;
@@ -1224,10 +1258,7 @@ async function applyArtUrl() {
   games[i].customCover=url; games[i].notFound=false;
   try {
     await sbSaveGame(games[i]);
-    document.getElementById('fix-art-status').textContent='✓ Cover updated';
-    document.getElementById('fix-art-remove-btn').style.display='';
-    document.getElementById('fix-art-url').value='';
-    applyFilters();
+    setFixStatus('✓ Saved'); applyFilters(); setTimeout(closeFixModal,500);
   } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
 async function uploadCustomCover(event) {
@@ -1243,9 +1274,8 @@ async function uploadCustomCover(event) {
     const url=`${SB_URL}/storage/v1/object/public/shelf-posters/${path}?t=${Date.now()}`;
     const i=games.findIndex(g=>g.id===fixTargetId);
     if(i>=0){ games[i].customCover=url; games[i].notFound=false; await sbSaveGame(games[i]); applyFilters(); }
-    document.getElementById('fix-art-remove-btn').style.display='';
-    statusEl.textContent='✓ Custom cover uploaded';
-  } catch(e) { statusEl.textContent='⚠ '+e.message; }
+    setFixStatus('✓ Saved'); setTimeout(closeFixModal,500);
+  } catch(e) { setFixStatus('⚠ Upload failed: '+e.message,true); }
 }
 async function removeCustomCover() {
   const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
