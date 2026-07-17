@@ -334,13 +334,20 @@
 
   <!-- Credentials -->
   <div style="margin-top:32px;border-top:1px solid var(--border);padding-top:24px">
-    <div class="section-label">IGDB / Twitch Credentials</div>
+    <div class="section-label">IGDB Access Token</div>
+    <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:14px;line-height:1.7">
+      Generate a token once by running this in your terminal — it lasts ~60 days:<br>
+      <code style="display:block;margin-top:8px;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;font-size:0.68rem;word-break:break-all;color:var(--text);user-select:all" id="curl-cmd">curl -X POST "https://id.twitch.tv/oauth2/token" -d "client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET&grant_type=client_credentials"</code>
+      <button onclick="copyCurlCmd()" style="margin-top:6px;background:none;border:1px solid var(--border);border-radius:2px;color:var(--text-muted);font-size:0.65rem;padding:4px 10px;cursor:pointer;font-family:inherit" id="curl-copy-btn">Copy command</button>
+    </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px">
-      <div><label>Client ID</label><input type="password" id="client-id-input" placeholder="Twitch Client ID"></div>
-      <div><label>Client Secret</label><input type="password" id="client-secret-input" placeholder="Twitch Client Secret"></div>
+      <div><label>Client ID</label><input type="text" id="client-id-input" placeholder="Twitch Client ID" oninput="updateCurlCmd()"></div>
+      <div><label>Client Secret</label><input type="password" id="client-secret-input" placeholder="Twitch Client Secret" oninput="updateCurlCmd()"></div>
+      <div><label>Access Token <span style="color:var(--accent);font-size:0.65rem">(paste from curl output → access_token field)</span></label><input type="password" id="igdb-token-input" placeholder="Paste access_token here"></div>
+      <div><label>Token Expiry <span style="color:var(--text-dim);font-size:0.65rem">(optional — shown as reminder)</span></label><input type="text" id="igdb-token-expiry" placeholder="e.g. 2026-09-15" style="font-size:0.78rem"></div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" onclick="saveCredentials()">Save Credentials</button>
+      <button class="btn btn-accent" onclick="saveCredentials()">Save</button>
       <button class="btn" onclick="testCredentials()">Test Connection</button>
     </div>
     <div id="cred-status" style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
@@ -609,12 +616,16 @@ async function sbDeleteGame(id) {
 
 // ── IGDB / TWITCH ──────────────────────────────────────────────────────────
 async function igdbEnsureToken() {
+  // First: use cached in-memory token
   if (igdbToken && Date.now() < igdbToken.expiresAt - 60000) return true;
-  const stored = localStorage.getItem('igdb_token');
-  if (stored) {
-    const tok = JSON.parse(stored);
-    if (Date.now() < tok.expiresAt - 60000) { igdbToken = tok; return true; }
+  // Second: use manually-pasted token from localStorage
+  const manual = localStorage.getItem('igdb_manual_token');
+  if (manual) {
+    igdbToken = JSON.parse(manual);
+    if (Date.now() < igdbToken.expiresAt - 60000) return true;
+    igdbToken = null; // expired
   }
+  // Third: try auto-fetch (works server-side or if Twitch ever enables browser CORS)
   if (!clientId || !clientSecret) return false;
   try {
     const res = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&grant_type=client_credentials`, { method: 'POST' });
@@ -756,6 +767,15 @@ async function init() {
   clientSecret = localStorage.getItem('igdb_client_secret') || '';
   if (clientId) document.getElementById('client-id-input').value = clientId;
   if (clientSecret) document.getElementById('client-secret-input').value = clientSecret;
+  const storedManual = localStorage.getItem('igdb_manual_token');
+  if (storedManual) {
+    try {
+      const tok = JSON.parse(storedManual);
+      document.getElementById('igdb-token-input').value = tok.access_token || '';
+      if (tok.expiresAt) document.getElementById('igdb-token-expiry').value = new Date(tok.expiresAt).toISOString().slice(0,10);
+    } catch(e) {}
+  }
+  updateCurlCmd();
 
   // Create app icon
   createAppIcon();
@@ -836,15 +856,54 @@ function updateHeaderHeight() {
   if (h) document.documentElement.style.setProperty('--header-height', h.offsetHeight + 'px');
 }
 
+function updateCurlCmd() {
+  const id = document.getElementById('client-id-input').value.trim() || 'YOUR_CLIENT_ID';
+  const sec = document.getElementById('client-secret-input').value.trim() || 'YOUR_CLIENT_SECRET';
+  document.getElementById('curl-cmd').textContent = `curl -X POST "https://id.twitch.tv/oauth2/token" -d "client_id=${id}&client_secret=${sec}&grant_type=client_credentials"`;
+}
+
+function copyCurlCmd() {
+  const cmd = document.getElementById('curl-cmd').textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.getElementById('curl-copy-btn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = 'Copy command', 2000);
+  });
+}
+
 function saveCredentials() {
+  const statusEl = document.getElementById('cred-status');
   clientId = document.getElementById('client-id-input').value.trim();
   clientSecret = document.getElementById('client-secret-input').value.trim();
-  if (!clientId || !clientSecret) { document.getElementById('cred-status').textContent = '⚠ Both Client ID and Secret are required.'; return; }
-  localStorage.setItem('igdb_client_id', clientId);
-  localStorage.setItem('igdb_client_secret', clientSecret);
-  igdbToken = null;
-  localStorage.removeItem('igdb_token');
-  document.getElementById('cred-status').textContent = '✓ Credentials saved — click Test Connection to verify.';
+  const manualToken = document.getElementById('igdb-token-input').value.trim();
+  const expiryStr = document.getElementById('igdb-token-expiry').value.trim();
+
+  if (clientId) localStorage.setItem('igdb_client_id', clientId);
+  if (clientSecret) localStorage.setItem('igdb_client_secret', clientSecret);
+
+  if (manualToken) {
+    // Calculate expiry: use entered date or default 60 days from now
+    let expiresAt;
+    if (expiryStr) {
+      expiresAt = new Date(expiryStr).getTime();
+      if (isNaN(expiresAt)) { statusEl.textContent = '⚠ Invalid expiry date format (use YYYY-MM-DD)'; return; }
+    } else {
+      expiresAt = Date.now() + 60 * 24 * 60 * 60 * 1000; // 60 days
+    }
+    const tok = { access_token: manualToken, expiresAt };
+    localStorage.setItem('igdb_manual_token', JSON.stringify(tok));
+    igdbToken = tok;
+    statusEl.style.color = 'var(--accent)';
+    statusEl.textContent = '✓ Token saved — click Test Connection to verify.';
+  } else if (clientId && clientSecret) {
+    igdbToken = null;
+    localStorage.removeItem('igdb_manual_token');
+    statusEl.style.color = 'var(--text-muted)';
+    statusEl.textContent = '✓ Credentials saved — click Test Connection to verify.';
+  } else {
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = '⚠ Paste an access token, or enter Client ID + Secret.';
+  }
 }
 
 async function testCredentials() {
