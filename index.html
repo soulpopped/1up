@@ -493,6 +493,7 @@
 
 <!-- BULK BAR -->
 <div id="bulk-bar">
+  <button class="btn" id="bulk-select-all-btn" onclick="bulkToggleAll()" style="font-size:.7rem;padding:7px 12px">Select All</button>
   <span class="bulk-count" id="bulk-count">0 selected</span>
   <select id="bulk-status-select" class="header-select">
     <option value="">— Set Status —</option>
@@ -1110,6 +1111,7 @@ function enterSelectionMode() {
 function exitSelectionMode() {
   selectionMode=false; selectedIds.clear();
   document.getElementById('bulk-bar').classList.remove('active');
+  const btn=document.getElementById('bulk-select-all-btn'); if(btn) btn.textContent='Select All';
   applyFilters();
 }
 function toggleCardSelection(id) {
@@ -1117,6 +1119,19 @@ function toggleCardSelection(id) {
   document.getElementById('bulk-count').textContent=`${selectedIds.size} selected`;
   const card=document.querySelector(`.game-card[data-id="${CSS.escape(s)}"]`);
   if(card) card.classList.toggle('selected-card',selectedIds.has(s));
+  updateSelectAllBtn();
+}
+function bulkToggleAll() {
+  const allSelected=filteredGames.every(g=>selectedIds.has(String(g.id)));
+  if(allSelected){ filteredGames.forEach(g=>{ selectedIds.delete(String(g.id)); const c=document.querySelector(`.game-card[data-id="${CSS.escape(String(g.id))}"]`); if(c) c.classList.remove('selected-card'); }); }
+  else { filteredGames.forEach(g=>{ selectedIds.add(String(g.id)); const c=document.querySelector(`.game-card[data-id="${CSS.escape(String(g.id))}"]`); if(c) c.classList.add('selected-card'); }); }
+  document.getElementById('bulk-count').textContent=`${selectedIds.size} selected`;
+  updateSelectAllBtn();
+}
+function updateSelectAllBtn() {
+  const btn=document.getElementById('bulk-select-all-btn'); if(!btn) return;
+  const allSelected=filteredGames.length>0&&filteredGames.every(g=>selectedIds.has(String(g.id)));
+  btn.textContent=allSelected?'Deselect All':'Select All';
 }
 async function saveBulkEdit() {
   if (!selectedIds.size) return;
