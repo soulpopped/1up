@@ -375,9 +375,6 @@
         <option value="90">MC 90+</option>
         <option value="missing">(no data)</option>
       </select>
-      <select class="header-select" id="filter-year-beaten" onchange="applyFilters()" style="display:none">
-        <option value="">Any Year</option>
-      </select>
       <select class="header-select" id="sort-select" onchange="changeSortOrder()">
         <option value="title">A–Z</option>
         <option value="title-desc">Z–A</option>
@@ -391,6 +388,9 @@
         <button class="status-pill" data-status="unplayed" onclick="setStatusFilter('unplayed',this)">Unplayed</button>
         <button class="status-pill" data-status="playing" onclick="setStatusFilter('playing',this)">Playing</button>
         <button class="status-pill" data-status="completed" onclick="setStatusFilter('completed',this)">Completed</button>
+        <select class="header-select" id="filter-year-beaten" onchange="applyFilters()" style="display:none">
+          <option value="">Any Year</option>
+        </select>
       </div>
     </div>
   </div>
