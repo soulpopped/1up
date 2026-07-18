@@ -102,7 +102,7 @@
   #search-input:focus{border-color:var(--accent)}
   .header-select{padding:6px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text-muted);font-family:inherit;font-size:.8rem;outline:none;cursor:pointer;max-width:150px}
   .status-pills{display:flex;gap:4px;flex-wrap:nowrap;align-items:center}
-  .status-pill{padding:5px 11px;border:1px solid var(--border);border-radius:2px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s}
+  .status-pill{padding:5px 11px;border:1px solid var(--border);border-radius:2px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s;flex-shrink:0;white-space:nowrap}
   .status-pill:hover{border-color:var(--text-muted);color:var(--text-muted)}
   .status-pill.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
   .status-pill[data-status="playing"].active{border-color:var(--s-playing);color:var(--s-playing);background:rgba(74,222,128,.12)}
@@ -388,8 +388,8 @@
         <button class="status-pill" data-status="unplayed" onclick="setStatusFilter('unplayed',this)">Unplayed</button>
         <button class="status-pill" data-status="playing" onclick="setStatusFilter('playing',this)">Playing</button>
         <button class="status-pill" data-status="completed" onclick="setStatusFilter('completed',this)">Completed</button>
-        <select class="header-select" id="filter-year-beaten" onchange="applyFilters()" style="display:none">
-          <option value="">Any Year</option>
+        <select class="header-select" id="filter-year-beaten" onchange="applyFilters()" style="display:none;width:90px;flex-shrink:0">
+          <option value="">Year</option>
         </select>
       </div>
     </div>
