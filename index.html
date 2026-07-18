@@ -134,6 +134,10 @@
   /* title below image — bigger */
   .card-title{padding:8px 10px 12px;font-size:1.2rem;line-height:1.25;color:var(--text-muted)}
   .not-found-card{opacity:.45}
+  /* READ-ONLY / PUBLIC MODE */
+  body.public-mode .card-fix-btn{display:none!important}
+  body.public-mode #select-btn-app{display:none!important}
+  body.public-mode #add-btn-app{display:none!important}
   .empty-state{text-align:center;padding:80px 24px;color:var(--text-dim);grid-column:1/-1}
   .empty-state h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.1em;margin-bottom:8px}
   .count-line{font-size:.7rem;color:var(--text-dim);padding:0 12px 4px}
@@ -209,6 +213,7 @@
   .plat-xbox  {background:rgba(16,124,16,.75);color:#fff}
   .plat-switch{background:rgba(200,0,12,.75);color:#fff}
   .plat-steam {background:rgba(27,40,56,.92);color:#c7d5e0}
+  .plat-pc    {background:rgba(70,70,70,.8);color:#ddd}
   .plat-epic  {background:rgba(70,70,70,.8);color:#fff}
   .plat-ufo50 {background:rgba(110,50,190,.75);color:#fff}
 
@@ -347,7 +352,7 @@
       <div class="header-btns">
         <button class="icon-btn" id="select-btn-app" onclick="enterSelectionMode()">Select</button>
         <button class="icon-btn" onclick="pickRandom()">🎲</button>
-        <button class="icon-btn" onclick="showImportPanel()">+ Add</button>
+        <button class="icon-btn" id="add-btn-app" onclick="showImportPanel()">+ Add</button>
       </div>
     </div>
     <!-- row 2: all filters inline -->
@@ -473,6 +478,10 @@
     <div class="fix-row"><div style="flex:1"><label>Description</label><textarea id="fix-description" rows="3" placeholder="Game summary…" style="resize:vertical"></textarea></div></div>
     <button class="btn" onclick="saveGameInfoFix()" style="font-size:.68rem;padding:7px 14px">Save Game Info</button>
 
+    <div class="fix-section-label" style="color:var(--s-100)">Unmatch from RAWG</div>
+    <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:8px">Strips RAWG metadata and gives this entry its own ID. Use for DLC or mismatched games. Keeps your title, platforms, status, scores and cover.</div>
+    <button class="btn" onclick="unmatchGame()" style="width:auto;padding:8px 14px;font-size:.68rem;border-color:var(--s-100);color:var(--s-100)">⚡ Convert to Manual Entry</button>
+
     <div class="fix-section-label" style="color:var(--danger)">Remove Game</div>
     <button class="btn-danger" onclick="deleteGame()" style="width:auto;padding:8px 14px;font-size:.68rem">🗑 Remove from Collection</button>
     <div class="fix-status" id="fix-status"></div>
@@ -530,13 +539,14 @@ const SB_HDR = { 'Content-Type':'application/json', 'apikey':SB_KEY, 'Authorizat
 const RAWG = 'https://api.rawg.io/api';
 const HASH_KEY = 'up1_auth';
 const PASS_HASH = 90161058; // "paddington"
+const READ_ONLY = new URLSearchParams(window.location.search).has('public');
 
 const PLATFORM_CONFIG = {
   'PlayStation':{ abbr:'PS',    cls:'plat-ps'     },
   'Xbox':       { abbr:'XBOX',  cls:'plat-xbox'   },
   'Switch':     { abbr:'NSW',   cls:'plat-switch'  },
   'Steam':      { abbr:'STEAM', cls:'plat-steam'   },
-  'PC':         { abbr:'STEAM', cls:'plat-steam'   },
+  'PC':         { abbr:'PC',    cls:'plat-pc'      },
   'Epic':       { abbr:'EPIC',  cls:'plat-epic'    },
   'UFO 50':     { abbr:'UFO',   cls:'plat-ufo50'   },
 };
@@ -665,15 +675,18 @@ function gateSubmit() {
 
 // ── INIT ───────────────────────────────────────────────────────────────────────
 async function init() {
+  if(READ_ONLY) document.body.classList.add('public-mode');
   rawgKey = localStorage.getItem('rawg_key')||'';
-  if (rawgKey) document.getElementById('rawg-key-input').value=rawgKey;
+  if (rawgKey && !READ_ONLY) document.getElementById('rawg-key-input').value=rawgKey;
   createAppIcon();
-  document.getElementById('import-panel').style.display='block';
-  document.getElementById('add-tabs').style.display='none';
-  document.getElementById('import-actions').innerHTML=`<span style="font-size:.8rem;color:var(--text-dim)">Loading collection…</span>`;
+  if(!READ_ONLY) {
+    document.getElementById('import-panel').style.display='block';
+    document.getElementById('add-tabs').style.display='none';
+    document.getElementById('import-actions').innerHTML=`<span style="font-size:.8rem;color:var(--text-dim)">Loading collection…</span>`;
+  }
   const [loadedGames, loadedStatus] = await Promise.all([sbLoadGames(), sbLoadStatus()]);
   games=loadedGames; statusMap=loadedStatus;
-  games.length>0 ? openApp() : showImport();
+  READ_ONLY ? openApp() : (games.length>0 ? openApp() : showImport());
 }
 
 function createAppIcon() {
@@ -879,6 +892,11 @@ async function handleCSVFile(event) {
         const r=results[0];
         const game=buildGameObject(r,null,csvData,platforms);
         if(!game.rating&&csvMeta) game.rating=csvMeta;
+        // If this RAWG ID is already used by another game (e.g. DLC matched to base game), use a manual ID
+        if(games.some(g=>g.id===game.id||g.rawgId===game.rawgId)) {
+          game.id='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+          game.notFound=true;
+        }
         games.push(game); await sbSaveGame(game);
         if(csvStatus){ statusMap.set(game.id,csvStatus); await sbSetStatus(game.id,csvStatus).catch(()=>{}); }
       } else {
@@ -1055,7 +1073,7 @@ function openModal(game) {
     ${game.hltbExtra  ?`<div class="hltb-item"><div class="hltb-label">Main+Extras</div><div class="hltb-value">${game.hltbExtra}h</div></div>`:''}
     ${game.hltbComplete?`<div class="hltb-item"><div class="hltb-label">Completionist</div><div class="hltb-value">${game.hltbComplete}h</div></div>`:''}
   </div>`:'';
-  const statusBtns=Object.entries(STATUS_CONFIG).map(([key,cfg])=>
+  const statusBtns=READ_ONLY?'':Object.entries(STATUS_CONFIG).map(([key,cfg])=>
     `<button class="status-btn ${status===key?`active-${key}`:''}" onclick="setGameStatus('${escJs(String(game.id))}','${key}',this)">${cfg.label}</button>`
   ).join('');
   const rawgLink=game.rawgSlug?`<a class="btn-link" href="https://rawg.io/games/${escHtml(game.rawgSlug)}" target="_blank" rel="noopener">View on RAWG ↗</a>`:'';
@@ -1086,7 +1104,7 @@ function openModal(game) {
     </div>
     <div class="modal-status-row">${statusBtns}</div>
     <div class="modal-actions">
-      <button class="btn-link" onclick="openFixModal('${escJs(String(game.id))}')">✎ Edit</button>
+      ${READ_ONLY?'':`<button class="btn-link" onclick="openFixModal('${escJs(String(game.id))}')">✎ Edit</button>`}
       ${rawgLink}
     </div>`;
 
@@ -1270,6 +1288,35 @@ async function savePlatformsFix() {
   games[i].userPlatforms=plats;
   try { await sbSaveGame(games[i]); setFixStatus('✓ Saved'); applyFilters(); setTimeout(closeFixModal,500); } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
+async function unmatchGame() {
+  const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
+  const old=games[i];
+  if(!confirm(`Convert "${old.displayTitle||old.title}" to a manual entry? This strips RAWG metadata (cover, description, developer, publisher, genres) but keeps your title, platforms, status, scores and any custom art.`)) return;
+  const newId='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  const manual={
+    id:newId, rawgId:null, rawgSlug:null,
+    searchTitle:old.displayTitle||old.title,
+    title:old.displayTitle||old.title,
+    displayTitle:old.displayTitle||null, sortTitle:old.sortTitle||null,
+    cover:null, coverLg:null, customCover:old.customCover||null,
+    year:null, summary:null, developer:null, publisher:null,
+    genres:[], rawgPlatforms:[],
+    userPlatforms:old.userPlatforms||[],
+    rating:old.rating||null,
+    hltbMain:old.hltbMain||null, hltbExtra:old.hltbExtra||null, hltbComplete:old.hltbComplete||null,
+    yearBeaten:old.yearBeaten||null,
+    dateAdded:old.dateAdded||new Date().toISOString(),
+    notFound:!old.customCover,
+  };
+  try {
+    await sbSaveGame(manual);
+    const status=statusMap.get(old.id);
+    if(status&&status!=='unplayed') { await sbSetStatus(newId,status).catch(()=>{}); statusMap.set(newId,status); }
+    await sbDeleteGame(old.id); statusMap.delete(old.id);
+    games[i]=manual; fixTargetId=newId;
+    setFixStatus('✓ Converted to manual entry'); applyFilters(); updateStats(); setTimeout(closeFixModal,600);
+  } catch(e) { setFixStatus('⚠ '+e.message,true); }
+}
 async function deleteGame() {
   const game=games.find(g=>g.id===fixTargetId); if(!game) return;
   if (!confirm(`Remove "${game.displayTitle||game.title}" from your collection?`)) return;
@@ -1380,6 +1427,11 @@ document.addEventListener('keydown', e => {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────────
 (function boot() {
+  if(READ_ONLY) {
+    document.getElementById('gate').style.display='none';
+    init().catch(e=>console.error('Public load error:',e));
+    return;
+  }
   const stored=localStorage.getItem(HASH_KEY);
   if (stored&&parseInt(stored)===PASS_HASH) {
     document.getElementById('gate').style.display='none';
