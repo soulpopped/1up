@@ -209,13 +209,33 @@
   .bulk-count{font-size:.72rem;color:var(--text-muted);flex:1}
 
   /* PLATFORM COLOURS */
-  .plat-ps    {background:rgba(0,90,190,.75);color:#fff}
-  .plat-xbox  {background:rgba(16,124,16,.75);color:#fff}
-  .plat-switch{background:rgba(200,0,12,.75);color:#fff}
-  .plat-steam {background:rgba(27,40,56,.92);color:#c7d5e0}
-  .plat-pc    {background:rgba(70,70,70,.8);color:#ddd}
-  .plat-epic  {background:rgba(70,70,70,.8);color:#fff}
-  .plat-ufo50 {background:rgba(110,50,190,.75);color:#fff}
+  .plat-ps      {background:rgba(0,48,135,.8);color:#fff}
+  .plat-xbox    {background:rgba(16,124,16,.75);color:#fff}
+  .plat-switch  {background:rgba(200,0,12,.75);color:#fff}
+  .plat-nintendo{background:rgba(228,0,15,.75);color:#fff}
+  .plat-steam   {background:rgba(27,40,56,.92);color:#c7d5e0}
+  .plat-pc      {background:rgba(70,70,70,.8);color:#ddd}
+  .plat-epic    {background:rgba(70,70,70,.8);color:#fff}
+  .plat-sega    {background:rgba(23,82,168,.8);color:#fff}
+  .plat-atari   {background:rgba(242,91,42,.8);color:#fff}
+  .plat-mobile  {background:rgba(80,80,80,.75);color:#eee}
+  .plat-ufo50   {background:rgba(110,50,190,.75);color:#fff}
+
+  /* PLATFORM GROUP LABELS (in chip lists) */
+  .plat-group-label{font-size:.58rem;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);flex-basis:100%;margin-top:8px;margin-bottom:1px}
+  .plat-group-label:first-child{margin-top:0}
+
+  /* PLATFORM FILTER PANEL */
+  #plat-filter-panel{display:none;position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:4px;z-index:500;padding:12px;min-width:240px;max-width:320px;max-height:70vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.65)}
+  #plat-filter-panel.active{display:block}
+  .plat-fam-header{font-size:.56rem;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);margin:8px 0 4px;padding-bottom:3px;border-bottom:1px solid var(--border)}
+  .plat-fam-header:first-child{margin-top:0}
+  .plat-fam-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+  .plat-fchip{padding:4px 9px;border:1px solid var(--border);border-radius:2px;font-size:.66rem;font-weight:700;letter-spacing:.06em;cursor:pointer;background:none;color:var(--text-dim);font-family:inherit;text-transform:uppercase;transition:all .15s}
+  .plat-fchip:hover{border-color:var(--text-muted);color:var(--text-muted)}
+  .plat-fchip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+  .plat-fpanel-footer{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
+  #plat-filter-btn.has-filter{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
 
   @media(max-width:600px){
     #game-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
@@ -254,12 +274,48 @@
     <div class="add-form-group">
       <div class="add-form-label">Platform(s) owned on</div>
       <div class="add-platform-chips" id="add-platform-chips">
-        <button class="platform-toggle" data-platform="PlayStation" onclick="togglePlatform(this)">PlayStation</button>
-        <button class="platform-toggle" data-platform="Xbox" onclick="togglePlatform(this)">Xbox</button>
-        <button class="platform-toggle" data-platform="Switch" onclick="togglePlatform(this)">Switch</button>
+        <span class="plat-group-label">🖥 PC</span>
+        <button class="platform-toggle" data-platform="PC" onclick="togglePlatform(this)">PC</button>
         <button class="platform-toggle" data-platform="Steam" onclick="togglePlatform(this)">Steam</button>
         <button class="platform-toggle" data-platform="Epic" onclick="togglePlatform(this)">Epic</button>
+        <button class="platform-toggle" data-platform="GOG" onclick="togglePlatform(this)">GOG</button>
+        <button class="platform-toggle" data-platform="Itch" onclick="togglePlatform(this)">Itch</button>
+        <button class="platform-toggle" data-platform="Quest" onclick="togglePlatform(this)">Quest</button>
+        <span class="plat-group-label">🎮 Sony</span>
+        <button class="platform-toggle" data-platform="PlayStation" onclick="togglePlatform(this)">PS</button>
+        <button class="platform-toggle" data-platform="PS5" onclick="togglePlatform(this)">PS5</button>
+        <button class="platform-toggle" data-platform="PS4" onclick="togglePlatform(this)">PS4</button>
+        <button class="platform-toggle" data-platform="PS3" onclick="togglePlatform(this)">PS3</button>
+        <button class="platform-toggle" data-platform="PS2" onclick="togglePlatform(this)">PS2</button>
+        <button class="platform-toggle" data-platform="PS1" onclick="togglePlatform(this)">PS1</button>
+        <button class="platform-toggle" data-platform="PS Vita" onclick="togglePlatform(this)">Vita</button>
+        <span class="plat-group-label">🎮 Microsoft</span>
+        <button class="platform-toggle" data-platform="Xbox" onclick="togglePlatform(this)">Xbox</button>
+        <button class="platform-toggle" data-platform="Xbox Series X/S" onclick="togglePlatform(this)">XSX</button>
+        <button class="platform-toggle" data-platform="Xbox One" onclick="togglePlatform(this)">XOne</button>
+        <button class="platform-toggle" data-platform="Xbox 360" onclick="togglePlatform(this)">X360</button>
+        <button class="platform-toggle" data-platform="Xbox OG" onclick="togglePlatform(this)">OG</button>
+        <span class="plat-group-label">🎮 Nintendo</span>
+        <button class="platform-toggle" data-platform="Switch" onclick="togglePlatform(this)">Switch</button>
+        <button class="platform-toggle" data-platform="Virtual Console" onclick="togglePlatform(this)">VC</button>
+        <button class="platform-toggle" data-platform="Wii U" onclick="togglePlatform(this)">Wii U</button>
+        <button class="platform-toggle" data-platform="Wii" onclick="togglePlatform(this)">Wii</button>
+        <button class="platform-toggle" data-platform="GameCube" onclick="togglePlatform(this)">GCN</button>
+        <button class="platform-toggle" data-platform="N64" onclick="togglePlatform(this)">N64</button>
+        <button class="platform-toggle" data-platform="SNES" onclick="togglePlatform(this)">SNES</button>
+        <button class="platform-toggle" data-platform="NES" onclick="togglePlatform(this)">NES</button>
+        <button class="platform-toggle" data-platform="DS" onclick="togglePlatform(this)">DS</button>
+        <button class="platform-toggle" data-platform="Game Boy" onclick="togglePlatform(this)">GB</button>
+        <span class="plat-group-label">🎮 Sega</span>
+        <button class="platform-toggle" data-platform="Dreamcast" onclick="togglePlatform(this)">DC</button>
+        <button class="platform-toggle" data-platform="Saturn" onclick="togglePlatform(this)">SAT</button>
+        <button class="platform-toggle" data-platform="Genesis" onclick="togglePlatform(this)">GEN</button>
+        <button class="platform-toggle" data-platform="Sega CD" onclick="togglePlatform(this)">SCD</button>
+        <button class="platform-toggle" data-platform="Game Gear" onclick="togglePlatform(this)">GG</button>
+        <span class="plat-group-label">🕹 Other</span>
         <button class="platform-toggle" data-platform="UFO 50" onclick="togglePlatform(this)">UFO 50</button>
+        <button class="platform-toggle" data-platform="Atari" onclick="togglePlatform(this)">Atari</button>
+        <button class="platform-toggle" data-platform="Mobile" onclick="togglePlatform(this)">Mobile</button>
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:8px">
@@ -285,12 +341,48 @@
     <div class="add-form-group">
       <div class="add-form-label">Platform(s)</div>
       <div class="add-platform-chips" id="manual-platform-chips">
-        <button class="platform-toggle" data-platform="PlayStation" onclick="togglePlatformManual(this)">PlayStation</button>
-        <button class="platform-toggle" data-platform="Xbox" onclick="togglePlatformManual(this)">Xbox</button>
-        <button class="platform-toggle" data-platform="Switch" onclick="togglePlatformManual(this)">Switch</button>
+        <span class="plat-group-label">🖥 PC</span>
+        <button class="platform-toggle" data-platform="PC" onclick="togglePlatformManual(this)">PC</button>
         <button class="platform-toggle" data-platform="Steam" onclick="togglePlatformManual(this)">Steam</button>
         <button class="platform-toggle" data-platform="Epic" onclick="togglePlatformManual(this)">Epic</button>
+        <button class="platform-toggle" data-platform="GOG" onclick="togglePlatformManual(this)">GOG</button>
+        <button class="platform-toggle" data-platform="Itch" onclick="togglePlatformManual(this)">Itch</button>
+        <button class="platform-toggle" data-platform="Quest" onclick="togglePlatformManual(this)">Quest</button>
+        <span class="plat-group-label">🎮 Sony</span>
+        <button class="platform-toggle" data-platform="PlayStation" onclick="togglePlatformManual(this)">PS</button>
+        <button class="platform-toggle" data-platform="PS5" onclick="togglePlatformManual(this)">PS5</button>
+        <button class="platform-toggle" data-platform="PS4" onclick="togglePlatformManual(this)">PS4</button>
+        <button class="platform-toggle" data-platform="PS3" onclick="togglePlatformManual(this)">PS3</button>
+        <button class="platform-toggle" data-platform="PS2" onclick="togglePlatformManual(this)">PS2</button>
+        <button class="platform-toggle" data-platform="PS1" onclick="togglePlatformManual(this)">PS1</button>
+        <button class="platform-toggle" data-platform="PS Vita" onclick="togglePlatformManual(this)">Vita</button>
+        <span class="plat-group-label">🎮 Microsoft</span>
+        <button class="platform-toggle" data-platform="Xbox" onclick="togglePlatformManual(this)">Xbox</button>
+        <button class="platform-toggle" data-platform="Xbox Series X/S" onclick="togglePlatformManual(this)">XSX</button>
+        <button class="platform-toggle" data-platform="Xbox One" onclick="togglePlatformManual(this)">XOne</button>
+        <button class="platform-toggle" data-platform="Xbox 360" onclick="togglePlatformManual(this)">X360</button>
+        <button class="platform-toggle" data-platform="Xbox OG" onclick="togglePlatformManual(this)">OG</button>
+        <span class="plat-group-label">🎮 Nintendo</span>
+        <button class="platform-toggle" data-platform="Switch" onclick="togglePlatformManual(this)">Switch</button>
+        <button class="platform-toggle" data-platform="Virtual Console" onclick="togglePlatformManual(this)">VC</button>
+        <button class="platform-toggle" data-platform="Wii U" onclick="togglePlatformManual(this)">Wii U</button>
+        <button class="platform-toggle" data-platform="Wii" onclick="togglePlatformManual(this)">Wii</button>
+        <button class="platform-toggle" data-platform="GameCube" onclick="togglePlatformManual(this)">GCN</button>
+        <button class="platform-toggle" data-platform="N64" onclick="togglePlatformManual(this)">N64</button>
+        <button class="platform-toggle" data-platform="SNES" onclick="togglePlatformManual(this)">SNES</button>
+        <button class="platform-toggle" data-platform="NES" onclick="togglePlatformManual(this)">NES</button>
+        <button class="platform-toggle" data-platform="DS" onclick="togglePlatformManual(this)">DS</button>
+        <button class="platform-toggle" data-platform="Game Boy" onclick="togglePlatformManual(this)">GB</button>
+        <span class="plat-group-label">🎮 Sega</span>
+        <button class="platform-toggle" data-platform="Dreamcast" onclick="togglePlatformManual(this)">DC</button>
+        <button class="platform-toggle" data-platform="Saturn" onclick="togglePlatformManual(this)">SAT</button>
+        <button class="platform-toggle" data-platform="Genesis" onclick="togglePlatformManual(this)">GEN</button>
+        <button class="platform-toggle" data-platform="Sega CD" onclick="togglePlatformManual(this)">SCD</button>
+        <button class="platform-toggle" data-platform="Game Gear" onclick="togglePlatformManual(this)">GG</button>
+        <span class="plat-group-label">🕹 Other</span>
         <button class="platform-toggle" data-platform="UFO 50" onclick="togglePlatformManual(this)">UFO 50</button>
+        <button class="platform-toggle" data-platform="Atari" onclick="togglePlatformManual(this)">Atari</button>
+        <button class="platform-toggle" data-platform="Mobile" onclick="togglePlatformManual(this)">Mobile</button>
       </div>
     </div>
     <div class="add-form-group"><label>Developer</label><input type="text" id="manual-developer" placeholder="e.g. Supergiant Games"></div>
@@ -359,7 +451,7 @@
     <div class="header-row2">
       <input type="text" id="search-input" placeholder="Search…" oninput="applyFilters()">
       <select class="header-select" id="filter-genre" onchange="applyFilters()"><option value="">All Genres</option></select>
-      <select class="header-select" id="filter-platform" onchange="applyFilters()"><option value="">All Platforms</option></select>
+      <button class="header-select" id="plat-filter-btn" onclick="togglePlatFilterPanel(event)" style="cursor:pointer;text-align:left">🎮 Platforms</button>
       <select class="header-select" id="filter-hltb" onchange="applyFilters()">
         <option value="">Any Length</option>
         <option value="5">Under 5h</option>
@@ -415,8 +507,6 @@
     <div class="fix-section-label">Display &amp; Sort Title</div>
     <div class="fix-row"><div style="flex:1"><label>Display title</label><input type="text" id="fix-display-title" placeholder="Shown in grid &amp; modal"></div></div>
     <div class="fix-row"><div style="flex:1"><label>Sort title</label><input type="text" id="fix-sort-title" placeholder="Used for A–Z sort only"></div></div>
-    <button class="btn" onclick="saveTitleOverrides()" style="font-size:.68rem;padding:7px 14px">Save Title Overrides</button>
-
     <div class="fix-section-label">Re-fetch from RAWG</div>
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <input type="text" id="fix-title-input" placeholder="Search title">
@@ -445,15 +535,49 @@
 
     <div class="fix-section-label">Platforms</div>
     <div class="add-platform-chips" id="fix-platform-chips">
-      <button class="platform-toggle" data-platform="PlayStation" onclick="togglePlatformFix(this)">PlayStation</button>
-      <button class="platform-toggle" data-platform="Xbox" onclick="togglePlatformFix(this)">Xbox</button>
-      <button class="platform-toggle" data-platform="Switch" onclick="togglePlatformFix(this)">Switch</button>
+      <span class="plat-group-label">🖥 PC</span>
       <button class="platform-toggle" data-platform="PC" onclick="togglePlatformFix(this)">PC</button>
       <button class="platform-toggle" data-platform="Steam" onclick="togglePlatformFix(this)">Steam</button>
       <button class="platform-toggle" data-platform="Epic" onclick="togglePlatformFix(this)">Epic</button>
+      <button class="platform-toggle" data-platform="GOG" onclick="togglePlatformFix(this)">GOG</button>
+      <button class="platform-toggle" data-platform="Itch" onclick="togglePlatformFix(this)">Itch</button>
+      <button class="platform-toggle" data-platform="Quest" onclick="togglePlatformFix(this)">Quest</button>
+      <span class="plat-group-label">🎮 Sony</span>
+      <button class="platform-toggle" data-platform="PlayStation" onclick="togglePlatformFix(this)">PS</button>
+      <button class="platform-toggle" data-platform="PS5" onclick="togglePlatformFix(this)">PS5</button>
+      <button class="platform-toggle" data-platform="PS4" onclick="togglePlatformFix(this)">PS4</button>
+      <button class="platform-toggle" data-platform="PS3" onclick="togglePlatformFix(this)">PS3</button>
+      <button class="platform-toggle" data-platform="PS2" onclick="togglePlatformFix(this)">PS2</button>
+      <button class="platform-toggle" data-platform="PS1" onclick="togglePlatformFix(this)">PS1</button>
+      <button class="platform-toggle" data-platform="PS Vita" onclick="togglePlatformFix(this)">Vita</button>
+      <span class="plat-group-label">🎮 Microsoft</span>
+      <button class="platform-toggle" data-platform="Xbox" onclick="togglePlatformFix(this)">Xbox</button>
+      <button class="platform-toggle" data-platform="Xbox Series X/S" onclick="togglePlatformFix(this)">XSX</button>
+      <button class="platform-toggle" data-platform="Xbox One" onclick="togglePlatformFix(this)">XOne</button>
+      <button class="platform-toggle" data-platform="Xbox 360" onclick="togglePlatformFix(this)">X360</button>
+      <button class="platform-toggle" data-platform="Xbox OG" onclick="togglePlatformFix(this)">OG</button>
+      <span class="plat-group-label">🎮 Nintendo</span>
+      <button class="platform-toggle" data-platform="Switch" onclick="togglePlatformFix(this)">Switch</button>
+      <button class="platform-toggle" data-platform="Virtual Console" onclick="togglePlatformFix(this)">VC</button>
+      <button class="platform-toggle" data-platform="Wii U" onclick="togglePlatformFix(this)">Wii U</button>
+      <button class="platform-toggle" data-platform="Wii" onclick="togglePlatformFix(this)">Wii</button>
+      <button class="platform-toggle" data-platform="GameCube" onclick="togglePlatformFix(this)">GCN</button>
+      <button class="platform-toggle" data-platform="N64" onclick="togglePlatformFix(this)">N64</button>
+      <button class="platform-toggle" data-platform="SNES" onclick="togglePlatformFix(this)">SNES</button>
+      <button class="platform-toggle" data-platform="NES" onclick="togglePlatformFix(this)">NES</button>
+      <button class="platform-toggle" data-platform="DS" onclick="togglePlatformFix(this)">DS</button>
+      <button class="platform-toggle" data-platform="Game Boy" onclick="togglePlatformFix(this)">GB</button>
+      <span class="plat-group-label">🎮 Sega</span>
+      <button class="platform-toggle" data-platform="Dreamcast" onclick="togglePlatformFix(this)">DC</button>
+      <button class="platform-toggle" data-platform="Saturn" onclick="togglePlatformFix(this)">SAT</button>
+      <button class="platform-toggle" data-platform="Genesis" onclick="togglePlatformFix(this)">GEN</button>
+      <button class="platform-toggle" data-platform="Sega CD" onclick="togglePlatformFix(this)">SCD</button>
+      <button class="platform-toggle" data-platform="Game Gear" onclick="togglePlatformFix(this)">GG</button>
+      <span class="plat-group-label">🕹 Other</span>
       <button class="platform-toggle" data-platform="UFO 50" onclick="togglePlatformFix(this)">UFO 50</button>
+      <button class="platform-toggle" data-platform="Atari" onclick="togglePlatformFix(this)">Atari</button>
+      <button class="platform-toggle" data-platform="Mobile" onclick="togglePlatformFix(this)">Mobile</button>
     </div>
-    <button class="btn btn-accent" onclick="savePlatformsFix()" style="margin-top:10px;font-size:.7rem;padding:8px 12px">Save Platforms</button>
 
     <div class="fix-section-label">Scores &amp; Times</div>
     <div class="fix-row">
@@ -464,7 +588,6 @@
       <div style="flex:1"><label>Main+Extras (hrs)</label><input type="text" id="fix-hltb-extra" placeholder="e.g. 20"></div>
       <div style="flex:1"><label>Completionist (hrs)</label><input type="text" id="fix-hltb-complete" placeholder="e.g. 35"></div>
     </div>
-    <button class="btn" onclick="saveMcHltbFix()" style="font-size:.68rem;padding:7px 14px">Save Scores &amp; Times</button>
 
     <div class="fix-section-label">Game Info</div>
     <div class="fix-row">
@@ -476,7 +599,8 @@
       <div style="flex:1"><label>Publisher</label><input type="text" id="fix-publisher" placeholder="Publisher name"></div>
     </div>
     <div class="fix-row"><div style="flex:1"><label>Description</label><textarea id="fix-description" rows="3" placeholder="Game summary…" style="resize:vertical"></textarea></div></div>
-    <button class="btn" onclick="saveGameInfoFix()" style="font-size:.68rem;padding:7px 14px">Save Game Info</button>
+
+    <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.78rem;padding:10px 18px;margin-top:4px">✓ Save All Edits</button>
 
     <div class="fix-section-label" style="color:var(--s-100)">Unmatch from RAWG</div>
     <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:8px">Strips RAWG metadata and gives this entry its own ID. Use for DLC or mismatched games. Keeps your title, platforms, status, scores and cover.</div>
@@ -512,9 +636,12 @@
   </select>
   <select id="bulk-platform-select" class="header-select">
     <option value="">— Set Platform —</option>
-    <option value="PlayStation">PlayStation</option><option value="Xbox">Xbox</option>
-    <option value="Switch">Switch</option><option value="Steam">Steam</option>
-    <option value="PC">PC</option><option value="Epic">Epic</option><option value="UFO 50">UFO 50</option>
+    <optgroup label="PC"><option value="PC">PC</option><option value="Steam">Steam</option><option value="Epic">Epic</option><option value="GOG">GOG</option><option value="Itch">Itch</option><option value="Quest">Quest</option></optgroup>
+    <optgroup label="Sony"><option value="PlayStation">PlayStation</option><option value="PS5">PS5</option><option value="PS4">PS4</option><option value="PS3">PS3</option><option value="PS2">PS2</option><option value="PS1">PS1</option><option value="PS Vita">PS Vita</option></optgroup>
+    <optgroup label="Microsoft"><option value="Xbox">Xbox</option><option value="Xbox Series X/S">Xbox Series X/S</option><option value="Xbox One">Xbox One</option><option value="Xbox 360">Xbox 360</option><option value="Xbox OG">Xbox OG</option></optgroup>
+    <optgroup label="Nintendo"><option value="Switch">Switch</option><option value="Virtual Console">Virtual Console</option><option value="Wii U">Wii U</option><option value="Wii">Wii</option><option value="GameCube">GameCube</option><option value="N64">N64</option><option value="SNES">SNES</option><option value="NES">NES</option><option value="DS">DS</option><option value="Game Boy">Game Boy</option></optgroup>
+    <optgroup label="Sega"><option value="Dreamcast">Dreamcast</option><option value="Saturn">Saturn</option><option value="Genesis">Genesis</option><option value="Sega CD">Sega CD</option><option value="Game Gear">Game Gear</option></optgroup>
+    <optgroup label="Other"><option value="UFO 50">UFO 50</option><option value="Atari">Atari</option><option value="Mobile">Mobile</option></optgroup>
   </select>
   <input type="number" id="bulk-year-beaten" class="header-select" placeholder="Year Beaten" min="1970" max="2099" style="width:108px">
   <input type="text" id="bulk-developer" class="header-select" placeholder="Developer" style="width:120px">
@@ -542,21 +669,78 @@ const PASS_HASH = 90161058; // "paddington"
 const READ_ONLY = new URLSearchParams(window.location.search).has('public');
 
 const PLATFORM_CONFIG = {
-  'PlayStation':{ abbr:'PS',    cls:'plat-ps'     },
-  'Xbox':       { abbr:'XBOX',  cls:'plat-xbox'   },
-  'Switch':     { abbr:'NSW',   cls:'plat-switch'  },
-  'Steam':      { abbr:'STEAM', cls:'plat-steam'   },
-  'PC':         { abbr:'PC',    cls:'plat-pc'      },
-  'Epic':       { abbr:'EPIC',  cls:'plat-epic'    },
-  'UFO 50':     { abbr:'UFO',   cls:'plat-ufo50'   },
+  // PC
+  'PC':              { abbr:'PC',    cls:'plat-pc'       },
+  'Steam':           { abbr:'STEAM', cls:'plat-steam'    },
+  'Epic':            { abbr:'EPIC',  cls:'plat-epic'     },
+  'GOG':             { abbr:'GOG',   cls:'plat-pc'       },
+  'Itch':            { abbr:'ITCH',  cls:'plat-pc'       },
+  'Quest':           { abbr:'QUEST', cls:'plat-pc'       },
+  // Sony
+  'PlayStation':     { abbr:'PS',    cls:'plat-ps'       },
+  'PS5':             { abbr:'PS5',   cls:'plat-ps'       },
+  'PS4':             { abbr:'PS4',   cls:'plat-ps'       },
+  'PS3':             { abbr:'PS3',   cls:'plat-ps'       },
+  'PS2':             { abbr:'PS2',   cls:'plat-ps'       },
+  'PS1':             { abbr:'PS1',   cls:'plat-ps'       },
+  'PS Vita':         { abbr:'VITA',  cls:'plat-ps'       },
+  // Microsoft
+  'Xbox':            { abbr:'XBOX',  cls:'plat-xbox'     },
+  'Xbox Series X/S': { abbr:'XSX',   cls:'plat-xbox'    },
+  'Xbox One':        { abbr:'XONE',  cls:'plat-xbox'     },
+  'Xbox 360':        { abbr:'X360',  cls:'plat-xbox'     },
+  'Xbox OG':         { abbr:'OG',    cls:'plat-xbox'     },
+  // Nintendo
+  'Switch':          { abbr:'NSW',   cls:'plat-switch'   },
+  'Virtual Console': { abbr:'VC',    cls:'plat-switch'   },
+  'Wii U':           { abbr:'WIIU',  cls:'plat-nintendo' },
+  'Wii':             { abbr:'WII',   cls:'plat-nintendo' },
+  'GameCube':        { abbr:'GCN',   cls:'plat-nintendo' },
+  'N64':             { abbr:'N64',   cls:'plat-nintendo' },
+  'SNES':            { abbr:'SNES',  cls:'plat-nintendo' },
+  'NES':             { abbr:'NES',   cls:'plat-nintendo' },
+  'DS':              { abbr:'DS',    cls:'plat-nintendo' },
+  'Game Boy':        { abbr:'GB',    cls:'plat-nintendo' },
+  // Sega
+  'Dreamcast':       { abbr:'DC',    cls:'plat-sega'     },
+  'Saturn':          { abbr:'SAT',   cls:'plat-sega'     },
+  'Genesis':         { abbr:'GEN',   cls:'plat-sega'     },
+  'Sega CD':         { abbr:'SCD',   cls:'plat-sega'     },
+  'Game Gear':       { abbr:'GG',    cls:'plat-sega'     },
+  // Other
+  'UFO 50':          { abbr:'UFO',   cls:'plat-ufo50'    },
+  'Atari':           { abbr:'ATARI', cls:'plat-atari'    },
+  'Mobile':          { abbr:'iOS',   cls:'plat-mobile'   },
 };
 // Normalize variant platform names → canonical
 const PLATFORM_ALIASES = {
-  'Switch 2':'Switch','Nintendo Switch 2':'Switch','Switch OLED':'Switch',
-  'PS5':'PlayStation','PS4':'PlayStation','PlayStation 5':'PlayStation','PlayStation 4':'PlayStation',
-  'XGP':'Xbox','Xbox Game Pass':'Xbox','Xbox One':'Xbox','Xbox Series X':'Xbox','Xbox Series S':'Xbox',
-  'Steam':'PC','Epic':'PC','Epic Games':'PC','GOG':'PC','Itch.io':'PC',
+  // Switch variants
+  'Nintendo Switch':'Switch','Nintendo Switch 2':'Switch','Switch 2':'Switch','Switch OLED':'Switch',
+  // Sony variants
+  'PlayStation 5':'PS5','PlayStation 4':'PS4','PlayStation 3':'PS3','PlayStation 2':'PS2','PlayStation 1':'PS1',
+  'PlayStation Portable':'PS Vita','PSP':'PS Vita','PS Portable':'PS Vita',
+  // Microsoft variants
+  'Xbox Series X':'Xbox Series X/S','Xbox Series S':'Xbox Series X/S','Xbox Game Pass':'Xbox','XGP':'Xbox',
+  // PC variants
+  'Epic Games':'Epic','GOG.com':'GOG','itch.io':'Itch','Itchio':'Itch','Oculus Quest':'Quest','Meta Quest':'Quest',
+  // Nintendo variants
+  'Nintendo 3DS':'DS','3DS':'DS','Nintendo DS':'DS','Nintendo 64':'N64',
+  'Game Boy Color':'Game Boy','Game Boy Advance':'Game Boy','GBA':'Game Boy','GBC':'Game Boy','Gameboy':'Game Boy',
+  'Super Nintendo':'SNES','Super Nintendo Entertainment System':'SNES','Nintendo Entertainment System':'NES',
+  'Nintendo GameCube':'GameCube','Sega Dreamcast':'Dreamcast','Sega Saturn':'Saturn',
+  'Sega Genesis':'Genesis','Mega Drive':'Genesis','Sega Mega Drive':'Genesis','Sega Game Gear':'Game Gear',
+  // Mobile variants
+  'iOS':'Mobile','Android':'Mobile',
 };
+// Platform families (for filter panel + chip grouping)
+const PLATFORM_FAMILIES = [
+  { label:'🖥 PC',        platforms:['PC','Steam','Epic','GOG','Itch','Quest']                                              },
+  { label:'🎮 Sony',      platforms:['PlayStation','PS5','PS4','PS3','PS2','PS1','PS Vita']                                },
+  { label:'🎮 Microsoft', platforms:['Xbox','Xbox Series X/S','Xbox One','Xbox 360','Xbox OG']                             },
+  { label:'🎮 Nintendo',  platforms:['Switch','Virtual Console','Wii U','Wii','GameCube','N64','SNES','NES','DS','Game Boy'] },
+  { label:'🎮 Sega',      platforms:['Dreamcast','Saturn','Genesis','Sega CD','Game Gear']                                 },
+  { label:'🕹 Other',     platforms:['UFO 50','Atari','Mobile']                                                            },
+];
 function normalPlatform(p) { return PLATFORM_ALIASES[p] || p; }
 const STATUS_CONFIG = {
   unplayed:  { label:'Unplayed',  icon:''  },
@@ -567,7 +751,8 @@ const STATUS_CONFIG = {
 // ── STATE ──────────────────────────────────────────────────────────────────────
 let games=[], filteredGames=[], statusMap=new Map();
 let currentSort='title', currentStatusFilter='all';
-let currentPlatformFilter='', currentGenreFilter='';
+let currentGenreFilter='';
+let selectedPlatformFilters=new Set();
 let selectionMode=false, selectedIds=new Set();
 let currentRandomGame=null, selectedSearchResult=null;
 let currentModalGameId=null, fixTargetId=null;
@@ -951,13 +1136,14 @@ function getGameStatus(id) { return statusMap.get(String(id))||'unplayed'; }
 function applyFilters() {
   const search=(document.getElementById('search-input')?.value||'').toLowerCase().trim();
   const genreF=document.getElementById('filter-genre')?.value||'';
-  const platF=document.getElementById('filter-platform')?.value||'';
   const hltbF=document.getElementById('filter-hltb')?.value||'';
   const mcF=document.getElementById('filter-mc')?.value||'';
   filteredGames=games.filter(g=>{
     if (currentStatusFilter!=='all'&&getGameStatus(g.id)!==currentStatusFilter) return false;
-    if (platF==='none') { if((g.userPlatforms||[]).length>0) return false; }
-    else if (platF) { if(!(g.userPlatforms||[]).some(p=>normalPlatform(p)===platF)) return false; }
+    if (selectedPlatformFilters.size>0) {
+      if (selectedPlatformFilters.has('__none__')) { if((g.userPlatforms||[]).length>0) return false; }
+      else { if(!(g.userPlatforms||[]).some(p=>selectedPlatformFilters.has(p)||selectedPlatformFilters.has(normalPlatform(p)))) return false; }
+    }
     if (genreF&&!g.genres?.includes(genreF)) return false;
     if (search) { const hay=[g.displayTitle,g.title,g.developer,g.publisher,...(g.genres||[])].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(search)) return false; }
     // HLTB filter (main story)
@@ -993,17 +1179,51 @@ function applyFilters() {
 function buildFilterOptions() {
   const genres=[...new Set(games.flatMap(g=>g.genres||[]))].sort();
   document.getElementById('filter-genre').innerHTML='<option value="">All Genres</option>'+genres.map(g=>`<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
-  // Normalize variant names, deduplicate
-  const platforms=[...new Set(games.flatMap(g=>(g.userPlatforms||[]).map(normalPlatform)).filter(Boolean))].sort();
-  const hasNoPlatform=games.some(g=>!(g.userPlatforms||[]).length);
-  document.getElementById('filter-platform').innerHTML='<option value="">All Platforms</option>'+
-    platforms.map(p=>`<option value="${escHtml(p)}">${escHtml(p)}</option>`).join('')+
-    (hasNoPlatform?'<option value="none">(no data)</option>':'');
   // Year Beaten — sorted newest first
   const years=[...new Set(games.filter(g=>g.yearBeaten).map(g=>String(g.yearBeaten)))].sort().reverse();
   const ybEl=document.getElementById('filter-year-beaten');
   if(ybEl) ybEl.innerHTML='<option value="">Any Year</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  buildPlatFilterPanel();
 }
+function buildPlatFilterPanel() {
+  const panel=document.getElementById('plat-filter-panel'); if(!panel) return;
+  const hasNoPlatform=games.some(g=>!(g.userPlatforms||[]).length);
+  let html='';
+  if(hasNoPlatform) html+=`<div class="plat-fam-header">⚠ Unassigned</div><div class="plat-fam-chips"><button class="plat-fchip${selectedPlatformFilters.has('__none__')?' active':''}" onclick="togglePlatFilter('__none__')">(no platform)</button></div>`;
+  PLATFORM_FAMILIES.forEach(fam=>{
+    const present=fam.platforms.filter(p=>games.some(g=>(g.userPlatforms||[]).some(up=>up===p||normalPlatform(up)===p)));
+    if(!present.length) return;
+    html+=`<div class="plat-fam-header">${fam.label}</div><div class="plat-fam-chips">${present.map(p=>`<button class="plat-fchip${selectedPlatformFilters.has(p)?' active':''}" onclick="togglePlatFilter('${escJs(p)}')">${escHtml(PLATFORM_CONFIG[p]?.abbr||p)}</button>`).join('')}</div>`;
+  });
+  html+=`<div class="plat-fpanel-footer"><button class="btn" onclick="clearPlatFilter()" style="font-size:.66rem;padding:6px 12px">Clear</button></div>`;
+  panel.innerHTML=html;
+}
+function togglePlatFilterPanel(e) {
+  e.stopPropagation();
+  const panel=document.getElementById('plat-filter-panel');
+  const btn=document.getElementById('plat-filter-btn');
+  if(panel.classList.contains('active')){ panel.classList.remove('active'); return; }
+  const rect=btn.getBoundingClientRect();
+  panel.style.top=(rect.bottom+4)+'px';
+  panel.style.left=Math.min(rect.left, window.innerWidth-330)+'px';
+  panel.classList.add('active');
+}
+function togglePlatFilter(p) {
+  if(p==='__none__'){ selectedPlatformFilters.clear(); selectedPlatformFilters.add('__none__'); }
+  else { selectedPlatformFilters.delete('__none__'); selectedPlatformFilters.has(p)?selectedPlatformFilters.delete(p):selectedPlatformFilters.add(p); }
+  updatePlatFilterBtn(); buildPlatFilterPanel(); applyFilters();
+}
+function clearPlatFilter() {
+  selectedPlatformFilters.clear(); updatePlatFilterBtn(); buildPlatFilterPanel(); applyFilters();
+  document.getElementById('plat-filter-panel').classList.remove('active');
+}
+function updatePlatFilterBtn() {
+  const btn=document.getElementById('plat-filter-btn'); if(!btn) return;
+  const n=selectedPlatformFilters.size;
+  btn.textContent=n?`🎮 Platforms (${n})`:'🎮 Platforms';
+  btn.classList.toggle('has-filter',n>0);
+}
+document.addEventListener('click',e=>{ if(!e.target.closest('#plat-filter-panel')&&!e.target.closest('#plat-filter-btn')) document.getElementById('plat-filter-panel')?.classList.remove('active'); });
 function renderGrid(list) {
   const grid=document.getElementById('game-grid');
   if (!list.length) { grid.innerHTML='<div class="empty-state"><h2>No Games Found</h2><p>Try a different filter.</p></div>'; return; }
@@ -1049,7 +1269,8 @@ function setStatusFilter(status,btn) {
 }
 function changeSortOrder() { currentSort=document.getElementById('sort-select').value; applyFilters(); }
 function resetFilters() {
-  ['search-input','filter-genre','filter-platform','filter-hltb','filter-mc','filter-year-beaten'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['search-input','filter-genre','filter-hltb','filter-mc','filter-year-beaten'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  selectedPlatformFilters.clear(); updatePlatFilterBtn(); buildPlatFilterPanel();
   const ybEl=document.getElementById('filter-year-beaten'); if(ybEl) ybEl.style.display='none';
   const sortEl=document.getElementById('sort-select'); if(sortEl) sortEl.value='title';
   currentSort='title'; currentStatusFilter='all';
@@ -1218,13 +1439,27 @@ function openFixModal(id) {
 function closeFixModal() { document.getElementById('fix-overlay').classList.remove('active'); fixTargetId=null; }
 function setFixStatus(msg,isErr) { const el=document.getElementById('fix-status'); el.textContent=msg; el.style.color=isErr?'var(--danger)':'var(--text-muted)'; }
 
-async function saveTitleOverrides() {
-  const idx=games.findIndex(g=>g.id===fixTargetId); if(idx<0) return;
-  games[idx].displayTitle=document.getElementById('fix-display-title').value.trim()||null;
-  games[idx].sortTitle=document.getElementById('fix-sort-title').value.trim()||null;
-  try { await sbSaveGame(games[idx]); setFixStatus('✓ Saved'); applyFilters(); setTimeout(closeFixModal,500); }
-  catch(e) { setFixStatus('⚠ '+e.message,true); }
+async function saveAllEdits() {
+  const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
+  games[i].displayTitle=document.getElementById('fix-display-title').value.trim()||null;
+  games[i].sortTitle=document.getElementById('fix-sort-title').value.trim()||null;
+  games[i].userPlatforms=getActivePlatforms('fix-platform-chips');
+  games[i].rating=parseInt(document.getElementById('fix-mc').value)||null;
+  games[i].hltbMain=parseFloat(document.getElementById('fix-hltb-main').value)||null;
+  games[i].hltbExtra=parseFloat(document.getElementById('fix-hltb-extra').value)||null;
+  games[i].hltbComplete=parseFloat(document.getElementById('fix-hltb-complete').value)||null;
+  games[i].year=parseInt(document.getElementById('fix-year').value)||null;
+  games[i].yearBeaten=parseInt(document.getElementById('fix-year-beaten').value)||null;
+  games[i].developer=document.getElementById('fix-developer').value.trim()||null;
+  games[i].publisher=document.getElementById('fix-publisher').value.trim()||null;
+  games[i].summary=document.getElementById('fix-description').value.trim()||null;
+  try {
+    await sbSaveGame(games[i]);
+    setFixStatus('✓ Saved'); applyFilters(); buildFilterOptions(); setTimeout(closeFixModal,500);
+  } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
+// legacy stubs (no longer called but kept for safety)
+async function saveTitleOverrides() { return saveAllEdits(); }
 async function fixRefetchByTitle() {
   const title=document.getElementById('fix-title-input').value.trim(); if(!title) return;
   setFixStatus('Searching…');
@@ -1256,37 +1491,11 @@ async function applyFixResult(idx) {
     const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
     const old=games[i];
     const newData=buildGameObject(r,detail,{hltbMain:old.hltbMain,hltbExtra:old.hltbExtra,hltbComplete:old.hltbComplete},old.userPlatforms);
-    newData.id=old.id; newData.displayTitle=old.displayTitle; newData.sortTitle=old.sortTitle; newData.customCover=old.customCover; newData.dateAdded=old.dateAdded;
+    newData.id=old.id; newData.displayTitle=old.displayTitle; newData.sortTitle=old.sortTitle;
+    newData.customCover=old.customCover; newData.dateAdded=old.dateAdded; newData.yearBeaten=old.yearBeaten;
     games[i]=newData; await sbSaveGame(newData);
     setFixStatus('✓ Updated'); applyFilters(); setTimeout(closeFixModal,800);
   } catch(e) { setFixStatus('⚠ '+e.message,true); }
-}
-async function saveMcHltbFix() {
-  const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
-  const mc=parseInt(document.getElementById('fix-mc').value)||null;
-  const hltbMain=parseFloat(document.getElementById('fix-hltb-main').value)||null;
-  const hltbExtra=parseFloat(document.getElementById('fix-hltb-extra').value)||null;
-  const hltbComplete=parseFloat(document.getElementById('fix-hltb-complete').value)||null;
-  games[i].rating=mc; games[i].hltbMain=hltbMain; games[i].hltbExtra=hltbExtra; games[i].hltbComplete=hltbComplete;
-  try { await sbSaveGame(games[i]); setFixStatus('✓ Saved'); applyFilters(); setTimeout(closeFixModal,500); }
-  catch(e) { setFixStatus('⚠ '+e.message,true); }
-}
-async function saveGameInfoFix() {
-  const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
-  const yr=parseInt(document.getElementById('fix-year').value)||null;
-  const yb=parseInt(document.getElementById('fix-year-beaten').value)||null;
-  const dev=document.getElementById('fix-developer').value.trim()||null;
-  const pub=document.getElementById('fix-publisher').value.trim()||null;
-  const desc=document.getElementById('fix-description').value.trim()||null;
-  games[i].year=yr; games[i].yearBeaten=yb; games[i].developer=dev; games[i].publisher=pub; games[i].summary=desc;
-  try { await sbSaveGame(games[i]); setFixStatus('✓ Saved'); applyFilters(); setTimeout(closeFixModal,500); }
-  catch(e) { setFixStatus('⚠ '+e.message,true); }
-}
-async function savePlatformsFix() {
-  const plats=getActivePlatforms('fix-platform-chips');
-  const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
-  games[i].userPlatforms=plats;
-  try { await sbSaveGame(games[i]); setFixStatus('✓ Saved'); applyFilters(); setTimeout(closeFixModal,500); } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
 async function unmatchGame() {
   const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
@@ -1439,5 +1648,8 @@ document.addEventListener('keydown', e => {
   }
 })();
 </script>
+<!-- PLATFORM FILTER PANEL -->
+<div id="plat-filter-panel" onclick="event.stopPropagation()"></div>
+
 </body>
 </html>
