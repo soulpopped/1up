@@ -237,11 +237,6 @@
   .plat-fpanel-footer{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
   #plat-filter-btn.has-filter{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
 
-  /* YEAR FILTER PANEL */
-  #year-filter-panel{display:none;position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:4px;z-index:500;padding:12px;min-width:200px;max-width:280px;max-height:70vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.65)}
-  #year-filter-panel.active{display:block}
-  #year-filter-btn.has-filter{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
-
   @media(max-width:600px){
     #game-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
     .modal-banner-img{max-height:180px}
@@ -457,7 +452,6 @@
       <input type="text" id="search-input" placeholder="Search…" oninput="applyFilters()">
       <select class="header-select" id="filter-genre" onchange="applyFilters()"><option value="">All Genres</option></select>
       <button class="header-select" id="plat-filter-btn" onclick="togglePlatFilterPanel(event)" style="cursor:pointer;text-align:left">🎮 Platforms</button>
-      <button class="header-select" id="year-filter-btn" onclick="toggleYearFilterPanel(event)" style="cursor:pointer;text-align:left">📅 Year Released</button>
       <select class="header-select" id="filter-hltb" onchange="applyFilters()">
         <option value="">Any Length</option>
         <option value="5">Under 5h</option>
@@ -649,6 +643,7 @@
     <optgroup label="Sega"><option value="Dreamcast">Dreamcast</option><option value="Saturn">Saturn</option><option value="Genesis">Genesis</option><option value="Sega CD">Sega CD</option><option value="Game Gear">Game Gear</option></optgroup>
     <optgroup label="Other"><option value="UFO 50">UFO 50</option><option value="Atari">Atari</option><option value="Mobile">Mobile</option></optgroup>
   </select>
+  <input type="number" id="bulk-year-released" class="header-select" placeholder="Year Released" min="1970" max="2099" style="width:116px">
   <input type="number" id="bulk-year-beaten" class="header-select" placeholder="Year Beaten" min="1970" max="2099" style="width:108px">
   <input type="text" id="bulk-developer" class="header-select" placeholder="Developer" style="width:120px">
   <input type="text" id="bulk-publisher" class="header-select" placeholder="Publisher" style="width:120px">
@@ -759,7 +754,6 @@ let games=[], filteredGames=[], statusMap=new Map();
 let currentSort='title', currentStatusFilter='all';
 let currentGenreFilter='';
 let selectedPlatformFilters=new Set();
-let selectedYearFilters=new Set();
 let selectionMode=false, selectedIds=new Set();
 let currentRandomGame=null, selectedSearchResult=null;
 let currentModalGameId=null, fixTargetId=null;
@@ -1152,7 +1146,6 @@ function applyFilters() {
       else { if(!(g.userPlatforms||[]).some(p=>selectedPlatformFilters.has(p)||selectedPlatformFilters.has(normalPlatform(p)))) return false; }
     }
     if (genreF&&!g.genres?.includes(genreF)) return false;
-    if (selectedYearFilters.size>0&&!selectedYearFilters.has(g.year)) return false;
     if (search) { const hay=[g.displayTitle,g.title,g.developer,g.publisher,...(g.genres||[])].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(search)) return false; }
     // HLTB filter (main story)
     if (hltbF==='missing') { if (g.hltbMain) return false; }
@@ -1192,48 +1185,7 @@ function buildFilterOptions() {
   const ybEl=document.getElementById('filter-year-beaten');
   if(ybEl) ybEl.innerHTML='<option value="">Any Year</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
   buildPlatFilterPanel();
-  buildYearFilterPanel();
 }
-function buildYearFilterPanel() {
-  const panel=document.getElementById('year-filter-panel'); if(!panel) return;
-  const years=[...new Set(games.filter(g=>g.year).map(g=>g.year))].sort((a,b)=>b-a);
-  if(!years.length) { panel.innerHTML='<div style="font-size:.72rem;color:var(--text-dim);padding:4px 0">No year data.</div>'; return; }
-  const decades={};
-  years.forEach(y=>{ const d=Math.floor(y/10)*10; if(!decades[d]) decades[d]=[]; decades[d].push(y); });
-  let html='';
-  Object.keys(decades).sort((a,b)=>b-a).forEach(dec=>{
-    html+=`<div class="plat-fam-header">${dec}s</div><div class="plat-fam-chips">${decades[dec].map(y=>`<button class="plat-fchip${selectedYearFilters.has(y)?' active':''}" onclick="toggleYearFilter(${y})">${y}</button>`).join('')}</div>`;
-  });
-  html+=`<div class="plat-fpanel-footer"><button class="btn" onclick="clearYearFilter()" style="font-size:.66rem;padding:6px 12px">Clear</button></div>`;
-  panel.innerHTML=html;
-}
-function toggleYearFilterPanel(e) {
-  e.stopPropagation();
-  const panel=document.getElementById('year-filter-panel');
-  const btn=document.getElementById('year-filter-btn');
-  // close plat panel if open
-  document.getElementById('plat-filter-panel')?.classList.remove('active');
-  if(panel.classList.contains('active')){ panel.classList.remove('active'); return; }
-  const rect=btn.getBoundingClientRect();
-  panel.style.top=(rect.bottom+4)+'px';
-  panel.style.left=Math.min(rect.left, window.innerWidth-290)+'px';
-  panel.classList.add('active');
-}
-function toggleYearFilter(y) {
-  selectedYearFilters.has(y)?selectedYearFilters.delete(y):selectedYearFilters.add(y);
-  updateYearFilterBtn(); buildYearFilterPanel(); applyFilters();
-}
-function clearYearFilter() {
-  selectedYearFilters.clear(); updateYearFilterBtn(); buildYearFilterPanel(); applyFilters();
-  document.getElementById('year-filter-panel').classList.remove('active');
-}
-function updateYearFilterBtn() {
-  const btn=document.getElementById('year-filter-btn'); if(!btn) return;
-  const n=selectedYearFilters.size;
-  btn.textContent=n?`📅 Year Released (${n})`:'📅 Year Released';
-  btn.classList.toggle('has-filter',n>0);
-}
-document.addEventListener('click',e=>{ if(!e.target.closest('#year-filter-panel')&&!e.target.closest('#year-filter-btn')) document.getElementById('year-filter-panel')?.classList.remove('active'); });
 function buildPlatFilterPanel() {
   const panel=document.getElementById('plat-filter-panel'); if(!panel) return;
   const hasNoPlatform=games.some(g=>!(g.userPlatforms||[]).length);
@@ -1320,7 +1272,6 @@ function changeSortOrder() { currentSort=document.getElementById('sort-select').
 function resetFilters() {
   ['search-input','filter-genre','filter-hltb','filter-mc','filter-year-beaten'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   selectedPlatformFilters.clear(); updatePlatFilterBtn(); buildPlatFilterPanel();
-  selectedYearFilters.clear(); updateYearFilterBtn(); buildYearFilterPanel();
   const ybEl=document.getElementById('filter-year-beaten'); if(ybEl) ybEl.style.display='none';
   const sortEl=document.getElementById('sort-select'); if(sortEl) sortEl.value='title';
   currentSort='title'; currentStatusFilter='all';
@@ -1432,15 +1383,17 @@ async function saveBulkEdit() {
   if (!selectedIds.size) return;
   const statusVal  = document.getElementById('bulk-status-select').value;
   const platVal    = document.getElementById('bulk-platform-select').value;
+  const yrVal      = parseInt(document.getElementById('bulk-year-released').value)||null;
   const ybVal      = parseInt(document.getElementById('bulk-year-beaten').value)||null;
   const devVal     = document.getElementById('bulk-developer').value.trim();
   const pubVal     = document.getElementById('bulk-publisher').value.trim();
   const clearDesc  = document.getElementById('bulk-clear-desc').checked;
-  if (!statusVal&&!platVal&&!ybVal&&!devVal&&!pubVal&&!clearDesc) { alert('Choose at least one field to apply.'); return; }
+  if (!statusVal&&!platVal&&!yrVal&&!ybVal&&!devVal&&!pubVal&&!clearDesc) { alert('Choose at least one field to apply.'); return; }
   const toUpdate=games.filter(g=>selectedIds.has(String(g.id)));
-  if (platVal||ybVal||devVal||pubVal||clearDesc) {
+  if (platVal||yrVal||ybVal||devVal||pubVal||clearDesc) {
     toUpdate.forEach(g=>{
       if(platVal)    g.userPlatforms=[platVal];
+      if(yrVal)      g.year=yrVal;
       if(ybVal)      g.yearBeaten=ybVal;
       if(devVal)     g.developer=devVal;
       if(pubVal)     g.publisher=pubVal;
@@ -1453,6 +1406,7 @@ async function saveBulkEdit() {
     toUpdate.forEach(g=>statusMap.set(String(g.id),statusVal));
     await sbFetch('game_status',{method:'POST',headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(toUpdate.map(g=>({game_id:String(g.id),status:statusVal,updated_at:now})))});
   }
+  document.getElementById('bulk-year-released').value='';
   document.getElementById('bulk-year-beaten').value='';
   document.getElementById('bulk-developer').value='';
   document.getElementById('bulk-publisher').value='';
@@ -1700,9 +1654,6 @@ document.addEventListener('keydown', e => {
 </script>
 <!-- PLATFORM FILTER PANEL -->
 <div id="plat-filter-panel" onclick="event.stopPropagation()"></div>
-
-<!-- YEAR FILTER PANEL -->
-<div id="year-filter-panel" onclick="event.stopPropagation()"></div>
 
 </body>
 </html>
