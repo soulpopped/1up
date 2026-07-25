@@ -96,6 +96,35 @@
   .header-btns{display:flex;gap:6px;align-items:center}
   .icon-btn{background:none;border:1px solid var(--border);border-radius:2px;color:var(--text-muted);cursor:pointer;padding:8px 16px;font-size:.88rem;transition:all .15s;white-space:nowrap;font-family:inherit}
   .icon-btn:hover{border-color:var(--text-muted);color:var(--text)}
+
+  /* sort buttons */
+  .sort-btns-1up{display:flex;gap:2px;flex-shrink:0}
+  .sort-btn-1up{padding:5px 10px;border:1px solid transparent;border-radius:2px;font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s;white-space:nowrap}
+  .sort-btn-1up:hover{color:var(--text-muted)}
+  .sort-btn-1up.active{border-color:var(--accent);color:var(--accent)}
+
+  /* stats overlay */
+  #stats-overlay-1up{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:400;overflow-y:auto}
+  #stats-overlay-1up.active{display:flex;align-items:flex-start;justify-content:center;padding:40px 16px 60px}
+  #stats-box-1up{background:var(--surface);border:1px solid var(--border);border-radius:4px;width:100%;max-width:580px;padding:32px;position:relative}
+  .stats-close-1up{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:4px;line-height:1}
+  .stats-1up-head{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+  .stats-1up-logo{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.12em;color:var(--accent)}
+  .stats-1up-yr-sel{padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text-muted);font-family:inherit;font-size:.78rem;outline:none;cursor:pointer}
+  .stats-1up-yr-sel:focus{border-color:var(--accent)}
+  .stats-jump-btn-1up{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);background:none;border:1px solid var(--accent);border-radius:2px;padding:4px 10px;cursor:pointer;opacity:.7;transition:opacity .15s;font-family:inherit}
+  .stats-jump-btn-1up:hover{opacity:1}
+  .stats-period-1up{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:20px}
+  .stats-grid-1up{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0}
+  .stat-card-1up{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:16px 18px}
+  .stat-card-head-1up{font-size:.56rem;text-transform:uppercase;letter-spacing:.16em;color:var(--text-dim);margin-bottom:8px}
+  .stat-num-1up{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;letter-spacing:.04em;color:var(--text);line-height:1}
+  .stat-sub-1up{font-size:.68rem;color:var(--text-dim);margin-top:4px}
+  .stats-console-sec-1up{margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+  .stats-console-title-1up{font-size:.56rem;text-transform:uppercase;letter-spacing:.16em;color:var(--text-dim);margin-bottom:10px}
+  .stats-console-row-1up{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+  .stats-console-plat-1up{font-size:.8rem;color:var(--text-muted)}
+  .stats-console-num-1up{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--accent)}
   /* compact row 2: all controls inline */
   .header-row2{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
   #search-input{width:210px;flex-shrink:0;padding:7px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:inherit;font-size:.9rem;outline:none}
@@ -442,6 +471,7 @@
       <span class="app-title" onclick="resetFilters()">1UP</span>
       <span class="header-stats" id="header-stats"></span>
       <div class="header-btns">
+        <button class="icon-btn" onclick="openStats1UP()">📊 Stats</button>
         <button class="icon-btn" id="select-btn-app" onclick="enterSelectionMode()">Select</button>
         <button class="icon-btn" onclick="pickRandom()">🎲</button>
         <button class="icon-btn" id="add-btn-app" onclick="showImportPanel()">+ Add</button>
@@ -467,7 +497,14 @@
         <option value="90">MC 90+</option>
         <option value="missing">(no data)</option>
       </select>
-      <select class="header-select" id="sort-select" onchange="changeSortOrder()">
+      <div class="sort-btns-1up">
+        <button class="sort-btn-1up active" data-sort="title" data-label="Title" onclick="setSortOrder1UP('title')">Title ↑</button>
+        <button class="sort-btn-1up" data-sort="year" data-label="Year" onclick="setSortOrder1UP('year')">Year</button>
+        <button class="sort-btn-1up" data-sort="rating" data-label="Rating" onclick="setSortOrder1UP('rating')">Rating</button>
+        <button class="sort-btn-1up" data-sort="added" data-label="Added" onclick="setSortOrder1UP('added')">Added</button>
+        <button class="sort-btn-1up" data-sort="platform" data-label="Platform" onclick="setSortOrder1UP('platform')">Platform</button>
+      </div>
+      <select id="sort-select" style="display:none" onchange="changeSortOrder()">
         <option value="title">A–Z</option>
         <option value="title-desc">Z–A</option>
         <option value="year">Year ↑</option>
@@ -503,6 +540,7 @@
     <button class="modal-close" onclick="closeFixModal()">✕</button>
     <div class="fix-title" id="fix-game-name"></div>
     <div class="fix-sub">Edit game data</div>
+    <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.78rem;padding:10px 18px;margin-top:8px;margin-bottom:4px">✓ Save All Edits</button>
 
     <div class="fix-section-label">Display &amp; Sort Title</div>
     <div class="fix-row"><div style="flex:1"><label>Display title</label><input type="text" id="fix-display-title" placeholder="Shown in grid &amp; modal"></div></div>
@@ -609,6 +647,24 @@
     <div class="fix-section-label" style="color:var(--danger)">Remove Game</div>
     <button class="btn-danger" onclick="deleteGame()" style="width:auto;padding:8px 14px;font-size:.68rem">🗑 Remove from Collection</button>
     <div class="fix-status" id="fix-status"></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div id="stats-overlay-1up" onclick="if(event.target===this)closeStats1UP()">
+  <div id="stats-box-1up">
+    <button class="stats-close-1up" onclick="closeStats1UP()">✕</button>
+    <div class="stats-1up-head">
+      <span class="stats-1up-logo">1UP</span>
+      <select class="stats-1up-yr-sel" id="stats-yr-1up" onchange="renderStats1UP(this.value)"></select>
+      <button class="stats-jump-btn-1up" id="stats-jump-btn-1up" onclick="jumpToYear1UP()" style="display:none">↗ Jump to Year</button>
+    </div>
+    <div class="stats-period-1up" id="stats-period-1up"></div>
+    <div class="stats-grid-1up" id="stats-grid-1up"></div>
+    <div class="stats-console-sec-1up" id="stats-console-sec-1up" style="display:none">
+      <div class="stats-console-title-1up">By Platform</div>
+      <div id="stats-console-rows-1up"></div>
+    </div>
   </div>
 </div>
 
@@ -752,6 +808,8 @@ const STATUS_CONFIG = {
 // ── STATE ──────────────────────────────────────────────────────────────────────
 let games=[], filteredGames=[], statusMap=new Map();
 let currentSort='title', currentStatusFilter='all';
+let currentSortDir='asc';
+const SORT_DEFAULTS_1UP={title:'asc',year:'desc',rating:'desc',added:'desc',platform:'asc'};
 let currentGenreFilter='';
 let selectedPlatformFilters=new Set();
 let selectionMode=false, selectedIds=new Set();
@@ -1163,15 +1221,16 @@ function applyFilters() {
   });
   filteredGames.sort((a,b)=>{
     const ta=sortTitle(a.sortTitle||a.displayTitle||a.title), tb=sortTitle(b.sortTitle||b.displayTitle||b.title);
+    let cmp=0;
     switch(currentSort){
-      case 'title':      return ta.localeCompare(tb);
-      case 'title-desc': return tb.localeCompare(ta);
-      case 'year':       return (a.year||0)-(b.year||0);
-      case 'year-desc':  return (b.year||0)-(a.year||0);
-      case 'rating':     return (b.rating||0)-(a.rating||0);
-      case 'added':      return new Date(b.dateAdded)-new Date(a.dateAdded);
-      default: return 0;
+      case 'title':    cmp=ta.localeCompare(tb); break;
+      case 'year':     cmp=(a.year||0)-(b.year||0); break;
+      case 'rating':   cmp=(a.rating||0)-(b.rating||0); break;
+      case 'added':    cmp=(new Date(a.dateAdded||0))-(new Date(b.dateAdded||0)); break;
+      case 'platform': { const pa=(a.userPlatforms||[])[0]||'', pb=(b.userPlatforms||[])[0]||''; cmp=pa.localeCompare(pb); break; }
+      default: cmp=0;
     }
+    return currentSortDir==='desc'?-cmp:cmp;
   });
   renderGrid(filteredGames); updateStats();
   const el=document.getElementById('count-line');
@@ -1268,13 +1327,40 @@ function setStatusFilter(status,btn) {
   if(ybEl){ if(status==='completed'){ybEl.style.display='';}else{ybEl.style.display='none';ybEl.value='';} }
   applyFilters();
 }
-function changeSortOrder() { currentSort=document.getElementById('sort-select').value; applyFilters(); }
+function syncSort1UP(val) {
+  currentSort = val;
+  document.querySelectorAll('.sort-btn-1up').forEach(b => {
+    const isActive = b.dataset.sort === val;
+    b.classList.toggle('active', isActive);
+    b.textContent = isActive ? `${b.dataset.label} ${currentSortDir==='asc'?'↑':'↓'}` : b.dataset.label;
+  });
+  const sel = document.getElementById('sort-select');
+  if (sel) sel.value = val;
+}
+function setSortOrder1UP(val) {
+  if (currentSort === val) {
+    currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSortDir = SORT_DEFAULTS_1UP[val] || 'asc';
+  }
+  syncSort1UP(val);
+  applyFilters();
+}
+function changeSortOrder() {
+  // maps old compound values from hidden select (e.g. CSV import path)
+  const val = document.getElementById('sort-select').value;
+  const baseMap = {'title':'title','title-desc':'title','year':'year','year-desc':'year','rating':'rating','added':'added'};
+  const dirMap  = {'title':'asc','title-desc':'desc','year':'asc','year-desc':'desc','rating':'desc','added':'desc'};
+  currentSortDir = dirMap[val] || 'asc';
+  syncSort1UP(baseMap[val] || 'title');
+  applyFilters();
+}
 function resetFilters() {
   ['search-input','filter-genre','filter-hltb','filter-mc','filter-year-beaten'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   selectedPlatformFilters.clear(); updatePlatFilterBtn(); buildPlatFilterPanel();
   const ybEl=document.getElementById('filter-year-beaten'); if(ybEl) ybEl.style.display='none';
-  const sortEl=document.getElementById('sort-select'); if(sortEl) sortEl.value='title';
-  currentSort='title'; currentStatusFilter='all';
+  currentSortDir='asc'; syncSort1UP('title');
+  currentStatusFilter='all';
   document.querySelectorAll('.status-pill').forEach(p=>p.classList.remove('active'));
   document.querySelector('.status-pill[data-status="all"]')?.classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
@@ -1624,6 +1710,74 @@ async function resetAllStatus() {
   alert('Done — all games reset to Unplayed.');
 }
 
+// ── STATS 1UP ─────────────────────────────────────────────────────────────────
+function openStats1UP() {
+  const sel = document.getElementById('stats-yr-1up');
+  const years = [...new Set(games.filter(g=>g.yearBeaten).map(g=>String(g.yearBeaten)))].sort().reverse();
+  const curYear = String(new Date().getFullYear());
+  sel.innerHTML = '<option value="all">All Time</option>' + years.map(y=>`<option value="${escHtml(y)}">${escHtml(y)}</option>`).join('');
+  sel.value = years.includes(curYear) ? curYear : (years[0] || 'all');
+  renderStats1UP(sel.value);
+  document.getElementById('stats-overlay-1up').classList.add('active');
+}
+function closeStats1UP() {
+  document.getElementById('stats-overlay-1up').classList.remove('active');
+}
+function jumpToYear1UP() {
+  const yr = document.getElementById('stats-yr-1up').value;
+  if (!yr || yr === 'all') return;
+  closeStats1UP();
+  setStatusFilter('completed', document.querySelector('.status-pill[data-status="completed"]'));
+  const ybEl = document.getElementById('filter-year-beaten');
+  if (ybEl) { ybEl.style.display=''; ybEl.value = yr; }
+  applyFilters();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function renderStats1UP(year) {
+  const isAll = year === 'all';
+  const isBeaten = g => { const s = getGameStatus(g.id); return s === 'completed' || s === '100percent'; };
+  const beaten = isAll ? games.filter(isBeaten) : games.filter(g => isBeaten(g) && String(g.yearBeaten||'') === year);
+
+  // avg Metacritic — exclude games with no score
+  const withMC = beaten.filter(g => g.rating > 0);
+  const avgMC = withMC.length ? Math.round(withMC.reduce((s,g) => s + g.rating, 0) / withMC.length) : null;
+
+  // period label
+  document.getElementById('stats-period-1up').textContent = isAll ? 'All time' : `January – December ${year}`;
+
+  // jump button
+  document.getElementById('stats-jump-btn-1up').style.display = isAll ? 'none' : '';
+
+  // stat cards
+  document.getElementById('stats-grid-1up').innerHTML = `
+    <div class="stat-card-1up">
+      <div class="stat-card-head-1up">Games Beaten</div>
+      <div class="stat-num-1up">${beaten.length}</div>
+      <div class="stat-sub-1up">${isAll ? `of ${games.length} in collection` : 'this year'}</div>
+    </div>
+    <div class="stat-card-1up">
+      <div class="stat-card-head-1up">Avg Metacritic</div>
+      <div class="stat-num-1up">${avgMC !== null ? avgMC : '—'}</div>
+      <div class="stat-sub-1up">${withMC.length ? `from ${withMC.length} scored game${withMC.length===1?'':'s'}` : 'no scored games'}</div>
+    </div>`;
+
+  // platform breakdown
+  const platCounts = {};
+  beaten.forEach(g => {
+    (g.userPlatforms||[]).forEach(p => { platCounts[p] = (platCounts[p]||0) + 1; });
+  });
+  const platEntries = Object.entries(platCounts).sort((a,b) => b[1]-a[1]);
+  const sec = document.getElementById('stats-console-sec-1up');
+  if (platEntries.length) {
+    sec.style.display = '';
+    document.getElementById('stats-console-rows-1up').innerHTML = platEntries.map(([p,n]) =>
+      `<div class="stats-console-row-1up"><span class="stats-console-plat-1up">${escHtml(p)}</span><span class="stats-console-num-1up">${n}</span></div>`
+    ).join('');
+  } else {
+    sec.style.display = 'none';
+  }
+}
+
 // ── PROGRESS ───────────────────────────────────────────────────────────────────
 function showProgress(title,sub) { document.getElementById('progress-title').textContent=title; document.getElementById('progress-sub').textContent=sub; document.getElementById('progress-fill').style.width='0%'; document.getElementById('progress-overlay').classList.add('active'); }
 function setProgress(sub,pct) { document.getElementById('progress-sub').textContent=sub; document.getElementById('progress-fill').style.width=`${Math.min(pct,100)}%`; }
@@ -1633,6 +1787,7 @@ function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
 // ── ESC KEY ────────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
+  if (document.getElementById('stats-overlay-1up').classList.contains('active')) { closeStats1UP(); return; }
   if (document.getElementById('fix-overlay').classList.contains('active'))    { closeFixModal(); return; }
   if (document.getElementById('modal-overlay').classList.contains('active'))  { closeModal();    return; }
   if (document.getElementById('random-overlay').classList.contains('active')) { closeRandom();   return; }
