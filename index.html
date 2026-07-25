@@ -17,7 +17,7 @@
     --accent:#4ade80; --accent-dim:rgba(74,222,128,0.12);
     --danger:#c0392b;
     --s-playing:#4ade80; --s-completed:#60a5fa; --s-100:#fbbf24; --s-dropped:#f87171;
-    --header-height:96px; --safe-top:env(safe-area-inset-top,0px);
+    --header-height:130px; --safe-top:env(safe-area-inset-top,0px);
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
@@ -97,6 +97,9 @@
   .icon-btn{background:none;border:1px solid var(--border);border-radius:2px;color:var(--text-muted);cursor:pointer;padding:8px 16px;font-size:.88rem;transition:all .15s;white-space:nowrap;font-family:inherit}
   .icon-btn:hover{border-color:var(--text-muted);color:var(--text)}
 
+  /* sort row */
+  .header-row3-1up{display:flex;align-items:center;gap:6px;padding-top:5px;border-top:1px solid var(--border)}
+  .sort-bar-lbl-1up{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);opacity:.45;flex-shrink:0}
   /* sort buttons */
   .sort-btns-1up{display:flex;gap:2px;flex-shrink:0}
   .sort-btn-1up{padding:5px 10px;border:1px solid transparent;border-radius:2px;font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s;white-space:nowrap}
@@ -106,7 +109,7 @@
   /* stats overlay */
   #stats-overlay-1up{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:400;overflow-y:auto}
   #stats-overlay-1up.active{display:flex;align-items:flex-start;justify-content:center;padding:40px 16px 60px}
-  #stats-box-1up{background:var(--surface);border:1px solid var(--border);border-radius:4px;width:100%;max-width:580px;padding:32px;position:relative}
+  #stats-box-1up{background:var(--surface);border:1px solid var(--border);border-radius:4px;width:100%;max-width:580px;padding:32px;position:relative;zoom:1.5}
   .stats-close-1up{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:4px;line-height:1}
   .stats-1up-head{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
   .stats-1up-logo{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.12em;color:var(--accent)}
@@ -497,6 +500,19 @@
         <option value="90">MC 90+</option>
         <option value="missing">(no data)</option>
       </select>
+      <div class="status-pills">
+        <button class="status-pill active" data-status="all" onclick="setStatusFilter('all',this)">All</button>
+        <button class="status-pill" data-status="unplayed" onclick="setStatusFilter('unplayed',this)">Unplayed</button>
+        <button class="status-pill" data-status="playing" onclick="setStatusFilter('playing',this)">Playing</button>
+        <button class="status-pill" data-status="completed" onclick="setStatusFilter('completed',this)">Completed</button>
+        <select class="header-select" id="filter-year-beaten" onchange="applyFilters()" style="display:none;width:90px;flex-shrink:0">
+          <option value="">Year</option>
+        </select>
+      </div>
+    </div>
+    <!-- row 3: sort -->
+    <div class="header-row3-1up">
+      <span class="sort-bar-lbl-1up">Sort</span>
       <div class="sort-btns-1up">
         <button class="sort-btn-1up active" data-sort="title" data-label="Title" onclick="setSortOrder1UP('title')">Title ↑</button>
         <button class="sort-btn-1up" data-sort="year" data-label="Year" onclick="setSortOrder1UP('year')">Year</button>
@@ -512,15 +528,6 @@
         <option value="rating">Rating ↓</option>
         <option value="added">Recently Added</option>
       </select>
-      <div class="status-pills">
-        <button class="status-pill active" data-status="all" onclick="setStatusFilter('all',this)">All</button>
-        <button class="status-pill" data-status="unplayed" onclick="setStatusFilter('unplayed',this)">Unplayed</button>
-        <button class="status-pill" data-status="playing" onclick="setStatusFilter('playing',this)">Playing</button>
-        <button class="status-pill" data-status="completed" onclick="setStatusFilter('completed',this)">Completed</button>
-        <select class="header-select" id="filter-year-beaten" onchange="applyFilters()" style="display:none;width:90px;flex-shrink:0">
-          <option value="">Year</option>
-        </select>
-      </div>
     </div>
   </div>
   <div id="grid-wrap">
