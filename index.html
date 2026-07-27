@@ -244,6 +244,7 @@
   .plat-ps      {background:rgba(0,48,135,.8);color:#fff}
   .plat-xbox    {background:rgba(16,124,16,.75);color:#fff}
   .plat-switch  {background:rgba(200,0,12,.75);color:#fff}
+  .plat-switch2 {background:rgba(30,30,30,.92);color:#e8e8e8;border:1px solid rgba(200,0,12,.5)}
   .plat-nintendo{background:rgba(228,0,15,.75);color:#fff}
   .plat-steam   {background:rgba(27,40,56,.92);color:#c7d5e0}
   .plat-pc      {background:rgba(70,70,70,.8);color:#ddd}
@@ -329,6 +330,7 @@
         <button class="platform-toggle" data-platform="Xbox 360" onclick="togglePlatform(this)">X360</button>
         <button class="platform-toggle" data-platform="Xbox OG" onclick="togglePlatform(this)">OG</button>
         <span class="plat-group-label">🎮 Nintendo</span>
+        <button class="platform-toggle" data-platform="Switch 2" onclick="togglePlatform(this)">SW2</button>
         <button class="platform-toggle" data-platform="Switch" onclick="togglePlatform(this)">Switch</button>
         <button class="platform-toggle" data-platform="Virtual Console" onclick="togglePlatform(this)">VC</button>
         <button class="platform-toggle" data-platform="Wii U" onclick="togglePlatform(this)">Wii U</button>
@@ -396,6 +398,7 @@
         <button class="platform-toggle" data-platform="Xbox 360" onclick="togglePlatformManual(this)">X360</button>
         <button class="platform-toggle" data-platform="Xbox OG" onclick="togglePlatformManual(this)">OG</button>
         <span class="plat-group-label">🎮 Nintendo</span>
+        <button class="platform-toggle" data-platform="Switch 2" onclick="togglePlatformManual(this)">SW2</button>
         <button class="platform-toggle" data-platform="Switch" onclick="togglePlatformManual(this)">Switch</button>
         <button class="platform-toggle" data-platform="Virtual Console" onclick="togglePlatformManual(this)">VC</button>
         <button class="platform-toggle" data-platform="Wii U" onclick="togglePlatformManual(this)">Wii U</button>
@@ -603,6 +606,7 @@
       <button class="platform-toggle" data-platform="Xbox 360" onclick="togglePlatformFix(this)">X360</button>
       <button class="platform-toggle" data-platform="Xbox OG" onclick="togglePlatformFix(this)">OG</button>
       <span class="plat-group-label">🎮 Nintendo</span>
+      <button class="platform-toggle" data-platform="Switch 2" onclick="togglePlatformFix(this)">SW2</button>
       <button class="platform-toggle" data-platform="Switch" onclick="togglePlatformFix(this)">Switch</button>
       <button class="platform-toggle" data-platform="Virtual Console" onclick="togglePlatformFix(this)">VC</button>
       <button class="platform-toggle" data-platform="Wii U" onclick="togglePlatformFix(this)">Wii U</button>
@@ -707,7 +711,7 @@
     <optgroup label="PC"><option value="PC">PC</option><option value="Steam">Steam</option><option value="Epic">Epic</option><option value="GOG">GOG</option><option value="Itch">Itch</option><option value="Quest">Quest</option></optgroup>
     <optgroup label="Sony"><option value="PlayStation">PlayStation</option><option value="PS5">PS5</option><option value="PS4">PS4</option><option value="PS3">PS3</option><option value="PS2">PS2</option><option value="PS1">PS1</option><option value="PS Vita">PS Vita</option></optgroup>
     <optgroup label="Microsoft"><option value="Xbox">Xbox</option><option value="Xbox Series X/S">Xbox Series X/S</option><option value="Xbox One">Xbox One</option><option value="Xbox 360">Xbox 360</option><option value="Xbox OG">Xbox OG</option></optgroup>
-    <optgroup label="Nintendo"><option value="Switch">Switch</option><option value="Virtual Console">Virtual Console</option><option value="Wii U">Wii U</option><option value="Wii">Wii</option><option value="GameCube">GameCube</option><option value="N64">N64</option><option value="SNES">SNES</option><option value="NES">NES</option><option value="DS">DS</option><option value="Game Boy">Game Boy</option></optgroup>
+    <optgroup label="Nintendo"><option value="Switch 2">Switch 2</option><option value="Switch">Switch</option><option value="Virtual Console">Virtual Console</option><option value="Wii U">Wii U</option><option value="Wii">Wii</option><option value="GameCube">GameCube</option><option value="N64">N64</option><option value="SNES">SNES</option><option value="NES">NES</option><option value="DS">DS</option><option value="Game Boy">Game Boy</option></optgroup>
     <optgroup label="Sega"><option value="Dreamcast">Dreamcast</option><option value="Saturn">Saturn</option><option value="Genesis">Genesis</option><option value="Sega CD">Sega CD</option><option value="Game Gear">Game Gear</option></optgroup>
     <optgroup label="Other"><option value="UFO 50">UFO 50</option><option value="Atari">Atari</option><option value="Mobile">Mobile</option></optgroup>
   </select>
@@ -761,6 +765,7 @@ const PLATFORM_CONFIG = {
   'Xbox OG':         { abbr:'OG',    cls:'plat-xbox'     },
   // Nintendo
   'Switch':          { abbr:'NSW',   cls:'plat-switch'   },
+  'Switch 2':        { abbr:'NSW2',  cls:'plat-switch2'  },
   'Virtual Console': { abbr:'VC',    cls:'plat-switch'   },
   'Wii U':           { abbr:'WIIU',  cls:'plat-nintendo' },
   'Wii':             { abbr:'WII',   cls:'plat-nintendo' },
@@ -784,7 +789,8 @@ const PLATFORM_CONFIG = {
 // Normalize variant platform names → canonical
 const PLATFORM_ALIASES = {
   // Switch variants
-  'Nintendo Switch':'Switch','Nintendo Switch 2':'Switch','Switch 2':'Switch','Switch OLED':'Switch',
+  'Nintendo Switch':'Switch','Switch OLED':'Switch',
+  'Nintendo Switch 2':'Switch 2',
   // Sony variants
   'PlayStation 5':'PS5','PlayStation 4':'PS4','PlayStation 3':'PS3','PlayStation 2':'PS2','PlayStation 1':'PS1',
   'PlayStation Portable':'PS Vita','PSP':'PS Vita','PS Portable':'PS Vita',
@@ -806,7 +812,7 @@ const PLATFORM_FAMILIES = [
   { label:'🖥 PC',        platforms:['PC','Steam','Epic','GOG','Itch','Quest']                                              },
   { label:'🎮 Sony',      platforms:['PlayStation','PS5','PS4','PS3','PS2','PS1','PS Vita']                                },
   { label:'🎮 Microsoft', platforms:['Xbox','Xbox Series X/S','Xbox One','Xbox 360','Xbox OG']                             },
-  { label:'🎮 Nintendo',  platforms:['Switch','Virtual Console','Wii U','Wii','GameCube','N64','SNES','NES','DS','Game Boy'] },
+  { label:'🎮 Nintendo',  platforms:['Switch 2','Switch','Virtual Console','Wii U','Wii','GameCube','N64','SNES','NES','DS','Game Boy'] },
   { label:'🎮 Sega',      platforms:['Dreamcast','Saturn','Genesis','Sega CD','Game Gear']                                 },
   { label:'🕹 Other',     platforms:['UFO 50','Atari','Mobile']                                                            },
 ];
