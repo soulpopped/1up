@@ -265,7 +265,8 @@
   .plat-fam-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
   .plat-fchip{padding:4px 9px;border:1px solid var(--border);border-radius:2px;font-size:.66rem;font-weight:700;letter-spacing:.06em;cursor:pointer;background:none;color:var(--text-dim);font-family:inherit;text-transform:uppercase;transition:all .15s}
   .plat-fchip:hover{border-color:var(--text-muted);color:var(--text-muted)}
-  .plat-fchip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+  .plat-fchip.active-include{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+  .plat-fchip.active-exclude{background:rgba(239,68,68,.12);border-color:#ef4444;color:#ef4444}
   .plat-fpanel-footer{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
   #plat-filter-btn.has-filter{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
 
@@ -637,7 +638,11 @@
     <div class="fix-section-label">Game Info</div>
     <div class="fix-row">
       <div style="flex:1"><label>Release Year</label><input type="text" id="fix-year" placeholder="e.g. 2023"></div>
-      <div style="flex:1"><label>Year Beaten</label><input type="text" id="fix-year-beaten" placeholder="e.g. 2024"></div>
+      <div style="flex:1">
+        <label>Years Beaten</label>
+        <div id="fix-beat-years-list" style="margin-bottom:4px"></div>
+        <button class="btn" style="font-size:.66rem;padding:4px 10px;margin-top:2px" onclick="addBeatYearRow()">+ Add year</button>
+      </div>
     </div>
     <div class="fix-row">
       <div style="flex:1"><label>Developer</label><input type="text" id="fix-developer" placeholder="Studio name"></div>
@@ -818,7 +823,7 @@ let currentSort='title', currentStatusFilter='all';
 let currentSortDir='asc';
 const SORT_DEFAULTS_1UP={title:'asc',year:'desc',rating:'desc',added:'desc',platform:'asc'};
 let currentGenreFilter='';
-let selectedPlatformFilters=new Set();
+let platFilters=new Map(); // key -> 'include' | 'exclude'
 let selectionMode=false, selectedIds=new Set();
 let currentRandomGame=null, selectedSearchResult=null;
 let currentModalGameId=null, fixTargetId=null;
@@ -1005,6 +1010,32 @@ function switchTab(name) {
 }
 
 // ── PLATFORM TOGGLES ───────────────────────────────────────────────────────────
+// ── BEAT YEARS HELPERS ─────────────────────────────────────────────────────────
+function getBeatYears(game) {
+  if (game.beatYears?.length) return game.beatYears;
+  return game.yearBeaten ? [game.yearBeaten] : [];
+}
+function addBeatYearRow(year) {
+  const container = document.getElementById('fix-beat-years-list');
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:5px';
+  const input = document.createElement('input');
+  input.type = 'number'; input.min = '1970'; input.max = '2099';
+  input.placeholder = 'e.g. 2024';
+  input.style.cssText = 'flex:1;padding:4px 8px;font-size:.78rem;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:2px;font-family:inherit;outline:none';
+  if (year) input.value = year;
+  const rm = document.createElement('button');
+  rm.className = 'btn'; rm.textContent = '✕';
+  rm.style.cssText = 'padding:4px 8px;font-size:.7rem;flex-shrink:0';
+  rm.onclick = () => container.removeChild(row);
+  row.appendChild(input); row.appendChild(rm);
+  container.appendChild(row);
+}
+function getBeatYearsFromList() {
+  return [...document.getElementById('fix-beat-years-list').querySelectorAll('input[type=number]')]
+    .map(i => parseInt(i.value)).filter(y => y >= 1970 && y <= 2099);
+}
+
 function togglePlatform(btn)       { btn.classList.toggle('active'); }
 function togglePlatformManual(btn) { btn.classList.toggle('active'); }
 function togglePlatformFix(btn)    { btn.classList.toggle('active'); }
@@ -1206,9 +1237,18 @@ function applyFilters() {
   const mcF=document.getElementById('filter-mc')?.value||'';
   filteredGames=games.filter(g=>{
     if (currentStatusFilter!=='all'&&getGameStatus(g.id)!==currentStatusFilter) return false;
-    if (selectedPlatformFilters.size>0) {
-      if (selectedPlatformFilters.has('__none__')) { if((g.userPlatforms||[]).length>0) return false; }
-      else { if(!(g.userPlatforms||[]).some(p=>selectedPlatformFilters.has(p)||selectedPlatformFilters.has(normalPlatform(p)))) return false; }
+    if (platFilters.size>0) {
+      const plats=g.userPlatforms||[];
+      for(const [key,mode] of platFilters) {
+        if(key==='__none__') {
+          if(mode==='include'&&plats.length>0) return false;
+          if(mode==='exclude'&&plats.length===0) return false;
+        } else {
+          const has=plats.some(p=>p===key||normalPlatform(p)===key);
+          if(mode==='include'&&!has) return false;
+          if(mode==='exclude'&&has) return false;
+        }
+      }
     }
     if (genreF&&!g.genres?.includes(genreF)) return false;
     if (search) { const hay=[g.displayTitle,g.title,g.developer,g.publisher,...(g.genres||[])].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(search)) return false; }
@@ -1223,7 +1263,7 @@ function applyFilters() {
     else if (mcF) { const min=parseInt(mcF); if (!g.rating||g.rating<min) return false; }
     // Year Beaten filter (only active when Completed pill is selected)
     const ybF=document.getElementById('filter-year-beaten')?.value||'';
-    if (ybF && String(g.yearBeaten||'')!==ybF) return false;
+    if (ybF && !getBeatYears(g).some(y=>String(y)===ybF)) return false;
     return true;
   });
   filteredGames.sort((a,b)=>{
@@ -1246,21 +1286,27 @@ function applyFilters() {
 function buildFilterOptions() {
   const genres=[...new Set(games.flatMap(g=>g.genres||[]))].sort();
   document.getElementById('filter-genre').innerHTML='<option value="">All Genres</option>'+genres.map(g=>`<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
-  // Year Beaten — sorted newest first
-  const years=[...new Set(games.filter(g=>g.yearBeaten).map(g=>String(g.yearBeaten)))].sort().reverse();
+  // Year Beaten — collect all beat years from all games, sorted newest first
+  const years=[...new Set(games.flatMap(g=>getBeatYears(g).map(String)))].sort().reverse();
   const ybEl=document.getElementById('filter-year-beaten');
   if(ybEl) ybEl.innerHTML='<option value="">Any Year</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
   buildPlatFilterPanel();
+}
+function platChipClass(p) {
+  const m=platFilters.get(p);
+  if(m==='include') return ' active-include';
+  if(m==='exclude') return ' active-exclude';
+  return '';
 }
 function buildPlatFilterPanel() {
   const panel=document.getElementById('plat-filter-panel'); if(!panel) return;
   const hasNoPlatform=games.some(g=>!(g.userPlatforms||[]).length);
   let html='';
-  if(hasNoPlatform) html+=`<div class="plat-fam-header">⚠ Unassigned</div><div class="plat-fam-chips"><button class="plat-fchip${selectedPlatformFilters.has('__none__')?' active':''}" onclick="togglePlatFilter('__none__')">(no platform)</button></div>`;
+  if(hasNoPlatform) html+=`<div class="plat-fam-header">⚠ Unassigned</div><div class="plat-fam-chips"><button class="plat-fchip${platChipClass('__none__')}" onclick="togglePlatFilter('__none__')">(no platform)</button></div>`;
   PLATFORM_FAMILIES.forEach(fam=>{
     const present=fam.platforms.filter(p=>games.some(g=>(g.userPlatforms||[]).some(up=>up===p||normalPlatform(up)===p)));
     if(!present.length) return;
-    html+=`<div class="plat-fam-header">${fam.label}</div><div class="plat-fam-chips">${present.map(p=>`<button class="plat-fchip${selectedPlatformFilters.has(p)?' active':''}" onclick="togglePlatFilter('${escJs(p)}')">${escHtml(PLATFORM_CONFIG[p]?.abbr||p)}</button>`).join('')}</div>`;
+    html+=`<div class="plat-fam-header">${fam.label}</div><div class="plat-fam-chips">${present.map(p=>`<button class="plat-fchip${platChipClass(p)}" onclick="togglePlatFilter('${escJs(p)}')">${escHtml(PLATFORM_CONFIG[p]?.abbr||p)}</button>`).join('')}</div>`;
   });
   html+=`<div class="plat-fpanel-footer"><button class="btn" onclick="clearPlatFilter()" style="font-size:.66rem;padding:6px 12px">Clear</button></div>`;
   panel.innerHTML=html;
@@ -1276,19 +1322,24 @@ function togglePlatFilterPanel(e) {
   panel.classList.add('active');
 }
 function togglePlatFilter(p) {
-  if(p==='__none__'){ selectedPlatformFilters.clear(); selectedPlatformFilters.add('__none__'); }
-  else { selectedPlatformFilters.delete('__none__'); selectedPlatformFilters.has(p)?selectedPlatformFilters.delete(p):selectedPlatformFilters.add(p); }
+  const cur=platFilters.get(p);
+  if (!cur) platFilters.set(p,'include');
+  else if (cur==='include') platFilters.set(p,'exclude');
+  else platFilters.delete(p);
   updatePlatFilterBtn(); buildPlatFilterPanel(); applyFilters();
 }
 function clearPlatFilter() {
-  selectedPlatformFilters.clear(); updatePlatFilterBtn(); buildPlatFilterPanel(); applyFilters();
+  platFilters.clear(); updatePlatFilterBtn(); buildPlatFilterPanel(); applyFilters();
   document.getElementById('plat-filter-panel').classList.remove('active');
 }
 function updatePlatFilterBtn() {
   const btn=document.getElementById('plat-filter-btn'); if(!btn) return;
-  const n=selectedPlatformFilters.size;
+  const n=platFilters.size;
+  const hasEx=[...platFilters.values()].some(v=>v==='exclude');
   btn.textContent=n?`🎮 Platforms (${n})`:'🎮 Platforms';
   btn.classList.toggle('has-filter',n>0);
+  btn.style.color=hasEx?'#ef4444':'';
+  btn.style.borderColor=hasEx?'#ef4444':'';
 }
 document.addEventListener('click',e=>{ if(!e.target.closest('#plat-filter-panel')&&!e.target.closest('#plat-filter-btn')) document.getElementById('plat-filter-panel')?.classList.remove('active'); });
 function renderGrid(list) {
@@ -1364,7 +1415,7 @@ function changeSortOrder() {
 }
 function resetFilters() {
   ['search-input','filter-genre','filter-hltb','filter-mc','filter-year-beaten'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  selectedPlatformFilters.clear(); updatePlatFilterBtn(); buildPlatFilterPanel();
+  platFilters.clear(); updatePlatFilterBtn(); buildPlatFilterPanel();
   const ybEl=document.getElementById('filter-year-beaten'); if(ybEl) ybEl.style.display='none';
   currentSortDir='asc'; syncSort1UP('title');
   currentStatusFilter='all';
@@ -1527,7 +1578,8 @@ function openFixModal(id) {
   document.getElementById('fix-hltb-extra').value=game.hltbExtra||'';
   document.getElementById('fix-hltb-complete').value=game.hltbComplete||'';
   document.getElementById('fix-year').value=game.year||'';
-  document.getElementById('fix-year-beaten').value=game.yearBeaten||'';
+  document.getElementById('fix-beat-years-list').innerHTML='';
+  getBeatYears(game).forEach(y=>addBeatYearRow(y));
   document.getElementById('fix-developer').value=game.developer||'';
   document.getElementById('fix-publisher').value=game.publisher||'';
   document.getElementById('fix-description').value=game.summary||'';
@@ -1546,7 +1598,9 @@ async function saveAllEdits() {
   games[i].hltbExtra=parseFloat(document.getElementById('fix-hltb-extra').value)||null;
   games[i].hltbComplete=parseFloat(document.getElementById('fix-hltb-complete').value)||null;
   games[i].year=parseInt(document.getElementById('fix-year').value)||null;
-  games[i].yearBeaten=parseInt(document.getElementById('fix-year-beaten').value)||null;
+  const beatYears=getBeatYearsFromList();
+  games[i].beatYears=beatYears;
+  games[i].yearBeaten=beatYears[0]||null; // keep for backward compat
   games[i].developer=document.getElementById('fix-developer').value.trim()||null;
   games[i].publisher=document.getElementById('fix-publisher').value.trim()||null;
   games[i].summary=document.getElementById('fix-description').value.trim()||null;
@@ -1589,7 +1643,8 @@ async function applyFixResult(idx) {
     const old=games[i];
     const newData=buildGameObject(r,detail,{hltbMain:old.hltbMain,hltbExtra:old.hltbExtra,hltbComplete:old.hltbComplete},old.userPlatforms);
     newData.id=old.id; newData.displayTitle=old.displayTitle; newData.sortTitle=old.sortTitle;
-    newData.customCover=old.customCover; newData.dateAdded=old.dateAdded; newData.yearBeaten=old.yearBeaten;
+    newData.customCover=old.customCover; newData.dateAdded=old.dateAdded;
+    newData.yearBeaten=old.yearBeaten; newData.beatYears=old.beatYears||[];
     games[i]=newData; await sbSaveGame(newData);
     setFixStatus('✓ Updated'); applyFilters(); setTimeout(closeFixModal,800);
   } catch(e) { setFixStatus('⚠ '+e.message,true); }
@@ -1720,7 +1775,7 @@ async function resetAllStatus() {
 // ── STATS 1UP ─────────────────────────────────────────────────────────────────
 function openStats1UP() {
   const sel = document.getElementById('stats-yr-1up');
-  const years = [...new Set(games.filter(g=>g.yearBeaten).map(g=>String(g.yearBeaten)))].sort().reverse();
+  const years = [...new Set(games.flatMap(g=>getBeatYears(g).map(String)))].sort().reverse();
   const curYear = String(new Date().getFullYear());
   sel.innerHTML = '<option value="all">All Time</option>' + years.map(y=>`<option value="${escHtml(y)}">${escHtml(y)}</option>`).join('');
   sel.value = years.includes(curYear) ? curYear : (years[0] || 'all');
@@ -1743,7 +1798,8 @@ function jumpToYear1UP() {
 function renderStats1UP(year) {
   const isAll = year === 'all';
   const isBeaten = g => { const s = getGameStatus(g.id); return s === 'completed' || s === '100percent'; };
-  const beaten = isAll ? games.filter(isBeaten) : games.filter(g => isBeaten(g) && String(g.yearBeaten||'') === year);
+  // A game beaten in multiple years appears in the count for each year
+  const beaten = isAll ? games.filter(isBeaten) : games.filter(g => isBeaten(g) && getBeatYears(g).some(y=>String(y)===year));
 
   // avg Metacritic — exclude games with no score
   const withMC = beaten.filter(g => g.rating > 0);
