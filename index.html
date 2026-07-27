@@ -1295,7 +1295,11 @@ function buildFilterOptions() {
   // Year Beaten — collect all beat years from all games, sorted newest first
   const years=[...new Set(games.flatMap(g=>getBeatYears(g).map(String)))].sort().reverse();
   const ybEl=document.getElementById('filter-year-beaten');
-  if(ybEl) ybEl.innerHTML='<option value="">Any Year</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  if(ybEl) {
+    const prev=ybEl.value;
+    ybEl.innerHTML='<option value="">Any Year</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
+    if(prev) ybEl.value=prev; // restore selection after rebuild
+  }
   buildPlatFilterPanel();
 }
 function platChipClass(p) {
