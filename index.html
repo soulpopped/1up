@@ -154,6 +154,10 @@
   .card-fix-btn{position:absolute;top:6px;left:6px;display:none;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.18);color:#ccc;border-radius:2px;padding:3px 8px;font-size:.6rem;letter-spacing:.08em;cursor:pointer;font-family:inherit;z-index:2;text-transform:uppercase}
   .game-card:hover .card-fix-btn{display:block}
   .card-fix-btn:hover{background:rgba(0,0,0,.9);color:#fff}
+  /* mark playing / played action button */
+  .card-action-btn{position:absolute;bottom:0;left:0;right:0;background:rgba(10,10,10,.82);color:var(--text-muted);font-size:.6rem;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.1em;padding:6px 8px;border:none;cursor:pointer;opacity:0;transition:opacity .15s,color .15s;z-index:3;text-align:center}
+  .game-card:hover .card-action-btn{opacity:1}
+  .card-action-btn:hover{color:#fff;background:rgba(10,10,10,.95)}
   /* status dot */
   .status-dot{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.5)}
   .status-dot.playing{background:var(--s-playing);color:#000}
@@ -217,6 +221,23 @@
   .btn-link{padding:9px 14px;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;border-radius:2px;text-decoration:none;display:inline-flex;align-items:center}
   .btn-link:hover{border-color:var(--text-muted);color:var(--text)}
 
+  /* star ratings */
+  .star-row-1up{display:flex;gap:4px;align-items:center}
+  .star-btn-1up{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-dim);transition:color .1s,transform .1s;padding:2px;position:relative}
+  .star-btn-1up.lit{color:var(--accent)}
+  .star-btn-1up.half{color:var(--text-dim)}
+  .star-btn-1up.half::after{content:'★';position:absolute;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;color:var(--accent);clip-path:inset(0 50% 0 0);font-size:inherit;pointer-events:none}
+  /* mark played popup */
+  #mark-played-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:700;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)}
+  #mark-played-overlay.active{display:flex}
+  #mark-played-content{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:min(340px,calc(100vw - 32px));padding:28px 28px 22px;position:relative}
+  .mark-played-title{font-family:'DM Serif Display',serif;font-size:1.15rem;color:var(--text);margin-bottom:4px}
+  #mark-played-game-name{font-size:.8rem;color:var(--accent);letter-spacing:.04em;margin-bottom:18px}
+  .mark-played-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);margin-bottom:6px}
+  #mark-played-date{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:.9rem;padding:9px 12px;border-radius:2px;margin-bottom:18px;box-sizing:border-box;outline:none}
+  #mark-played-date:focus{border-color:var(--accent)}
+  #mark-played-stars-row{display:flex;align-items:center;gap:4px;margin-bottom:22px}
+  .mark-played-btns{display:flex;gap:8px}
   /* FIX MODAL */
   #fix-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;overflow-y:auto}
   #fix-overlay.active{display:flex;align-items:flex-start;justify-content:center;padding:40px 12px}
@@ -639,6 +660,18 @@
       <div style="flex:1"><label>Completionist (hrs)</label><input type="text" id="fix-hltb-complete" placeholder="e.g. 35"></div>
     </div>
 
+    <div class="fix-section-label">My Rating</div>
+    <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+      <div class="star-row-1up" id="fix-my-stars">
+        <button class="star-btn-1up" data-val="1" onclick="setFixMyRating(1,event)">★</button>
+        <button class="star-btn-1up" data-val="2" onclick="setFixMyRating(2,event)">★</button>
+        <button class="star-btn-1up" data-val="3" onclick="setFixMyRating(3,event)">★</button>
+        <button class="star-btn-1up" data-val="4" onclick="setFixMyRating(4,event)">★</button>
+        <button class="star-btn-1up" data-val="5" onclick="setFixMyRating(5,event)">★</button>
+      </div>
+      <button class="btn" onclick="setFixMyRating(0,null)" style="font-size:.65rem;padding:3px 8px;margin-left:8px">Clear</button>
+    </div>
+
     <div class="fix-section-label">Game Info</div>
     <div class="fix-row">
       <div style="flex:1"><label>Release Year</label><input type="text" id="fix-year" placeholder="e.g. 2023"></div>
@@ -832,6 +865,7 @@ let currentGenreFilter='';
 let platFilters=new Map(); // key -> 'include' | 'exclude'
 let selectionMode=false, selectedIds=new Set();
 let currentRandomGame=null, selectedSearchResult=null;
+let fixMyRating=0, markPlayedTargetId=null, markPlayedRating=0;
 let currentModalGameId=null, fixTargetId=null;
 let rawgKey='';
 
@@ -1371,6 +1405,7 @@ function renderGrid(list) {
         ${statusDotHTML(status)}
         ${platBadges?`<div class="card-platforms">${platBadges}</div>`:''}
         <button class="card-fix-btn" onclick="event.stopPropagation();openFixModal('${escJs(String(game.id))}')">✎ Edit</button>
+        ${status==='unplayed'?`<button class="card-action-btn" onclick="event.stopPropagation();quickMarkPlaying('${escJs(String(game.id))}')">▶ Mark Playing</button>`:status==='playing'?`<button class="card-action-btn" onclick="event.stopPropagation();openMarkPlayedModal('${escJs(String(game.id))}')">✓ Mark Played</button>`:''}
       </div>
       <div class="card-title">${escHtml(title)}</div>
     </div>`;
@@ -1472,6 +1507,7 @@ function openModal(game) {
       <div class="modal-meta-row">
         ${game.year  ?`<div class="modal-meta-item"><div class="modal-meta-label">Year</div><div class="modal-meta-value">${game.year}</div></div>`:''}
         ${game.rating?`<div class="modal-meta-item"><div class="modal-meta-label">Metacritic</div><div class="modal-rating">${game.rating}</div></div>`:''}
+        ${game.myRating?`<div class="modal-meta-item"><div class="modal-meta-label">My Rating</div><div style="display:flex;gap:2px;align-items:center;padding-top:2px">${myRatingStarsHTML(game.myRating)}</div></div>`:''}
       </div>
       <div class="modal-genres">${(game.genres||[]).map(g=>`<span class="genre-pill">${escHtml(g)}</span>`).join('')}</div>
       ${hltbHTML}
@@ -1593,6 +1629,7 @@ function openFixModal(id) {
   document.getElementById('fix-developer').value=game.developer||'';
   document.getElementById('fix-publisher').value=game.publisher||'';
   document.getElementById('fix-description').value=game.summary||'';
+  fixMyRating=game.myRating||0; renderFixMyStars();
   document.getElementById('fix-overlay').classList.add('active');
 }
 function closeFixModal() { document.getElementById('fix-overlay').classList.remove('active'); fixTargetId=null; }
@@ -1614,6 +1651,7 @@ async function saveAllEdits() {
   games[i].developer=document.getElementById('fix-developer').value.trim()||null;
   games[i].publisher=document.getElementById('fix-publisher').value.trim()||null;
   games[i].summary=document.getElementById('fix-description').value.trim()||null;
+  games[i].myRating=fixMyRating||null;
   try {
     await sbSaveGame(games[i]);
     setFixStatus('✓ Saved'); applyFilters(); buildFilterOptions(); setTimeout(closeFixModal,500);
@@ -1857,14 +1895,123 @@ function setProgress(sub,pct) { document.getElementById('progress-sub').textCont
 function hideProgress() { document.getElementById('progress-overlay').classList.remove('active'); }
 function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
 
+// ── MY RATING STARS ────────────────────────────────────────────────────────────
+function previewStarRow1UP(container, previewVal) {
+  container.querySelectorAll('.star-btn-1up').forEach(btn => {
+    const v = parseInt(btn.dataset.val);
+    const isLit  = v <= previewVal;
+    const isHalf = v - 0.5 === previewVal;
+    btn.classList.toggle('lit', isLit);
+    btn.classList.toggle('half', isHalf);
+    btn.style.transform = (isLit || isHalf) ? 'scale(1.12)' : '';
+  });
+}
+function attachStarHover1UP(containerSelector, renderFn) {
+  const container = document.querySelector(containerSelector);
+  if (!container) return;
+  container.querySelectorAll('.star-btn-1up').forEach(btn => {
+    const val = parseInt(btn.dataset.val);
+    btn.addEventListener('mousemove', e => {
+      const half = e.offsetX < btn.offsetWidth / 2;
+      previewStarRow1UP(container, half ? val - 0.5 : val);
+    });
+  });
+  container.addEventListener('mouseleave', () => renderFn());
+}
+function renderFixMyStars() {
+  document.querySelectorAll('#fix-my-stars .star-btn-1up').forEach(btn => {
+    const v = parseInt(btn.dataset.val);
+    btn.classList.toggle('lit', v <= fixMyRating);
+    btn.classList.toggle('half', v - 0.5 === fixMyRating);
+    btn.style.transform = '';
+  });
+}
+function setFixMyRating(val, e) {
+  if (e && val > 0) { const half = e.offsetX < e.currentTarget.offsetWidth / 2; val = half ? val - 0.5 : val; }
+  fixMyRating = (fixMyRating === val ? 0 : val); renderFixMyStars();
+}
+function renderMarkPlayedStars() {
+  document.querySelectorAll('#mark-played-stars .star-btn-1up').forEach(btn => {
+    const v = parseInt(btn.dataset.val);
+    btn.classList.toggle('lit', v <= markPlayedRating);
+    btn.classList.toggle('half', v - 0.5 === markPlayedRating);
+    btn.style.transform = '';
+  });
+}
+function setMarkPlayedRating(val, e) {
+  if (e && val > 0) { const half = e.offsetX < e.currentTarget.offsetWidth / 2; val = half ? val - 0.5 : val; }
+  markPlayedRating = (markPlayedRating === val ? 0 : val); renderMarkPlayedStars();
+}
+function myRatingStarsHTML(rating) {
+  if (!rating) return '';
+  return [1,2,3,4,5].map(i => {
+    const cls = i <= rating ? ' lit' : (i - 0.5 === rating ? ' half' : '');
+    return `<span class="star-btn-1up${cls}" style="pointer-events:none;font-size:1.2rem">★</span>`;
+  }).join('');
+}
+
+// ── MARK PLAYED MODAL ──────────────────────────────────────────────────────────
+function openMarkPlayedModal(id) {
+  markPlayedTargetId = String(id);
+  markPlayedRating = 0;
+  const game = games.find(g => g.id === markPlayedTargetId);
+  document.getElementById('mark-played-game-name').textContent = game ? (game.displayTitle || game.title) : '';
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('mark-played-date').value = today;
+  renderMarkPlayedStars();
+  document.getElementById('mark-played-overlay').classList.add('active');
+}
+function closeMarkPlayedModal() {
+  document.getElementById('mark-played-overlay').classList.remove('active');
+  markPlayedTargetId = null;
+}
+async function confirmMarkPlayed() {
+  if (!markPlayedTargetId) return;
+  const i = games.findIndex(g => g.id === markPlayedTargetId);
+  if (i < 0) { closeMarkPlayedModal(); return; }
+  const dateVal = document.getElementById('mark-played-date').value;
+  if (dateVal) {
+    games[i].dateBeaten = dateVal;
+    games[i].yearBeaten = new Date(dateVal).getUTCFullYear();
+    const existing = games[i].beatYears || [];
+    const yr = games[i].yearBeaten;
+    if (!existing.includes(yr)) games[i].beatYears = [...existing, yr];
+  }
+  if (markPlayedRating) games[i].myRating = markPlayedRating;
+  statusMap.set(markPlayedTargetId, 'completed');
+  try {
+    await Promise.all([sbSaveGame(games[i]), sbSetStatus(markPlayedTargetId, 'completed')]);
+    applyFilters(); buildFilterOptions();
+  } catch(e) { console.error('Save error', e); }
+  closeMarkPlayedModal();
+}
+function quickMarkPlaying(id) {
+  const sid = String(id);
+  statusMap.set(sid, 'playing');
+  const card = document.querySelector(`.game-card[data-id="${CSS.escape(sid)}"]`);
+  if (card) {
+    const d = card.querySelector('.status-dot'); if (d) d.remove();
+    const h = statusDotHTML('playing'); if (h) card.querySelector('.card-img-wrap').insertAdjacentHTML('afterbegin', h);
+    const ab = card.querySelector('.card-action-btn');
+    if (ab) { ab.textContent = '✓ Mark Played'; ab.onclick = e => { e.stopPropagation(); openMarkPlayedModal(sid); }; }
+  }
+  updateStats();
+  sbSetStatus(sid, 'playing').catch(e => console.error(e));
+}
+
 // ── ESC KEY ────────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (document.getElementById('stats-overlay-1up').classList.contains('active')) { closeStats1UP(); return; }
+  if (document.getElementById('mark-played-overlay').classList.contains('active')) { closeMarkPlayedModal(); return; }
   if (document.getElementById('fix-overlay').classList.contains('active'))    { closeFixModal(); return; }
   if (document.getElementById('modal-overlay').classList.contains('active'))  { closeModal();    return; }
   if (document.getElementById('random-overlay').classList.contains('active')) { closeRandom();   return; }
 });
+
+// ── STAR HOVER INIT ────────────────────────────────────────────────────────────
+attachStarHover1UP('#fix-my-stars',      renderFixMyStars);
+attachStarHover1UP('#mark-played-stars', renderMarkPlayedStars);
 
 // ── BOOT ───────────────────────────────────────────────────────────────────────
 (function boot() {
@@ -1880,6 +2027,31 @@ document.addEventListener('keydown', e => {
   }
 })();
 </script>
+<!-- MARK PLAYED MODAL -->
+<div id="mark-played-overlay" onclick="if(event.target===this)closeMarkPlayedModal()">
+  <div id="mark-played-content">
+    <div class="mark-played-title">Mark as Played</div>
+    <div id="mark-played-game-name"></div>
+    <div class="mark-played-label">Finish Date (optional)</div>
+    <input type="date" id="mark-played-date" onkeydown="if(event.key==='Enter')confirmMarkPlayed()">
+    <div class="mark-played-label">My Rating (optional)</div>
+    <div id="mark-played-stars-row">
+      <div class="star-row-1up" id="mark-played-stars">
+        <button class="star-btn-1up" data-val="1" onclick="setMarkPlayedRating(1,event)">★</button>
+        <button class="star-btn-1up" data-val="2" onclick="setMarkPlayedRating(2,event)">★</button>
+        <button class="star-btn-1up" data-val="3" onclick="setMarkPlayedRating(3,event)">★</button>
+        <button class="star-btn-1up" data-val="4" onclick="setMarkPlayedRating(4,event)">★</button>
+        <button class="star-btn-1up" data-val="5" onclick="setMarkPlayedRating(5,event)">★</button>
+      </div>
+      <button class="btn" onclick="setMarkPlayedRating(0,null)" style="font-size:.65rem;padding:3px 8px;margin-left:8px">Clear</button>
+    </div>
+    <div class="mark-played-btns">
+      <button class="btn btn-accent" style="flex:1" onclick="confirmMarkPlayed()">✓ Mark Played</button>
+      <button class="btn" onclick="closeMarkPlayedModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- PLATFORM FILTER PANEL -->
 <div id="plat-filter-panel" onclick="event.stopPropagation()"></div>
 
