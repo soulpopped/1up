@@ -132,6 +132,12 @@
   .header-row2{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
   #search-input{width:210px;flex-shrink:0;padding:7px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:inherit;font-size:.9rem;outline:none}
   #search-input:focus{border-color:var(--accent)}
+  .search-all-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:0 4px;font-size:1rem;line-height:1;flex-shrink:0;transition:color .15s}
+  .search-all-btn:hover,.search-all-btn.active{color:var(--accent)}
+  #search-all-strip{display:none;padding:4px 16px 8px}
+  #search-all-strip.active{display:block}
+  #search-all-input{width:100%;padding:7px 12px;background:var(--surface2);border:1px solid var(--accent);border-radius:2px;color:var(--text);font-family:inherit;font-size:.85rem;outline:none}
+  #search-all-input::placeholder{color:var(--text-dim);font-style:italic}
   .header-select{padding:6px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text-muted);font-family:inherit;font-size:.8rem;outline:none;cursor:pointer;max-width:150px}
   .status-pills{display:flex;gap:4px;flex-wrap:nowrap;align-items:center}
   .status-pill{padding:5px 11px;border:1px solid var(--border);border-radius:2px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s;flex-shrink:0;white-space:nowrap}
@@ -507,7 +513,8 @@
     </div>
     <!-- row 2: all filters inline -->
     <div class="header-row2">
-      <input type="text" id="search-input" placeholder="Search…" oninput="applyFilters()">
+      <input type="text" id="search-input" placeholder="Search titles…" oninput="applyFilters()">
+      <button class="search-all-btn" id="search-all-btn" onclick="toggleSearchAll()" title="Search all fields">🔍</button>
       <select class="header-select" id="filter-genre" onchange="applyFilters()"><option value="">All Genres</option></select>
       <button class="header-select" id="plat-filter-btn" onclick="togglePlatFilterPanel(event)" style="cursor:pointer;text-align:left">🎮 Platforms</button>
       <select class="header-select" id="filter-hltb" onchange="applyFilters()">
@@ -534,6 +541,10 @@
           <option value="">Year</option>
         </select>
       </div>
+    </div>
+    <!-- search-all strip -->
+    <div id="search-all-strip">
+      <input type="text" id="search-all-input" placeholder="Search titles, developers, publishers, genres…" oninput="applyFilters()" onkeydown="if(event.key==='Escape')toggleSearchAll()">
     </div>
     <!-- row 3: sort -->
     <div class="header-row3-1up">
@@ -850,6 +861,15 @@ const PLATFORM_FAMILIES = [
   { label:'🕹 Other',     platforms:['UFO 50','Atari','Mobile']                                                            },
 ];
 function normalPlatform(p) { return PLATFORM_ALIASES[p] || p; }
+function normSearch(s) { return (s||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim(); }
+function toggleSearchAll() {
+  const strip = document.getElementById('search-all-strip');
+  const btn   = document.getElementById('search-all-btn');
+  const input = document.getElementById('search-all-input');
+  const isOpen = strip.classList.toggle('active');
+  btn.classList.toggle('active', isOpen);
+  if (isOpen) { input.focus(); } else { input.value=''; applyFilters(); }
+}
 const STATUS_CONFIG = {
   unplayed:  { label:'Unplayed',  icon:''  },
   playing:   { label:'Playing',   icon:'▶', dotClass:'playing'   },
@@ -1186,24 +1206,26 @@ async function handleCSVFile(event) {
   const titlePlatformMap=new Map();
   dataRows.forEach(row=>{
     const title=row[colTitle].trim(), plat=colPlatform>=0?(row[colPlatform]?.trim()||''):'';
-    if (!titlePlatformMap.has(title)) titlePlatformMap.set(title,{platforms:[],row});
-    if (plat&&!titlePlatformMap.get(title).platforms.includes(plat)) titlePlatformMap.get(title).platforms.push(plat);
+    if (!titlePlatformMap.has(title)) titlePlatformMap.set(title,{platforms:[],beatYears:[],row});
+    const entry=titlePlatformMap.get(title);
+    if (plat&&!entry.platforms.includes(plat)) entry.platforms.push(plat);
+    if (colYearBeaten>=0) { const y=parseInt(row[colYearBeaten]); if(y&&!entry.beatYears.includes(y)) entry.beatYears.push(y); }
   });
   const entries=[...titlePlatformMap.entries()];
   const total=entries.length;
   showProgress('Importing Games',`0 / ${total}`);
-  let done=0, skipped=0, errors=[];
-  for (const [title,{platforms,row}] of entries) {
+  let done=0, skipped=0, errors=[], skippedTitles=[];
+  for (const [title,{platforms,beatYears,row}] of entries) {
     setProgress(title, Math.round(done/total*100));
     const existing=games.find(g=>[g.title,g.displayTitle,g.searchTitle].some(t=>t?.toLowerCase()===title.toLowerCase()));
     if (existing) {
       let changed=false;
-      platforms.forEach(p=>{ if(!existing.userPlatforms.includes(p)){existing.userPlatforms.push(p);changed=true;} });
+      platforms.forEach(p=>{ if(!(existing.userPlatforms||[]).includes(p)){existing.userPlatforms=existing.userPlatforms||[];existing.userPlatforms.push(p);changed=true;} });
+      beatYears.forEach(y=>{ if(!(existing.beatYears||[]).includes(y)){existing.beatYears=existing.beatYears||[];existing.beatYears.push(y);if(!existing.yearBeaten)existing.yearBeaten=y;changed=true;} });
       if(changed) await sbSaveGame(existing).catch(()=>{});
-      skipped++; done++; continue;
+      skipped++; skippedTitles.push(title); done++; continue;
     }
-    const csvYearBeaten=colYearBeaten>=0?parseInt(row[colYearBeaten])||null:null;
-    const csvData={ title, hltbMain:colHltbMain>=0?parseFloat(row[colHltbMain])||null:null, hltbExtra:colHltbExtra>=0?parseFloat(row[colHltbExtra])||null:null, hltbComplete:colHltbComp>=0?parseFloat(row[colHltbComp])||null:null, yearBeaten:csvYearBeaten };
+    const csvData={ title, hltbMain:colHltbMain>=0?parseFloat(row[colHltbMain])||null:null, hltbExtra:colHltbExtra>=0?parseFloat(row[colHltbExtra])||null:null, hltbComplete:colHltbComp>=0?parseFloat(row[colHltbComp])||null:null, yearBeaten:beatYears[0]||null, beatYears:beatYears.length?[...beatYears]:[] };
     const csvMeta=colMeta>=0?parseInt(row[colMeta])||null:null;
     const csvStatusRaw=colStatus>=0?row[colStatus]?.trim().toLowerCase():null;
     const csvStatus=['unplayed','playing','completed'].includes(csvStatusRaw)?csvStatusRaw:null;
@@ -1231,13 +1253,18 @@ async function handleCSVFile(event) {
     done++;
   }
   hideProgress();
+  function skippedDetailHTML() {
+    if (!skippedTitles.length) return '';
+    const id='skipped-detail-list';
+    return ` <button onclick="document.getElementById('${id}').style.display=document.getElementById('${id}').style.display==='none'?'block':'none'" style="background:none;border:none;color:var(--accent);font-size:.72rem;cursor:pointer;padding:0;text-decoration:underline">${skippedTitles.length} skipped ▸</button><div id="${id}" style="display:none;margin-top:6px;font-size:.65rem;line-height:1.8;color:var(--text-muted)">${skippedTitles.map(escHtml).join('<br>')}</div>`;
+  }
   if (errors.length) {
     statusEl.style.color='var(--danger)';
-    statusEl.innerHTML=`⚠ ${errors.length} error(s):<br><code style="font-size:.65rem;line-height:1.8">${errors.slice(0,5).map(escHtml).join('<br>')}${errors.length>5?`<br>…and ${errors.length-5} more`:''}</code>`;
+    statusEl.innerHTML=`⚠ ${errors.length} error(s):<br><code style="font-size:.65rem;line-height:1.8">${errors.slice(0,5).map(escHtml).join('<br>')}${errors.length>5?`<br>…and ${errors.length-5} more`:''}</code>${skippedDetailHTML()}`;
     if(done-skipped-errors.length>0) setTimeout(()=>openApp(),3000);
   } else {
     statusEl.style.color='';
-    statusEl.textContent=`✓ Imported ${done-skipped} new games${skipped?`, ${skipped} already in collection`:''}. `;
+    statusEl.innerHTML=`✓ Imported ${done-skipped} new games.${skippedDetailHTML()}`;
     setTimeout(()=>openApp(),1200);
   }
 }
@@ -1271,7 +1298,8 @@ function statusDotHTML(status) {
 function getGameStatus(id) { return statusMap.get(String(id))||'unplayed'; }
 
 function applyFilters() {
-  const search=(document.getElementById('search-input')?.value||'').toLowerCase().trim();
+  const search=normSearch(document.getElementById('search-input')?.value||'');
+  const searchAll=normSearch(document.getElementById('search-all-input')?.value||'');
   const genreF=document.getElementById('filter-genre')?.value||'';
   const hltbF=document.getElementById('filter-hltb')?.value||'';
   const mcF=document.getElementById('filter-mc')?.value||'';
@@ -1291,7 +1319,8 @@ function applyFilters() {
       }
     }
     if (genreF&&!g.genres?.includes(genreF)) return false;
-    if (search) { const hay=[g.displayTitle,g.title,g.developer,g.publisher,...(g.genres||[])].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(search)) return false; }
+    if (search) { const hay=normSearch([g.displayTitle,g.title].filter(Boolean).join(' ')); if(!hay.includes(search)) return false; }
+    if (searchAll) { const hay=normSearch([g.displayTitle,g.title,g.developer,g.publisher,...(g.genres||[])].filter(Boolean).join(' ')); if(!hay.includes(searchAll)) return false; }
     // HLTB filter (main story)
     if (hltbF==='missing') { if (g.hltbMain) return false; }
     else if (hltbF==='5')     { if (!g.hltbMain||g.hltbMain>=5)              return false; }
@@ -2004,6 +2033,7 @@ document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (document.getElementById('stats-overlay-1up').classList.contains('active')) { closeStats1UP(); return; }
   if (document.getElementById('mark-played-overlay').classList.contains('active')) { closeMarkPlayedModal(); return; }
+  if (document.getElementById('search-all-strip').classList.contains('active')) { toggleSearchAll(); return; }
   if (document.getElementById('fix-overlay').classList.contains('active'))    { closeFixModal(); return; }
   if (document.getElementById('modal-overlay').classList.contains('active'))  { closeModal();    return; }
   if (document.getElementById('random-overlay').classList.contains('active')) { closeRandom();   return; }
