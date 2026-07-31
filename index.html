@@ -134,10 +134,25 @@
   #search-input:focus{border-color:var(--accent)}
   .search-all-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:0 4px;font-size:1rem;line-height:1;flex-shrink:0;transition:color .15s}
   .search-all-btn:hover,.search-all-btn.active{color:var(--accent)}
-  #search-all-strip{display:none;padding:4px 16px 8px}
-  #search-all-strip.active{display:block}
-  #search-all-input{width:100%;padding:7px 12px;background:var(--surface2);border:1px solid var(--accent);border-radius:2px;color:var(--text);font-family:inherit;font-size:.85rem;outline:none}
+  #filter-panel{display:none;padding:8px 16px 12px;border-top:1px solid var(--border);background:var(--surface2)}
+  #filter-panel.active{display:block}
+  .filter-panel-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .filter-panel-row:last-child{margin-bottom:0}
+  #search-all-input{flex:1;min-width:180px;padding:7px 12px;background:var(--surface);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:inherit;font-size:.85rem;outline:none}
+  #search-all-input:focus{border-color:var(--accent)}
   #search-all-input::placeholder{color:var(--text-dim);font-style:italic}
+  .flag-filter-btn{padding:6px 11px;border:1px solid var(--border);border-radius:2px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s;white-space:nowrap}
+  .flag-filter-btn:hover{border-color:var(--text-muted);color:var(--text-muted)}
+  .flag-filter-btn.include{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
+  .flag-filter-btn.exclude{color:#ef4444;border-color:#ef4444;background:rgba(239,68,68,.1)}
+  #hltb-panel{display:none;position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:4px;z-index:500;padding:12px;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.65)}
+  #hltb-panel.active{display:block}
+  .hltb-check-label{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--text-muted);cursor:pointer;padding:5px 0;user-select:none}
+  .hltb-check-label:hover{color:var(--text)}
+  .hltb-check-label input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer}
+  .modal-notes{border-top:1px solid var(--border);padding-top:12px;margin-top:6px;margin-bottom:6px}
+  .modal-notes-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);margin-bottom:5px}
+  .modal-notes-text{font-size:.95rem;line-height:1.65;color:var(--text-muted)}
   .header-select{padding:6px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text-muted);font-family:inherit;font-size:.8rem;outline:none;cursor:pointer;max-width:150px}
   .status-pills{display:flex;gap:4px;flex-wrap:nowrap;align-items:center}
   .status-pill{padding:5px 11px;border:1px solid var(--border);border-radius:2px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s;flex-shrink:0;white-space:nowrap}
@@ -450,7 +465,19 @@
     </div>
     <div class="add-form-group"><label>Developer</label><input type="text" id="manual-developer" placeholder="e.g. Supergiant Games"></div>
     <div class="add-form-group"><label>Genre(s) <span style="color:var(--text-dim);font-weight:400">(comma separated)</span></label><input type="text" id="manual-genres" placeholder="e.g. Action, Roguelike"></div>
-    <div class="add-form-group"><label>Notes</label><input type="text" id="manual-notes" placeholder="optional"></div>
+    <div class="add-form-group"><label>Metacritic Score</label><input type="text" id="manual-mc" placeholder="e.g. 87"></div>
+    <div class="add-form-group"><label>Main Story (hrs)</label><input type="text" id="manual-hltb-main" placeholder="e.g. 12.5"></div>
+    <div class="add-form-group"><label>Main+Extras (hrs)</label><input type="text" id="manual-hltb-extra" placeholder="e.g. 20"></div>
+    <div class="add-form-group"><label>Completionist (hrs)</label><input type="text" id="manual-hltb-complete" placeholder="e.g. 35"></div>
+    <div class="add-form-group"><label>Cover Art URL</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="manual-art-url" placeholder="https://… direct image URL" style="flex:1">
+        <button class="btn" onclick="document.getElementById('manual-art-file').click()" style="font-size:.7rem;padding:8px 10px;white-space:nowrap">📷 Upload</button>
+      </div>
+      <input type="file" id="manual-art-file" accept="image/*" style="display:none" onchange="handleManualArtUpload(event)">
+      <div id="manual-art-status" style="font-size:.68rem;color:var(--text-muted);margin-top:4px;min-height:14px"></div>
+    </div>
+    <div class="add-form-group"><label>Notes <span style="color:var(--text-dim);font-weight:400">(personal)</span></label><input type="text" id="manual-notes" placeholder="e.g. Have the sequel too, haven't started yet"></div>
     <button class="btn btn-accent" onclick="addManualGame()">Add to Collection</button>
     <div id="manual-status" style="font-size:.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
   </div>
@@ -514,17 +541,9 @@
     <!-- row 2: all filters inline -->
     <div class="header-row2">
       <input type="text" id="search-input" placeholder="Search titles…" oninput="applyFilters()">
-      <button class="search-all-btn" id="search-all-btn" onclick="toggleSearchAll()" title="Search all fields">🔍</button>
-      <select class="header-select" id="filter-genre" onchange="applyFilters()"><option value="">All Genres</option></select>
+      <button class="search-all-btn" id="search-all-btn" onclick="toggleFilterPanel()" title="Filters">🔍</button>
       <button class="header-select" id="plat-filter-btn" onclick="togglePlatFilterPanel(event)" style="cursor:pointer;text-align:left">🎮 Platforms</button>
-      <select class="header-select" id="filter-hltb" onchange="applyFilters()">
-        <option value="">Any Length</option>
-        <option value="5">Under 5h</option>
-        <option value="15">5–15h</option>
-        <option value="30">15–30h</option>
-        <option value="30plus">30h+</option>
-        <option value="missing">(no data)</option>
-      </select>
+      <button class="header-select" id="hltb-filter-btn" onclick="toggleHltbPanel(event)" style="cursor:pointer;text-align:left">⏱ Length</button>
       <select class="header-select" id="filter-mc" onchange="applyFilters()">
         <option value="">Any Score</option>
         <option value="70">MC 70+</option>
@@ -542,9 +561,17 @@
         </select>
       </div>
     </div>
-    <!-- search-all strip -->
-    <div id="search-all-strip">
-      <input type="text" id="search-all-input" placeholder="Search titles, developers, publishers, genres…" oninput="applyFilters()" onkeydown="if(event.key==='Escape')toggleSearchAll()">
+    <!-- filter panel -->
+    <div id="filter-panel">
+      <div class="filter-panel-row">
+        <input type="text" id="search-all-input" placeholder="Search all fields (title, dev, publisher, genres)…" oninput="applyFilters()" onkeydown="if(event.key==='Escape')toggleFilterPanel()">
+        <select class="header-select" id="filter-genre" onchange="applyFilters()" style="max-width:180px"><option value="">All Genres</option></select>
+      </div>
+      <div class="filter-panel-row">
+        <span style="font-size:.65rem;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim)">Flags:</span>
+        <button class="flag-filter-btn" id="mp-filter-btn" onclick="cycleFlag('multiplayer')">👥 Multiplayer Only</button>
+        <button class="flag-filter-btn" id="motion-filter-btn" onclick="cycleFlag('motion')">🕹 Motion</button>
+      </div>
     </div>
     <!-- row 3: sort -->
     <div class="header-row3-1up">
@@ -661,6 +688,12 @@
       <button class="platform-toggle" data-platform="Mobile" onclick="togglePlatformFix(this)">Mobile</button>
     </div>
 
+    <div class="fix-section-label">Flags</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:4px">
+      <label class="hltb-check-label"><input type="checkbox" id="fix-multiplayer-only"> 👥 Multiplayer Only</label>
+      <label class="hltb-check-label"><input type="checkbox" id="fix-motion-game"> 🕹 Motion Game</label>
+    </div>
+
     <div class="fix-section-label">Scores &amp; Times</div>
     <div class="fix-row">
       <div style="flex:1"><label>Metacritic Score</label><input type="text" id="fix-mc" placeholder="e.g. 87"></div>
@@ -696,7 +729,9 @@
       <div style="flex:1"><label>Developer</label><input type="text" id="fix-developer" placeholder="Studio name"></div>
       <div style="flex:1"><label>Publisher</label><input type="text" id="fix-publisher" placeholder="Publisher name"></div>
     </div>
+    <div class="fix-row"><div style="flex:1"><label>Genres <span style="color:var(--text-dim);font-weight:400">(comma separated)</span></label><input type="text" id="fix-genres" placeholder="e.g. Action, RPG, Indie"></div></div>
     <div class="fix-row"><div style="flex:1"><label>Description</label><textarea id="fix-description" rows="3" placeholder="Game summary…" style="resize:vertical"></textarea></div></div>
+    <div class="fix-row"><div style="flex:1"><label>Notes <span style="color:var(--text-dim);font-weight:400">(personal)</span></label><textarea id="fix-notes" rows="2" placeholder="e.g. Beat the main game, have the DLC to play…" style="resize:vertical"></textarea></div></div>
 
     <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.78rem;padding:10px 18px;margin-top:4px">✓ Save All Edits</button>
 
@@ -862,13 +897,58 @@ const PLATFORM_FAMILIES = [
 ];
 function normalPlatform(p) { return PLATFORM_ALIASES[p] || p; }
 function normSearch(s) { return (s||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim(); }
-function toggleSearchAll() {
-  const strip = document.getElementById('search-all-strip');
+function toggleFilterPanel() {
+  const panel = document.getElementById('filter-panel');
   const btn   = document.getElementById('search-all-btn');
-  const input = document.getElementById('search-all-input');
-  const isOpen = strip.classList.toggle('active');
+  const isOpen = panel.classList.toggle('active');
   btn.classList.toggle('active', isOpen);
-  if (isOpen) { input.focus(); } else { input.value=''; applyFilters(); }
+  if (isOpen) document.getElementById('search-all-input').focus();
+  else { document.getElementById('search-all-input').value=''; applyFilters(); }
+}
+function cycleFlag(type) {
+  if (type==='multiplayer') {
+    filterMultiplayer=(filterMultiplayer+1)%3;
+    const btn=document.getElementById('mp-filter-btn');
+    btn.classList.toggle('include', filterMultiplayer===1);
+    btn.classList.toggle('exclude', filterMultiplayer===2);
+  } else {
+    filterMotion=(filterMotion+1)%3;
+    const btn=document.getElementById('motion-filter-btn');
+    btn.classList.toggle('include', filterMotion===1);
+    btn.classList.toggle('exclude', filterMotion===2);
+  }
+  applyFilters();
+}
+function toggleHltbPanel(e) {
+  e.stopPropagation();
+  const panel=document.getElementById('hltb-panel');
+  const btn=document.getElementById('hltb-filter-btn');
+  if(panel.classList.contains('active')){ panel.classList.remove('active'); return; }
+  const r=btn.getBoundingClientRect();
+  panel.style.top=(r.bottom+4)+'px'; panel.style.left=r.left+'px';
+  panel.classList.add('active');
+}
+function toggleHltbFilter(val) {
+  if(hltbFilters.has(val)) hltbFilters.delete(val); else hltbFilters.add(val);
+  const btn=document.getElementById('hltb-filter-btn');
+  btn.style.color=hltbFilters.size?'var(--accent)':'';
+  btn.style.borderColor=hltbFilters.size?'var(--accent)':'';
+  applyFilters();
+}
+function clearHltbFilter() {
+  hltbFilters.clear();
+  document.querySelectorAll('#hltb-panel input[type=checkbox]').forEach(c=>c.checked=false);
+  const btn=document.getElementById('hltb-filter-btn'); btn.style.color=''; btn.style.borderColor='';
+  applyFilters();
+}
+function handleManualArtUpload(event) {
+  const file=event.target.files[0]; if(!file) return;
+  const statusEl=document.getElementById('manual-art-status');
+  statusEl.textContent='Uploading…';
+  const reader=new FileReader();
+  reader.onload=e=>{ document.getElementById('manual-art-url').value=e.target.result; statusEl.textContent='✓ Image ready'; };
+  reader.onerror=()=>{ statusEl.textContent='⚠ Failed to read file'; };
+  reader.readAsDataURL(file);
 }
 const STATUS_CONFIG = {
   unplayed:  { label:'Unplayed',  icon:''  },
@@ -886,6 +966,8 @@ let platFilters=new Map(); // key -> 'include' | 'exclude'
 let selectionMode=false, selectedIds=new Set();
 let currentRandomGame=null, selectedSearchResult=null;
 let fixMyRating=0, markPlayedTargetId=null, markPlayedRating=0;
+let filterMultiplayer=0, filterMotion=0;
+let hltbFilters=new Set();
 let currentModalGameId=null, fixTargetId=null;
 let rawgKey='';
 
@@ -1143,11 +1225,12 @@ async function addGame(stayInMode) {
   try {
     const r=selectedSearchResult;
     const detail=await rawgFetchGame(r.id);
-    const existing=games.find(g=>g.id===String(r.id));
+    const existing=games.find(g=>g.id===String(r.id)||g.rawgId===r.id);
     if (existing) {
       platforms.forEach(p=>{ if(!existing.userPlatforms.includes(p)) existing.userPlatforms.push(p); });
       await sbSaveGame(existing);
-      statusEl.textContent=`✓ Updated ${existing.displayTitle||existing.title}`;
+      statusEl.style.color='var(--s-100)';
+      statusEl.textContent=`⚠ Already in collection as "${existing.displayTitle||existing.title}" — platforms merged. Use Manual Entry to add a separate copy.`;
     } else {
       const game=buildGameObject(r,detail,null,platforms);
       games.push(game); await sbSaveGame(game);
@@ -1174,12 +1257,18 @@ async function addManualGame() {
   const developer=document.getElementById('manual-developer').value.trim();
   const genres=document.getElementById('manual-genres').value.trim().split(',').map(s=>s.trim()).filter(Boolean);
   const notes=document.getElementById('manual-notes').value.trim();
+  const mc=parseInt(document.getElementById('manual-mc').value)||null;
+  const hltbMain=parseFloat(document.getElementById('manual-hltb-main').value)||null;
+  const hltbExtra=parseFloat(document.getElementById('manual-hltb-extra').value)||null;
+  const hltbComplete=parseFloat(document.getElementById('manual-hltb-complete').value)||null;
+  const artUrl=document.getElementById('manual-art-url').value.trim()||null;
   const id='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-  const game={id,rawgId:null,rawgSlug:null,searchTitle:title,title,displayTitle:null,sortTitle:null,cover:null,coverLg:null,customCover:null,year:year?parseInt(year):null,summary:notes||null,developer:developer||null,publisher:null,genres,rawgPlatforms:[],userPlatforms:platforms,rating:null,hltbMain:null,hltbExtra:null,hltbComplete:null,dateAdded:new Date().toISOString(),notFound:true};
+  const game={id,rawgId:null,rawgSlug:null,searchTitle:title,title,displayTitle:null,sortTitle:null,cover:artUrl,coverLg:null,customCover:artUrl,year:year?parseInt(year):null,summary:null,notes:notes||null,developer:developer||null,publisher:null,genres,rawgPlatforms:[],userPlatforms:platforms,rating:mc,hltbMain,hltbExtra,hltbComplete,dateAdded:new Date().toISOString(),notFound:true};
   try {
     games.push(game); await sbSaveGame(game);
     document.getElementById('manual-status').textContent=`✓ Added ${title}`;
-    ['manual-title','manual-year','manual-developer','manual-genres','manual-notes'].forEach(id=>document.getElementById(id).value='');
+    ['manual-title','manual-year','manual-developer','manual-genres','manual-notes','manual-mc','manual-hltb-main','manual-hltb-extra','manual-hltb-complete','manual-art-url'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('manual-art-status').textContent='';
     resetPlatformToggles('manual-platform-chips');
   } catch(e) { document.getElementById('manual-status').textContent='⚠ '+e.message; }
 }
@@ -1301,7 +1390,6 @@ function applyFilters() {
   const search=normSearch(document.getElementById('search-input')?.value||'');
   const searchAll=normSearch(document.getElementById('search-all-input')?.value||'');
   const genreF=document.getElementById('filter-genre')?.value||'';
-  const hltbF=document.getElementById('filter-hltb')?.value||'';
   const mcF=document.getElementById('filter-mc')?.value||'';
   filteredGames=games.filter(g=>{
     if (currentStatusFilter!=='all'&&getGameStatus(g.id)!==currentStatusFilter) return false;
@@ -1321,12 +1409,23 @@ function applyFilters() {
     if (genreF&&!g.genres?.includes(genreF)) return false;
     if (search) { const hay=normSearch([g.displayTitle,g.title].filter(Boolean).join(' ')); if(!hay.includes(search)) return false; }
     if (searchAll) { const hay=normSearch([g.displayTitle,g.title,g.developer,g.publisher,...(g.genres||[])].filter(Boolean).join(' ')); if(!hay.includes(searchAll)) return false; }
-    // HLTB filter (main story)
-    if (hltbF==='missing') { if (g.hltbMain) return false; }
-    else if (hltbF==='5')     { if (!g.hltbMain||g.hltbMain>=5)              return false; }
-    else if (hltbF==='15')    { if (!g.hltbMain||g.hltbMain<5||g.hltbMain>=15)  return false; }
-    else if (hltbF==='30')    { if (!g.hltbMain||g.hltbMain<15||g.hltbMain>=30) return false; }
-    else if (hltbF==='30plus'){ if (!g.hltbMain||g.hltbMain<30)             return false; }
+    // Flag filters
+    if (filterMultiplayer===1 && !g.multiplayerOnly) return false;
+    if (filterMultiplayer===2 && g.multiplayerOnly)  return false;
+    if (filterMotion===1 && !g.motionGame) return false;
+    if (filterMotion===2 && g.motionGame)  return false;
+    // HLTB multi-select
+    if (hltbFilters.size>0) {
+      const ok=[...hltbFilters].some(f=>{
+        if(f==='missing') return !g.hltbMain;
+        if(f==='5')       return g.hltbMain&&g.hltbMain<5;
+        if(f==='15')      return g.hltbMain&&g.hltbMain>=5&&g.hltbMain<15;
+        if(f==='30')      return g.hltbMain&&g.hltbMain>=15&&g.hltbMain<30;
+        if(f==='30plus')  return g.hltbMain&&g.hltbMain>=30;
+        return false;
+      });
+      if(!ok) return false;
+    }
     // Metacritic filter
     if (mcF==='missing') { if (g.rating) return false; }
     else if (mcF) { const min=parseInt(mcF); if (!g.rating||g.rating<min) return false; }
@@ -1414,7 +1513,10 @@ function updatePlatFilterBtn() {
   btn.style.color=hasEx?'#ef4444':'';
   btn.style.borderColor=hasEx?'#ef4444':'';
 }
-document.addEventListener('click',e=>{ if(!e.target.closest('#plat-filter-panel')&&!e.target.closest('#plat-filter-btn')) document.getElementById('plat-filter-panel')?.classList.remove('active'); });
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#plat-filter-panel')&&!e.target.closest('#plat-filter-btn')) document.getElementById('plat-filter-panel')?.classList.remove('active');
+  if(!e.target.closest('#hltb-panel')&&!e.target.closest('#hltb-filter-btn')) document.getElementById('hltb-panel')?.classList.remove('active');
+});
 function renderGrid(list) {
   const grid=document.getElementById('game-grid');
   if (!list.length) { grid.innerHTML='<div class="empty-state"><h2>No Games Found</h2><p>Try a different filter.</p></div>'; return; }
@@ -1542,6 +1644,7 @@ function openModal(game) {
       ${hltbHTML}
       ${devCredits?`<div class="modal-credits">${devCredits}</div>`:''}
       ${game.summary?`<div class="modal-overview">${escHtml(game.summary.slice(0,300))}${game.summary.length>300?'…':''}</div>`:''}
+      ${game.notes?`<div class="modal-notes"><div class="modal-notes-label">Notes</div><div class="modal-notes-text">${escHtml(game.notes)}</div></div>`:''}
     </div>
     <div class="modal-status-row">${statusBtns}</div>
     <div class="modal-actions">
@@ -1657,7 +1760,11 @@ function openFixModal(id) {
   getBeatYears(game).forEach(y=>addBeatYearRow(y));
   document.getElementById('fix-developer').value=game.developer||'';
   document.getElementById('fix-publisher').value=game.publisher||'';
+  document.getElementById('fix-multiplayer-only').checked=!!game.multiplayerOnly;
+  document.getElementById('fix-motion-game').checked=!!game.motionGame;
+  document.getElementById('fix-genres').value=(game.genres||[]).join(', ');
   document.getElementById('fix-description').value=game.summary||'';
+  document.getElementById('fix-notes').value=game.notes||'';
   fixMyRating=game.myRating||0; renderFixMyStars();
   document.getElementById('fix-overlay').classList.add('active');
 }
@@ -1679,7 +1786,11 @@ async function saveAllEdits() {
   games[i].yearBeaten=beatYears[0]||null; // keep for backward compat
   games[i].developer=document.getElementById('fix-developer').value.trim()||null;
   games[i].publisher=document.getElementById('fix-publisher').value.trim()||null;
+  games[i].multiplayerOnly=document.getElementById('fix-multiplayer-only').checked||null;
+  games[i].motionGame=document.getElementById('fix-motion-game').checked||null;
+  games[i].genres=document.getElementById('fix-genres').value.trim().split(',').map(s=>s.trim()).filter(Boolean);
   games[i].summary=document.getElementById('fix-description').value.trim()||null;
+  games[i].notes=document.getElementById('fix-notes').value.trim()||null;
   games[i].myRating=fixMyRating||null;
   try {
     await sbSaveGame(games[i]);
@@ -2033,7 +2144,8 @@ document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (document.getElementById('stats-overlay-1up').classList.contains('active')) { closeStats1UP(); return; }
   if (document.getElementById('mark-played-overlay').classList.contains('active')) { closeMarkPlayedModal(); return; }
-  if (document.getElementById('search-all-strip').classList.contains('active')) { toggleSearchAll(); return; }
+  if (document.getElementById('filter-panel').classList.contains('active')) { toggleFilterPanel(); return; }
+  if (document.getElementById('hltb-panel').classList.contains('active')) { document.getElementById('hltb-panel').classList.remove('active'); return; }
   if (document.getElementById('fix-overlay').classList.contains('active'))    { closeFixModal(); return; }
   if (document.getElementById('modal-overlay').classList.contains('active'))  { closeModal();    return; }
   if (document.getElementById('random-overlay').classList.contains('active')) { closeRandom();   return; }
@@ -2084,6 +2196,16 @@ attachStarHover1UP('#mark-played-stars', renderMarkPlayedStars);
 
 <!-- PLATFORM FILTER PANEL -->
 <div id="plat-filter-panel" onclick="event.stopPropagation()"></div>
+
+<!-- HLTB FILTER PANEL -->
+<div id="hltb-panel" onclick="event.stopPropagation()">
+  <label class="hltb-check-label"><input type="checkbox" value="5" onchange="toggleHltbFilter('5')"> Under 5h</label>
+  <label class="hltb-check-label"><input type="checkbox" value="15" onchange="toggleHltbFilter('15')"> 5–15h</label>
+  <label class="hltb-check-label"><input type="checkbox" value="30" onchange="toggleHltbFilter('30')"> 15–30h</label>
+  <label class="hltb-check-label"><input type="checkbox" value="30plus" onchange="toggleHltbFilter('30plus')"> 30h+</label>
+  <label class="hltb-check-label"><input type="checkbox" value="missing" onchange="toggleHltbFilter('missing')"> No data</label>
+  <div style="margin-top:8px"><button class="btn" onclick="clearHltbFilter()" style="font-size:.66rem;padding:6px 12px">Clear</button></div>
+</div>
 
 </body>
 </html>
