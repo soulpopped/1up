@@ -98,9 +98,13 @@
   .icon-btn:hover{border-color:var(--text-muted);color:var(--text)}
 
   /* info card notes callout (upper-right) */
-  .modal-notes-callout{font-size:.82rem;color:var(--text-muted);font-style:italic;line-height:1.45;border-left:2px solid var(--accent);padding:4px 0 4px 10px;background:var(--accent-dim);border-radius:0 3px 3px 0;padding-right:8px}
-  .modal-notes-label{font-size:.55rem;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);margin-bottom:4px;opacity:.8}
-  .modal-beaten-years{font-size:.78rem;color:var(--text-muted);margin-top:6px;letter-spacing:.02em}
+  .modal-notes-col{flex:0 0 auto;min-width:150px;max-width:320px;padding-top:2px}
+  .modal-notes-callout{font-size:.82rem;color:var(--text-muted);font-style:italic;line-height:1.5;border-left:2px solid var(--accent);padding:5px 10px;background:var(--accent-dim);border-radius:0 3px 3px 0}
+  .modal-notes-label{font-size:.58rem;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);margin-bottom:5px;opacity:.8}
+  /* beaten years */
+  .modal-beaten-years{display:flex;align-items:baseline;gap:8px;margin:10px 0 14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+  .modal-beaten-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.16em;color:var(--text-dim);flex-shrink:0}
+  .modal-beaten-vals{font-size:.95rem;color:var(--text-muted);letter-spacing:.08em}
   /* sort row */
   .header-row3-1up{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding-top:5px;border-top:1px solid var(--border)}
   .sort-bar-lbl-1up{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);opacity:.45;flex-shrink:0}
@@ -219,13 +223,14 @@
   .modal-body{padding:18px 28px 6px}
   .modal-platforms{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
   .modal-plat-badge{padding:5px 12px;border-radius:2px;font-size:1rem;font-weight:700;letter-spacing:.06em}
-  .modal-meta-row{display:flex;flex-wrap:wrap;gap:20px;margin-bottom:14px}
-  .modal-meta-item{display:flex;flex-direction:column;gap:3px}
-  .modal-meta-label{font-size:.78rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-dim)}
-  .modal-meta-value{font-size:1.2rem;color:var(--text)}
+  .modal-meta-row{display:flex;flex-wrap:wrap;gap:24px;margin-bottom:10px}
+  .modal-meta-item{display:flex;flex-direction:column;gap:4px}
+  .modal-meta-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-dim)}
+  .modal-meta-value{font-size:1.2rem;color:var(--text);font-family:inherit}
   .modal-rating{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--accent)}
   .modal-genres{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
   .genre-pill{padding:4px 12px;border:1px solid var(--border);border-radius:2px;font-size:.88rem;color:var(--text-dim);letter-spacing:.06em}
+  .genre-pill-accent{padding:4px 12px;border:1px solid var(--accent);border-radius:2px;font-size:.88rem;color:var(--accent);letter-spacing:.06em;background:var(--accent-dim)}
   .hltb-row{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px}
   .hltb-item{display:flex;flex-direction:column;gap:3px}
   .hltb-label{font-size:.76rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim)}
@@ -592,6 +597,7 @@
         <button class="sort-btn-1up" data-sort="rating" data-label="Rating" onclick="setSortOrder1UP('rating')">Rating</button>
         <button class="sort-btn-1up" data-sort="added" data-label="Added" onclick="setSortOrder1UP('added')">Added</button>
         <button class="sort-btn-1up" data-sort="platform" data-label="Platform" onclick="setSortOrder1UP('platform')">Platform</button>
+        <button class="sort-btn-1up" data-sort="beaten" data-label="Beaten" onclick="setSortOrder1UP('beaten')">Beaten</button>
       </div>
       <select id="sort-select" style="display:none" onchange="changeSortOrder()">
         <option value="title">A–Z</option>
@@ -970,7 +976,7 @@ const STATUS_CONFIG = {
 let games=[], filteredGames=[], statusMap=new Map();
 let currentSort='title', currentStatusFilter='all';
 let currentSortDir='asc';
-const SORT_DEFAULTS_1UP={title:'asc',year:'desc',rating:'desc',added:'desc',platform:'asc'};
+const SORT_DEFAULTS_1UP={title:'asc',year:'desc',rating:'desc',added:'desc',platform:'asc',beaten:'desc'};
 let currentGenreFilter='';
 let platFilters=new Map(); // key -> 'include' | 'exclude'
 let selectionMode=false, selectedIds=new Set();
@@ -1453,6 +1459,14 @@ function applyFilters() {
       case 'rating':   cmp=(a.rating||0)-(b.rating||0); break;
       case 'added':    cmp=(new Date(a.dateAdded||0))-(new Date(b.dateAdded||0)); break;
       case 'platform': { const pa=(a.userPlatforms||[])[0]||'', pb=(b.userPlatforms||[])[0]||''; cmp=pa.localeCompare(pb); break; }
+      case 'beaten': {
+        const maxBeat=g=>{const v=[...(g.beatYears||[]),...(g.yearBeaten?[g.yearBeaten]:[])].map(Number).filter(Boolean);return v.length?Math.max(...v):null;};
+        const ba=maxBeat(a),bb=maxBeat(b);
+        if(ba===null&&bb===null){cmp=0;break;}
+        if(ba===null) return 1;   // no beat date → always last
+        if(bb===null) return -1;
+        cmp=ba-bb; break;
+      }
       default: cmp=0;
     }
     return currentSortDir==='desc'?-cmp:cmp;
@@ -1626,11 +1640,6 @@ function openModal(game) {
   const cover=game.customCover||game.coverLg||game.cover;
   const title=game.displayTitle||game.title;
   const platBadges=(game.userPlatforms||[]).map(p=>platBadgeHTML(p,true)).join('');
-  const hltbHTML=(game.hltbMain||game.hltbExtra||game.hltbComplete)?`<div class="hltb-row">
-    ${game.hltbMain   ?`<div class="hltb-item"><div class="hltb-label">Main Story</div><div class="hltb-value">${game.hltbMain}h</div></div>`:''}
-    ${game.hltbExtra  ?`<div class="hltb-item"><div class="hltb-label">Main+Extras</div><div class="hltb-value">${game.hltbExtra}h</div></div>`:''}
-    ${game.hltbComplete?`<div class="hltb-item"><div class="hltb-label">Completionist</div><div class="hltb-value">${game.hltbComplete}h</div></div>`:''}
-  </div>`:'';
   const statusBtns=READ_ONLY?'':Object.entries(STATUS_CONFIG).map(([key,cfg])=>
     `<button class="status-btn ${status===key?`active-${key}`:''}" onclick="setGameStatus('${escJs(String(game.id))}','${key}',this)">${cfg.label}</button>`
   ).join('');
@@ -1639,43 +1648,53 @@ function openModal(game) {
     game.developer?`<span class="modal-meta-label" style="margin-right:4px">Dev</span><button class="person-chip" onclick="searchByPerson('${escJs(game.developer)}')">${escHtml(game.developer)}</button>`:'',
     game.publisher&&game.publisher!==game.developer?`<span class="modal-meta-label" style="margin:0 4px 0 10px">Pub</span><button class="person-chip" onclick="searchByPerson('${escJs(game.publisher)}')">${escHtml(game.publisher)}</button>`:''
   ].filter(Boolean).join('');
-
-  const titleSafeJs=escJs(title);
   const subText=escHtml([game.year,game.developer].filter(Boolean).join(' · '));
   const bannerHTML=cover
     ? `<div class="modal-banner"><img class="modal-banner-img" src="${escHtml(cover)}" alt="${escHtml(title)}" onerror="this.style.display='none'"><div class="modal-banner-overlay"><div class="modal-title">${escHtml(title)}</div>${subText?`<div class="modal-sub">${subText}</div>`:''}</div></div>`
     : `<div class="modal-banner modal-banner-empty"><div><div class="modal-title" style="color:var(--text)">${escHtml(title)}</div>${subText?`<div class="modal-sub" style="color:var(--text-muted)">${subText}</div>`:''}</div></div>`;
 
-  // beat years for display
+  // Beat years — deduped, sorted
   const beatYearsArr=[...new Set([...(game.beatYears||[]),...(game.yearBeaten?[game.yearBeaten]:[])])].map(Number).filter(Boolean).sort();
-  const beatYearsHTML=beatYearsArr.length?`<div class="modal-beaten-years">Beaten ${beatYearsArr.join(' · ')}</div>`:'';
-  const hasRightCol=!!(game.notes||game.multiplayerOnly||game.motionGame);
-  const rightColHTML=hasRightCol?`<div style="flex:0 0 auto;min-width:130px;max-width:260px;padding-top:4px">
-    ${game.notes?`<div class="modal-notes-label">Notes</div><div class="modal-notes-callout">${escHtml(game.notes)}</div>`:''}
-    ${(game.multiplayerOnly||game.motionGame)?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:${game.notes?'8px':'0'}">
-      ${game.multiplayerOnly?`<span class="genre-pill" style="color:var(--accent);border-color:var(--accent);background:var(--accent-dim)">👥 Multiplayer Only</span>`:''}
-      ${game.motionGame?`<span class="genre-pill" style="color:var(--accent);border-color:var(--accent);background:var(--accent-dim)">🕹 Motion</span>`:''}
-    </div>`:''}
+  const beatYearsHTML=beatYearsArr.length
+    ? `<div class="modal-beaten-years"><span class="modal-beaten-label">Beaten</span><span class="modal-beaten-vals">${beatYearsArr.join(' · ')}</span></div>`
+    : '';
+
+  // Unified meta row: Year + MC + HLTB — same font, color variations
+  const metaRowHTML=`<div class="modal-meta-row">
+    ${game.year    ?`<div class="modal-meta-item"><div class="modal-meta-label">Year</div><div class="modal-meta-value">${game.year}</div></div>`:''}
+    ${game.rating  ?`<div class="modal-meta-item"><div class="modal-meta-label">Metacritic</div><div class="modal-meta-value" style="color:var(--accent)">${game.rating}</div></div>`:''}
+    ${game.hltbMain   ?`<div class="modal-meta-item"><div class="modal-meta-label">Main Story</div><div class="modal-meta-value" style="color:var(--text-muted)">${game.hltbMain}h</div></div>`:''}
+    ${game.hltbExtra  ?`<div class="modal-meta-item"><div class="modal-meta-label">Main+Extras</div><div class="modal-meta-value" style="color:var(--text-muted)">${game.hltbExtra}h</div></div>`:''}
+    ${game.hltbComplete?`<div class="modal-meta-item"><div class="modal-meta-label">Completionist</div><div class="modal-meta-value" style="color:var(--text-muted)">${game.hltbComplete}h</div></div>`:''}
+    ${game.myRating?`<div class="modal-meta-item"><div class="modal-meta-label">My Rating</div><div style="display:flex;gap:2px;align-items:center;padding-top:2px">${myRatingStarsHTML(game.myRating)}</div></div>`:''}
+  </div>`;
+
+  // Genres + multiplayer + motion all in one pill row
+  const genresHTML=`<div class="modal-genres">
+    ${(game.genres||[]).map(g=>`<span class="genre-pill">${escHtml(g)}</span>`).join('')}
+    ${game.multiplayerOnly?`<span class="genre-pill-accent">👥 Multiplayer Only</span>`:''}
+    ${game.motionGame?`<span class="genre-pill-accent">🕹 Motion</span>`:''}
+  </div>`;
+
+  // Notes right-column (beside platform row only)
+  const notesColHTML=game.notes?`<div class="modal-notes-col">
+    <div class="modal-notes-label">Notes</div>
+    <div class="modal-notes-callout">${escHtml(game.notes)}</div>
   </div>`:'';
 
   document.getElementById('modal-content').innerHTML=`
     ${bannerHTML}
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="modal-body">
-      <div style="display:flex;gap:20px;align-items:flex-start">
+      <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:14px">
         <div style="flex:1;min-width:0">
-          ${platBadges?`<div class="modal-platforms">${platBadges}</div>`:''}
-          <div class="modal-meta-row">
-            ${game.year  ?`<div class="modal-meta-item"><div class="modal-meta-label">Year</div><div class="modal-meta-value">${game.year}</div></div>`:''}
-            ${game.rating?`<div class="modal-meta-item"><div class="modal-meta-label">Metacritic</div><div class="modal-rating">${game.rating}</div></div>`:''}
-            ${game.myRating?`<div class="modal-meta-item"><div class="modal-meta-label">My Rating</div><div style="display:flex;gap:2px;align-items:center;padding-top:2px">${myRatingStarsHTML(game.myRating)}</div></div>`:''}
-          </div>
-          ${beatYearsHTML}
+          ${platBadges?`<div class="modal-platforms" style="margin-bottom:0">${platBadges}</div>`:''}
         </div>
-        ${rightColHTML}
+        ${notesColHTML}
       </div>
-      <div class="modal-genres">${(game.genres||[]).map(g=>`<span class="genre-pill">${escHtml(g)}</span>`).join('')}</div>
-      ${hltbHTML}
+      ${metaRowHTML}
+      ${beatYearsHTML}
+      ${genresHTML}
       ${devCredits?`<div class="modal-credits">${devCredits}</div>`:''}
       ${game.summary?`<div class="modal-overview">${escHtml(game.summary.slice(0,300))}${game.summary.length>300?'…':''}</div>`:''}
     </div>
@@ -2186,8 +2205,8 @@ document.addEventListener('keydown', e => {
 });
 
 // ── STAR HOVER INIT ────────────────────────────────────────────────────────────
-// #fix-my-stars is above this script block so we can attach immediately.
-// #mark-played-stars is below </script> so we lazy-init on first open.
+// fix-my-stars is above this script block — attach immediately.
+// mark-played-stars is in HTML below this block — lazy-init on first open.
 attachStarHover1UP('#fix-my-stars', renderFixMyStars);
 let _mpStarsInit=false;
 
