@@ -318,6 +318,11 @@
     #game-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
     .modal-banner-img{max-height:180px}
     .modal-title{font-size:1.3rem}
+    /* uniform button heights in header row 1 */
+    .icon-btn{height:34px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center}
+    /* sort row: left-aligned, tighter, no bottom border on header */
+    .header-row3-1up{justify-content:flex-start;padding-top:2px}
+    #main-header{border-bottom:none}
   }
 </style>
 </head>
@@ -542,7 +547,6 @@
     <!-- row 2: all filters inline -->
     <div class="header-row2">
       <input type="text" id="search-input" placeholder="Search titles…" oninput="applyFilters()">
-      <button class="search-all-btn" id="search-all-btn" onclick="toggleFilterPanel()">Filters ▾</button>
       <button class="header-select" id="plat-filter-btn" onclick="togglePlatFilterPanel(event)" style="cursor:pointer;text-align:left;width:105px">🎮 Platforms</button>
       <button class="header-select" id="hltb-filter-btn" onclick="toggleHltbPanel(event)" style="cursor:pointer;text-align:left;width:105px">⏱ Length</button>
       <select class="header-select" id="filter-mc" onchange="applyFilters()" style="width:105px">
@@ -552,6 +556,7 @@
         <option value="90">MC 90+</option>
         <option value="missing">(no data)</option>
       </select>
+      <button class="search-all-btn" id="search-all-btn" onclick="toggleFilterPanel()">Filters ▾</button>
       <div class="status-pills">
         <button class="status-pill active" data-status="all" onclick="setStatusFilter('all',this)">All</button>
         <button class="status-pill" data-status="unplayed" onclick="setStatusFilter('unplayed',this)">Unplayed</button>
