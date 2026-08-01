@@ -101,8 +101,8 @@
   .modal-notes-col{flex:0 0 auto;min-width:150px;max-width:320px;padding-top:2px}
   .modal-notes-callout{font-size:.82rem;color:var(--text-muted);font-style:italic;line-height:1.5;border-left:2px solid var(--accent);padding:5px 10px;background:var(--accent-dim);border-radius:0 3px 3px 0}
   .modal-notes-label{font-size:.58rem;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);margin-bottom:5px;opacity:.8}
-  /* beaten years */
-  .modal-beaten-years{display:flex;align-items:baseline;gap:8px;margin:10px 0 14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+  /* beaten years — inline beside platform badges */
+  .modal-beaten-years{display:inline-flex;align-items:baseline;gap:8px;margin-left:18px}
   .modal-beaten-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.16em;color:var(--text-dim);flex-shrink:0}
   .modal-beaten-vals{font-size:.95rem;color:var(--text-muted);letter-spacing:.08em}
   /* sort row */
@@ -1669,11 +1669,11 @@ function openModal(game) {
     ${game.myRating?`<div class="modal-meta-item"><div class="modal-meta-label">My Rating</div><div style="display:flex;gap:2px;align-items:center;padding-top:2px">${myRatingStarsHTML(game.myRating)}</div></div>`:''}
   </div>`;
 
-  // Genres + multiplayer + motion all in one pill row
+  // Genres + multiplayer + motion all in one pill row (flags use same style as genres)
   const genresHTML=`<div class="modal-genres">
     ${(game.genres||[]).map(g=>`<span class="genre-pill">${escHtml(g)}</span>`).join('')}
-    ${game.multiplayerOnly?`<span class="genre-pill-accent">👥 Multiplayer Only</span>`:''}
-    ${game.motionGame?`<span class="genre-pill-accent">🕹 Motion</span>`:''}
+    ${game.multiplayerOnly?`<span class="genre-pill">👥 Multiplayer Only</span>`:''}
+    ${game.motionGame?`<span class="genre-pill">🕹 Motion</span>`:''}
   </div>`;
 
   // Notes right-column (beside platform row only)
@@ -1686,14 +1686,14 @@ function openModal(game) {
     ${bannerHTML}
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="modal-body">
-      <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:14px">
-        <div style="flex:1;min-width:0">
+      <div style="display:flex;gap:20px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:14px">
+        <div style="flex:1;min-width:0;display:flex;align-items:center;flex-wrap:wrap">
           ${platBadges?`<div class="modal-platforms" style="margin-bottom:0">${platBadges}</div>`:''}
+          ${beatYearsHTML}
         </div>
         ${notesColHTML}
       </div>
       ${metaRowHTML}
-      ${beatYearsHTML}
       ${genresHTML}
       ${devCredits?`<div class="modal-credits">${devCredits}</div>`:''}
       ${game.summary?`<div class="modal-overview">${escHtml(game.summary.slice(0,300))}${game.summary.length>300?'…':''}</div>`:''}
