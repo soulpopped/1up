@@ -132,8 +132,9 @@
   .header-row2{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
   #search-input{width:210px;flex-shrink:0;padding:7px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:inherit;font-size:.9rem;outline:none}
   #search-input:focus{border-color:var(--accent)}
-  .search-all-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:0 4px;font-size:1rem;line-height:1;flex-shrink:0;transition:color .15s}
-  .search-all-btn:hover,.search-all-btn.active{color:var(--accent)}
+  .search-all-btn{padding:6px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;outline:none;cursor:pointer;width:105px;flex-shrink:0;text-align:left;transition:all .15s}
+  .search-all-btn:hover{border-color:var(--text-muted);color:var(--text)}
+  .search-all-btn.active{color:var(--accent);border-color:var(--accent)}
   #filter-panel{display:none;padding:8px 16px 12px;border-top:1px solid var(--border);background:var(--surface2)}
   #filter-panel.active{display:block}
   .filter-panel-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
@@ -541,11 +542,11 @@
     <!-- row 2: all filters inline -->
     <div class="header-row2">
       <input type="text" id="search-input" placeholder="Search titles…" oninput="applyFilters()">
-      <button class="search-all-btn" id="search-all-btn" onclick="toggleFilterPanel()" title="Filters">🔍</button>
-      <button class="header-select" id="plat-filter-btn" onclick="togglePlatFilterPanel(event)" style="cursor:pointer;text-align:left">🎮 Platforms</button>
-      <button class="header-select" id="hltb-filter-btn" onclick="toggleHltbPanel(event)" style="cursor:pointer;text-align:left">⏱ Length</button>
-      <select class="header-select" id="filter-mc" onchange="applyFilters()">
-        <option value="">Any Score</option>
+      <button class="search-all-btn" id="search-all-btn" onclick="toggleFilterPanel()">Filters ▾</button>
+      <button class="header-select" id="plat-filter-btn" onclick="togglePlatFilterPanel(event)" style="cursor:pointer;text-align:left;width:105px">🎮 Platforms</button>
+      <button class="header-select" id="hltb-filter-btn" onclick="toggleHltbPanel(event)" style="cursor:pointer;text-align:left;width:105px">⏱ Length</button>
+      <select class="header-select" id="filter-mc" onchange="applyFilters()" style="width:105px">
+        <option value="">Rating</option>
         <option value="70">MC 70+</option>
         <option value="80">MC 80+</option>
         <option value="90">MC 90+</option>
@@ -1590,8 +1591,14 @@ function changeSortOrder() {
   applyFilters();
 }
 function resetFilters() {
-  ['search-input','filter-genre','filter-hltb','filter-mc','filter-year-beaten'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['search-input','search-all-input','filter-genre','filter-mc','filter-year-beaten'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   platFilters.clear(); updatePlatFilterBtn(); buildPlatFilterPanel();
+  clearHltbFilter();
+  filterMultiplayer=0; filterMotion=0;
+  const mpBtn=document.getElementById('mp-filter-btn'); if(mpBtn){mpBtn.classList.remove('include','exclude');}
+  const motBtn=document.getElementById('motion-filter-btn'); if(motBtn){motBtn.classList.remove('include','exclude');}
+  document.getElementById('filter-panel')?.classList.remove('active');
+  document.getElementById('search-all-btn')?.classList.remove('active');
   const ybEl=document.getElementById('filter-year-beaten'); if(ybEl) ybEl.style.display='none';
   currentSortDir='asc'; syncSort1UP('title');
   currentStatusFilter='all';
@@ -1644,6 +1651,7 @@ function openModal(game) {
       ${hltbHTML}
       ${devCredits?`<div class="modal-credits">${devCredits}</div>`:''}
       ${game.summary?`<div class="modal-overview">${escHtml(game.summary.slice(0,300))}${game.summary.length>300?'…':''}</div>`:''}
+      ${(game.multiplayerOnly||game.motionGame)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${game.multiplayerOnly?`<span class="genre-pill" style="color:var(--accent);border-color:var(--accent);background:var(--accent-dim)">👥 Multiplayer Only</span>`:''}${game.motionGame?`<span class="genre-pill" style="color:var(--accent);border-color:var(--accent);background:var(--accent-dim)">🕹 Motion</span>`:''}</div>`:''}
       ${game.notes?`<div class="modal-notes"><div class="modal-notes-label">Notes</div><div class="modal-notes-text">${escHtml(game.notes)}</div></div>`:''}
     </div>
     <div class="modal-status-row">${statusBtns}</div>
@@ -1913,7 +1921,7 @@ async function removeCustomCover() {
 
 // ── RANDOM PICKER ──────────────────────────────────────────────────────────────
 function pickRandom() {
-  const pool=games.filter(g=>!g.notFound&&getGameStatus(g.id)==='unplayed');
+  const pool=filteredGames.filter(g=>!g.notFound&&getGameStatus(g.id)==='unplayed');
   if (!pool.length) { alert('No unplayed games left!'); return; }
   currentRandomGame=pool[Math.floor(Math.random()*pool.length)];
   const cover=currentRandomGame.customCover||currentRandomGame.cover;
