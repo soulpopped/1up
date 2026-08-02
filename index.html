@@ -273,10 +273,18 @@
   #fix-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;overflow-y:auto}
   #fix-overlay.active{display:flex;align-items:flex-start;justify-content:center;padding:40px 12px}
   #fix-content{background:var(--surface);border:1px solid var(--border);border-radius:4px;width:100%;max-width:800px;padding:24px;position:relative}
-  .fix-title{font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:4px}
-  .fix-sub{font-size:.7rem;color:var(--text-muted);margin-bottom:20px}
+  .fix-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px}
+  .fix-title{font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:2px}
+  .fix-sub{font-size:.7rem;color:var(--text-muted)}
   .fix-section-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.18em;color:var(--text-dim);margin-bottom:8px;margin-top:20px;border-top:1px solid var(--border);padding-top:16px}
   .fix-row{display:flex;gap:10px;margin-bottom:10px}
+  /* platform accordion */
+  .plat-family-row{display:flex;gap:4px;flex-wrap:wrap}
+  .plat-family-btn{padding:5px 11px;border:1px solid var(--border);border-radius:2px;font-size:.7rem;letter-spacing:.06em;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s;white-space:nowrap}
+  .plat-family-btn:hover{border-color:var(--text-muted);color:var(--text-muted)}
+  .plat-family-btn.open{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+  .plat-fam-badge{display:inline-block;background:var(--accent);color:#000;border-radius:8px;font-size:.58rem;padding:1px 5px;margin-left:4px;font-weight:700;line-height:1.5;vertical-align:middle}
+  .plat-family-children{display:flex;gap:5px;flex-wrap:wrap;padding-top:8px}
   .fix-status{font-size:.72rem;color:var(--text-muted);margin-top:8px;min-height:18px}
 
   /* RANDOM */
@@ -624,127 +632,97 @@
 <div id="fix-overlay" onclick="if(event.target===this)closeFixModal()">
   <div id="fix-content">
     <button class="modal-close" onclick="closeFixModal()">✕</button>
-    <div class="fix-title" id="fix-game-name"></div>
-    <div class="fix-sub">Edit game data</div>
-    <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.78rem;padding:10px 18px;margin-top:8px;margin-bottom:4px">✓ Save All Edits</button>
 
-    <div class="fix-section-label">Display &amp; Sort Title</div>
-    <div class="fix-row"><div style="flex:1"><label>Display title</label><input type="text" id="fix-display-title" placeholder="Shown in grid &amp; modal"></div></div>
-    <div class="fix-row"><div style="flex:1"><label>Sort title</label><input type="text" id="fix-sort-title" placeholder="Used for A–Z sort only"></div></div>
-    <div class="fix-section-label">Re-fetch from RAWG</div>
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <input type="text" id="fix-title-input" placeholder="Search title">
-      <button class="btn btn-accent" onclick="fixRefetchByTitle()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px">Search</button>
+    <!-- Header: title left, save right -->
+    <div class="fix-header-row">
+      <div><div class="fix-title" id="fix-game-name"></div><div class="fix-sub">Edit game data</div></div>
+      <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.78rem;padding:10px 18px;white-space:nowrap;flex-shrink:0">✓ Save All Edits</button>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <input type="text" id="fix-rawgid-input" placeholder="RAWG Game ID (e.g. 3498)">
-      <button class="btn btn-accent" onclick="fixRefetchById()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px">Fetch</button>
+
+    <!-- Display & Sort title side by side -->
+    <div class="fix-section-label">Display &amp; Sort Title</div>
+    <div class="fix-row">
+      <div style="flex:1"><label>Display title</label><input type="text" id="fix-display-title" placeholder="Shown in grid &amp; modal"></div>
+      <div style="flex:1"><label>Sort title</label><input type="text" id="fix-sort-title" placeholder="Used for A–Z sort only"></div>
+    </div>
+
+    <!-- Re-fetch side by side -->
+    <div class="fix-section-label">Re-fetch from RAWG</div>
+    <div class="fix-row">
+      <div style="flex:1;display:flex;gap:6px">
+        <input type="text" id="fix-title-input" placeholder="Search title" style="flex:1">
+        <button class="btn btn-accent" onclick="fixRefetchByTitle()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px;flex-shrink:0">Search</button>
+      </div>
+      <div style="flex:1;display:flex;gap:6px">
+        <input type="text" id="fix-rawgid-input" placeholder="RAWG Game ID (e.g. 3498)" style="flex:1">
+        <button class="btn btn-accent" onclick="fixRefetchById()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px;flex-shrink:0">Fetch</button>
+      </div>
     </div>
     <div id="fix-refetch-results" style="margin-bottom:10px"></div>
 
+    <!-- Cover art single row -->
     <div class="fix-section-label">Cover Art</div>
-    <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px">Paste a direct image URL or upload a file.</div>
-    <!-- URL paste -->
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <input type="text" id="fix-art-url" placeholder="https://… direct image URL">
-      <button class="btn btn-accent" onclick="applyArtUrl()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px">Apply URL</button>
-    </div>
-    <!-- File upload -->
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" onclick="document.getElementById('fix-art-file').click()" style="font-size:.7rem;padding:8px 12px">📷 Upload File</button>
-      <button class="btn" id="fix-art-remove-btn" onclick="removeCustomCover()" style="display:none;font-size:.7rem;padding:8px 12px">✕ Remove Custom Art</button>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <input type="text" id="fix-art-url" placeholder="https://… direct image URL" style="flex:1;min-width:140px">
+      <button class="btn btn-accent" onclick="applyArtUrl()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px;flex-shrink:0">Apply URL</button>
+      <button class="btn" onclick="document.getElementById('fix-art-file').click()" style="font-size:.7rem;padding:8px 12px;flex-shrink:0">📷 Upload</button>
+      <button class="btn" id="fix-art-remove-btn" onclick="removeCustomCover()" style="display:none;font-size:.7rem;padding:8px 12px;flex-shrink:0">✕ Remove</button>
     </div>
     <input type="file" id="fix-art-file" accept="image/*" style="display:none" onchange="uploadCustomCover(event)">
-    <div id="fix-art-status" style="font-size:.7rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
+    <div id="fix-art-status" style="font-size:.7rem;color:var(--text-muted);margin-top:4px;min-height:16px"></div>
 
-    <div class="fix-section-label">Platforms</div>
-    <div class="add-platform-chips" id="fix-platform-chips">
-      <span class="plat-group-label">🖥 PC</span>
-      <button class="platform-toggle" data-platform="PC" onclick="togglePlatformFix(this)">PC</button>
-      <button class="platform-toggle" data-platform="Steam" onclick="togglePlatformFix(this)">Steam</button>
-      <button class="platform-toggle" data-platform="Epic" onclick="togglePlatformFix(this)">Epic</button>
-      <button class="platform-toggle" data-platform="GOG" onclick="togglePlatformFix(this)">GOG</button>
-      <button class="platform-toggle" data-platform="Itch" onclick="togglePlatformFix(this)">Itch</button>
-      <button class="platform-toggle" data-platform="Quest" onclick="togglePlatformFix(this)">Quest</button>
-      <span class="plat-group-label">🎮 Sony</span>
-      <button class="platform-toggle" data-platform="PlayStation" onclick="togglePlatformFix(this)">PS</button>
-      <button class="platform-toggle" data-platform="PS5" onclick="togglePlatformFix(this)">PS5</button>
-      <button class="platform-toggle" data-platform="PS4" onclick="togglePlatformFix(this)">PS4</button>
-      <button class="platform-toggle" data-platform="PS3" onclick="togglePlatformFix(this)">PS3</button>
-      <button class="platform-toggle" data-platform="PS2" onclick="togglePlatformFix(this)">PS2</button>
-      <button class="platform-toggle" data-platform="PS1" onclick="togglePlatformFix(this)">PS1</button>
-      <button class="platform-toggle" data-platform="PS Vita" onclick="togglePlatformFix(this)">Vita</button>
-      <span class="plat-group-label">🎮 Microsoft</span>
-      <button class="platform-toggle" data-platform="Xbox" onclick="togglePlatformFix(this)">Xbox</button>
-      <button class="platform-toggle" data-platform="Xbox Series X/S" onclick="togglePlatformFix(this)">XSX</button>
-      <button class="platform-toggle" data-platform="Xbox One" onclick="togglePlatformFix(this)">XOne</button>
-      <button class="platform-toggle" data-platform="Xbox 360" onclick="togglePlatformFix(this)">X360</button>
-      <button class="platform-toggle" data-platform="Xbox OG" onclick="togglePlatformFix(this)">OG</button>
-      <span class="plat-group-label">🎮 Nintendo</span>
-      <button class="platform-toggle" data-platform="Switch 2" onclick="togglePlatformFix(this)">SW2</button>
-      <button class="platform-toggle" data-platform="Switch" onclick="togglePlatformFix(this)">Switch</button>
-      <button class="platform-toggle" data-platform="Virtual Console" onclick="togglePlatformFix(this)">VC</button>
-      <button class="platform-toggle" data-platform="Wii U" onclick="togglePlatformFix(this)">Wii U</button>
-      <button class="platform-toggle" data-platform="Wii" onclick="togglePlatformFix(this)">Wii</button>
-      <button class="platform-toggle" data-platform="GameCube" onclick="togglePlatformFix(this)">GCN</button>
-      <button class="platform-toggle" data-platform="N64" onclick="togglePlatformFix(this)">N64</button>
-      <button class="platform-toggle" data-platform="SNES" onclick="togglePlatformFix(this)">SNES</button>
-      <button class="platform-toggle" data-platform="NES" onclick="togglePlatformFix(this)">NES</button>
-      <button class="platform-toggle" data-platform="DS" onclick="togglePlatformFix(this)">DS</button>
-      <button class="platform-toggle" data-platform="Game Boy" onclick="togglePlatformFix(this)">GB</button>
-      <span class="plat-group-label">🎮 Sega</span>
-      <button class="platform-toggle" data-platform="Dreamcast" onclick="togglePlatformFix(this)">DC</button>
-      <button class="platform-toggle" data-platform="Saturn" onclick="togglePlatformFix(this)">SAT</button>
-      <button class="platform-toggle" data-platform="Genesis" onclick="togglePlatformFix(this)">GEN</button>
-      <button class="platform-toggle" data-platform="Sega CD" onclick="togglePlatformFix(this)">SCD</button>
-      <button class="platform-toggle" data-platform="Game Gear" onclick="togglePlatformFix(this)">GG</button>
-      <span class="plat-group-label">🕹 Other</span>
-      <button class="platform-toggle" data-platform="UFO 50" onclick="togglePlatformFix(this)">UFO 50</button>
-      <button class="platform-toggle" data-platform="Atari" onclick="togglePlatformFix(this)">Atari</button>
-      <button class="platform-toggle" data-platform="Mobile" onclick="togglePlatformFix(this)">Mobile</button>
+    <!-- Platforms + Flags accordion -->
+    <div class="fix-section-label">Platforms &amp; Flags</div>
+    <div class="plat-family-row" id="fix-family-row">
+      <button class="plat-family-btn" data-family="pc"        onclick="toggleFixFamily('pc')">🖥 PC<span class="plat-fam-badge" id="fam-badge-pc" style="display:none"></span></button>
+      <button class="plat-family-btn" data-family="sony"      onclick="toggleFixFamily('sony')">🎮 Sony<span class="plat-fam-badge" id="fam-badge-sony" style="display:none"></span></button>
+      <button class="plat-family-btn" data-family="microsoft" onclick="toggleFixFamily('microsoft')">🎮 Microsoft<span class="plat-fam-badge" id="fam-badge-microsoft" style="display:none"></span></button>
+      <button class="plat-family-btn" data-family="nintendo"  onclick="toggleFixFamily('nintendo')">🎮 Nintendo<span class="plat-fam-badge" id="fam-badge-nintendo" style="display:none"></span></button>
+      <button class="plat-family-btn" data-family="sega"      onclick="toggleFixFamily('sega')">🎮 Sega<span class="plat-fam-badge" id="fam-badge-sega" style="display:none"></span></button>
+      <button class="plat-family-btn" data-family="other"     onclick="toggleFixFamily('other')">🕹 Other<span class="plat-fam-badge" id="fam-badge-other" style="display:none"></span></button>
+      <button class="plat-family-btn" data-family="flags"     onclick="toggleFixFamily('flags')">🚩 Flags<span class="plat-fam-badge" id="fam-badge-flags" style="display:none"></span></button>
     </div>
+    <div class="plat-family-children" id="fix-family-children"></div>
 
-    <div class="fix-section-label">Flags</div>
-    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:4px">
-      <label class="hltb-check-label"><input type="checkbox" id="fix-multiplayer-only"> 👥 Multiplayer Only</label>
-      <label class="hltb-check-label"><input type="checkbox" id="fix-motion-game"> 🕹 Motion Game</label>
-    </div>
-
+    <!-- Scores: all 4 in one row -->
     <div class="fix-section-label">Scores &amp; Times</div>
     <div class="fix-row">
-      <div style="flex:1"><label>Metacritic Score</label><input type="text" id="fix-mc" placeholder="e.g. 87"></div>
-      <div style="flex:1"><label>Main Story (hrs)</label><input type="text" id="fix-hltb-main" placeholder="e.g. 12.5"></div>
-    </div>
-    <div class="fix-row">
-      <div style="flex:1"><label>Main+Extras (hrs)</label><input type="text" id="fix-hltb-extra" placeholder="e.g. 20"></div>
-      <div style="flex:1"><label>Completionist (hrs)</label><input type="text" id="fix-hltb-complete" placeholder="e.g. 35"></div>
+      <div style="flex:1"><label>Metacritic</label><input type="text" id="fix-mc" placeholder="e.g. 87"></div>
+      <div style="flex:1"><label>Main Story</label><input type="text" id="fix-hltb-main" placeholder="hrs"></div>
+      <div style="flex:1"><label>Main+Extras</label><input type="text" id="fix-hltb-extra" placeholder="hrs"></div>
+      <div style="flex:1"><label>100%</label><input type="text" id="fix-hltb-complete" placeholder="hrs"></div>
     </div>
 
-    <div class="fix-section-label">My Rating</div>
-    <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
-      <div class="star-row-1up" id="fix-my-stars">
-        <button class="star-btn-1up" data-val="1" onclick="setFixMyRating(1,event)">★</button>
-        <button class="star-btn-1up" data-val="2" onclick="setFixMyRating(2,event)">★</button>
-        <button class="star-btn-1up" data-val="3" onclick="setFixMyRating(3,event)">★</button>
-        <button class="star-btn-1up" data-val="4" onclick="setFixMyRating(4,event)">★</button>
-        <button class="star-btn-1up" data-val="5" onclick="setFixMyRating(5,event)">★</button>
-      </div>
-      <button class="btn" onclick="setFixMyRating(0,null)" style="font-size:.65rem;padding:3px 8px;margin-left:8px">Clear</button>
-    </div>
-
+    <!-- Game Info: Year + Dev + Pub on one row -->
     <div class="fix-section-label">Game Info</div>
     <div class="fix-row">
       <div style="flex:1"><label>Release Year</label><input type="text" id="fix-year" placeholder="e.g. 2023"></div>
+      <div style="flex:1"><label>Developer</label><input type="text" id="fix-developer" placeholder="Studio name"></div>
+      <div style="flex:1"><label>Publisher</label><input type="text" id="fix-publisher" placeholder="Publisher name"></div>
+    </div>
+
+    <!-- Years Beaten + My Rating on one row -->
+    <div class="fix-row" style="align-items:flex-start">
       <div style="flex:1">
         <label>Years Beaten</label>
         <div id="fix-beat-years-list" style="margin-bottom:4px"></div>
         <button class="btn" style="font-size:.66rem;padding:4px 10px;margin-top:2px" onclick="addBeatYearRow()">+ Add year</button>
       </div>
+      <div style="flex:1">
+        <label>My Rating</label>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:6px">
+          <div class="star-row-1up" id="fix-my-stars">
+            <button class="star-btn-1up" data-val="1" onclick="setFixMyRating(1,event)">★</button>
+            <button class="star-btn-1up" data-val="2" onclick="setFixMyRating(2,event)">★</button>
+            <button class="star-btn-1up" data-val="3" onclick="setFixMyRating(3,event)">★</button>
+            <button class="star-btn-1up" data-val="4" onclick="setFixMyRating(4,event)">★</button>
+            <button class="star-btn-1up" data-val="5" onclick="setFixMyRating(5,event)">★</button>
+          </div>
+          <button class="btn" onclick="setFixMyRating(0,null)" style="font-size:.65rem;padding:3px 8px;margin-left:8px">Clear</button>
+        </div>
+      </div>
     </div>
-    <div class="fix-row">
-      <div style="flex:1"><label>Developer</label><input type="text" id="fix-developer" placeholder="Studio name"></div>
-      <div style="flex:1"><label>Publisher</label><input type="text" id="fix-publisher" placeholder="Publisher name"></div>
-    </div>
+
     <div class="fix-row"><div style="flex:1"><label>Genres <span style="color:var(--text-dim);font-weight:400">(comma separated)</span></label><input type="text" id="fix-genres" placeholder="e.g. Action, RPG, Indie"></div></div>
     <div class="fix-row"><div style="flex:1"><label>Description</label><textarea id="fix-description" rows="3" placeholder="Game summary…" style="resize:vertical"></textarea></div></div>
     <div class="fix-row"><div style="flex:1"><label>Notes <span style="color:var(--text-dim);font-weight:400">(personal)</span></label><textarea id="fix-notes" rows="2" placeholder="e.g. Beat the main game, have the DLC to play…" style="resize:vertical"></textarea></div></div>
@@ -985,6 +963,7 @@ let fixMyRating=0, markPlayedTargetId=null, markPlayedRating=0;
 let filterMultiplayer=0, filterMotion=0;
 let hltbFilters=new Set();
 let currentModalGameId=null, fixTargetId=null;
+let fixPlatforms=new Set(), fixFlags={multiplayer:false,motion:false}, fixOpenFamily=null;
 let rawgKey='';
 
 // ── SUPABASE ───────────────────────────────────────────────────────────────────
@@ -1196,9 +1175,60 @@ function getBeatYearsFromList() {
 
 function togglePlatform(btn)       { btn.classList.toggle('active'); }
 function togglePlatformManual(btn) { btn.classList.toggle('active'); }
-function togglePlatformFix(btn)    { btn.classList.toggle('active'); }
+function togglePlatformFix(platform){ if(fixPlatforms.has(platform)){fixPlatforms.delete(platform);}else{fixPlatforms.add(platform);} renderFamilyChildren(fixOpenFamily); updateFamilyBadges(); }
+function toggleFlagFix(flag)       { fixFlags[flag]=!fixFlags[flag]; renderFamilyChildren('flags'); updateFamilyBadges(); }
 function getActivePlatforms(id)    { return [...document.querySelectorAll(`#${id} .platform-toggle.active`)].map(b=>b.dataset.platform); }
 function resetPlatformToggles(id)  { document.querySelectorAll(`#${id} .platform-toggle`).forEach(b=>b.classList.remove('active')); }
+
+const FIX_FAMILIES={
+  pc:        ['PC','Steam','Epic','GOG','Itch','Quest'],
+  sony:      ['PlayStation','PS5','PS4','PS3','PS2','PS1','PS Vita'],
+  microsoft: ['Xbox','Xbox Series X/S','Xbox One','Xbox 360','Xbox OG'],
+  nintendo:  ['Switch 2','Switch','Virtual Console','Wii U','Wii','GameCube','N64','SNES','NES','DS','Game Boy'],
+  sega:      ['Dreamcast','Saturn','Genesis','Sega CD','Game Gear'],
+  other:     ['UFO 50','Atari','Mobile'],
+  flags:     ['multiplayer','motion']
+};
+const PLATFORM_LABELS={
+  'PlayStation':'PS','PS Vita':'Vita','Xbox Series X/S':'XSX','Xbox One':'XOne','Xbox 360':'X360','Xbox OG':'OG',
+  'Switch 2':'SW2','Virtual Console':'VC','Wii U':'Wii U','GameCube':'GCN','Game Boy':'GB','Sega CD':'SCD','Game Gear':'GG',
+  'UFO 50':'UFO 50'
+};
+const FLAG_META={multiplayer:{icon:'👥',label:'Multiplayer Only'},motion:{icon:'🕹',label:'Motion Game'}};
+
+function toggleFixFamily(family) {
+  const children=document.getElementById('fix-family-children');
+  if(fixOpenFamily===family){ fixOpenFamily=null; children.innerHTML=''; document.querySelectorAll('.plat-family-btn').forEach(b=>b.classList.remove('open')); return; }
+  fixOpenFamily=family;
+  document.querySelectorAll('.plat-family-btn').forEach(b=>b.classList.toggle('open',b.dataset.family===family));
+  renderFamilyChildren(family);
+}
+function renderFamilyChildren(family) {
+  if(!family) return;
+  const children=document.getElementById('fix-family-children');
+  if(family==='flags') {
+    children.innerHTML=Object.entries(FLAG_META).map(([key,{icon,label}])=>{
+      const on=fixFlags[key];
+      return `<button class="platform-toggle${on?' active':''}" onclick="toggleFlagFix('${key}')">${icon} ${label}</button>`;
+    }).join('');
+  } else {
+    children.innerHTML=(FIX_FAMILIES[family]||[]).map(p=>{
+      const on=fixPlatforms.has(p);
+      const lbl=PLATFORM_LABELS[p]||p;
+      return `<button class="platform-toggle${on?' active':''}" onclick="togglePlatformFix('${escJs(p)}')">${escHtml(lbl)}</button>`;
+    }).join('');
+  }
+}
+function updateFamilyBadges() {
+  for(const [fam,members] of Object.entries(FIX_FAMILIES)) {
+    const badge=document.getElementById('fam-badge-'+fam);
+    if(!badge) continue;
+    let count=0;
+    if(fam==='flags') { count=Object.values(fixFlags).filter(Boolean).length; }
+    else { count=members.filter(p=>fixPlatforms.has(p)).length; }
+    badge.textContent=count; badge.style.display=count?'':'none';
+  }
+}
 
 // ── RAWG SEARCH (ADD TAB) ──────────────────────────────────────────────────────
 async function searchRAWGUI() {
@@ -1802,7 +1832,12 @@ function openFixModal(id) {
   document.getElementById('fix-status').textContent='';
   document.getElementById('fix-art-status').textContent='';
   document.getElementById('fix-art-remove-btn').style.display=game.customCover?'':'none';
-  document.querySelectorAll('#fix-platform-chips .platform-toggle').forEach(b=>b.classList.toggle('active',(game.userPlatforms||[]).includes(b.dataset.platform)));
+  fixPlatforms=new Set(game.userPlatforms||[]);
+  fixFlags={multiplayer:!!game.multiplayerOnly, motion:!!game.motionGame};
+  fixOpenFamily=null;
+  document.querySelectorAll('.plat-family-btn').forEach(b=>b.classList.remove('open'));
+  document.getElementById('fix-family-children').innerHTML='';
+  updateFamilyBadges();
   document.getElementById('fix-mc').value=game.rating||'';
   document.getElementById('fix-hltb-main').value=game.hltbMain||'';
   document.getElementById('fix-hltb-extra').value=game.hltbExtra||'';
@@ -1812,8 +1847,6 @@ function openFixModal(id) {
   getBeatYears(game).forEach(y=>addBeatYearRow(y));
   document.getElementById('fix-developer').value=game.developer||'';
   document.getElementById('fix-publisher').value=game.publisher||'';
-  document.getElementById('fix-multiplayer-only').checked=!!game.multiplayerOnly;
-  document.getElementById('fix-motion-game').checked=!!game.motionGame;
   document.getElementById('fix-genres').value=(game.genres||[]).join(', ');
   document.getElementById('fix-description').value=game.summary||'';
   document.getElementById('fix-notes').value=game.notes||'';
@@ -1827,7 +1860,7 @@ async function saveAllEdits() {
   const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
   games[i].displayTitle=document.getElementById('fix-display-title').value.trim()||null;
   games[i].sortTitle=document.getElementById('fix-sort-title').value.trim()||null;
-  games[i].userPlatforms=getActivePlatforms('fix-platform-chips');
+  games[i].userPlatforms=[...fixPlatforms];
   games[i].rating=parseInt(document.getElementById('fix-mc').value)||null;
   games[i].hltbMain=parseFloat(document.getElementById('fix-hltb-main').value)||null;
   games[i].hltbExtra=parseFloat(document.getElementById('fix-hltb-extra').value)||null;
@@ -1838,8 +1871,8 @@ async function saveAllEdits() {
   games[i].yearBeaten=beatYears[0]||null; // keep for backward compat
   games[i].developer=document.getElementById('fix-developer').value.trim()||null;
   games[i].publisher=document.getElementById('fix-publisher').value.trim()||null;
-  games[i].multiplayerOnly=document.getElementById('fix-multiplayer-only').checked||null;
-  games[i].motionGame=document.getElementById('fix-motion-game').checked||null;
+  games[i].multiplayerOnly=fixFlags.multiplayer||null;
+  games[i].motionGame=fixFlags.motion||null;
   games[i].genres=document.getElementById('fix-genres').value.trim().split(',').map(s=>s.trim()).filter(Boolean);
   games[i].summary=document.getElementById('fix-description').value.trim()||null;
   games[i].notes=document.getElementById('fix-notes').value.trim()||null;
