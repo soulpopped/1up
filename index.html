@@ -284,7 +284,7 @@
   .plat-family-btn{padding:5px 11px;border:1px solid var(--border);border-radius:2px;font-size:.7rem;letter-spacing:.06em;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s;white-space:nowrap}
   .plat-family-btn:hover{border-color:var(--text-muted);color:var(--text-muted)}
   .plat-family-btn.open{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
-  .plat-fam-badge{display:inline-block;background:var(--accent);color:#000;border-radius:8px;font-size:.58rem;padding:1px 5px;margin-left:4px;font-weight:700;line-height:1.5;vertical-align:middle}
+  .plat-fam-badge{display:inline-block;background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:8px;font-size:.58rem;padding:0 4px;margin-left:4px;font-weight:600;line-height:1.6;vertical-align:middle}
   .plat-family-children{display:flex;gap:5px;flex-wrap:wrap;padding-top:8px}
   .fix-status{font-size:.72rem;color:var(--text-muted);margin-top:8px;min-height:18px}
 
@@ -702,13 +702,8 @@
       <div style="flex:1"><label>Genres</label><input type="text" id="fix-genres" placeholder="Action, RPG…"></div>
     </div>
 
-    <!-- Years Beaten + My Rating on one row -->
+    <!-- My Rating + Years Beaten on one row -->
     <div class="fix-row" style="align-items:flex-start">
-      <div style="flex:1">
-        <label>Years Beaten</label>
-        <div id="fix-beat-years-list" style="margin-bottom:4px"></div>
-        <button class="btn" style="font-size:.66rem;padding:4px 10px;margin-top:2px" onclick="addBeatYearRow()">+ Add year</button>
-      </div>
       <div style="flex:1">
         <label>My Rating</label>
         <div style="display:flex;align-items:center;gap:4px;margin-top:6px">
@@ -721,6 +716,11 @@
           </div>
           <button class="btn" onclick="setFixMyRating(0,null)" style="font-size:.65rem;padding:3px 8px;margin-left:8px">Clear</button>
         </div>
+      </div>
+      <div style="flex:1">
+        <label>Years Beaten</label>
+        <div id="fix-beat-years-list" style="margin-bottom:4px"></div>
+        <button class="btn" style="font-size:.66rem;padding:4px 10px;margin-top:2px" onclick="addBeatYearRow()">+ Add year</button>
       </div>
     </div>
 
