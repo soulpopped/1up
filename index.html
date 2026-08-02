@@ -705,16 +705,16 @@
       </div>
       <div style="flex:1">
         <label>Years Beaten</label>
-        <div style="margin-top:6px">
-          <div id="fix-beat-years-list" style="margin-bottom:4px"></div>
-          <button class="btn" style="font-size:.66rem;padding:4px 10px" onclick="addBeatYearRow()">+ Add year</button>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;min-height:calc(1.4rem * 1.2 + 4px);flex-wrap:wrap">
+          <div id="fix-beat-years-list"></div>
+          <button class="btn" style="font-size:.65rem;padding:3px 8px;flex-shrink:0" onclick="addBeatYearRow()">+ Add year</button>
         </div>
       </div>
     </div>
 
     <!-- Action row: Save · Convert · Remove · RAWG (hidden toggle) -->
     <div class="fix-divider"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:stretch">
       <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.75rem;padding:9px 16px">✓ Save All Edits</button>
       <button class="btn" onclick="unmatchGame()" style="font-size:.75rem;padding:9px 16px;border-color:var(--s-100);color:var(--s-100)">⚡ Convert to Manual Entry</button>
       <button class="btn" onclick="deleteGame()" style="font-size:.75rem;padding:9px 16px;border-color:var(--danger);color:var(--danger)">🗑 REMOVE</button>
