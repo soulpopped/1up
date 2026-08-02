@@ -275,8 +275,7 @@
   #fix-content{background:var(--surface);border:1px solid var(--border);border-radius:4px;width:100%;max-width:800px;padding:24px;position:relative}
   .fix-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px}
   .fix-title{font-family:'DM Serif Display',serif;font-size:1.55rem;margin-bottom:0}
-  .fix-plat-summary{font-size:.72rem;color:var(--text-muted);margin-top:6px;min-height:1em;letter-spacing:.03em}
-  .fix-section-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.18em;color:var(--text-dim);margin-bottom:6px;margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
+.fix-section-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.18em;color:var(--text-dim);margin-bottom:6px;margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
   .fix-divider{border-top:1px solid var(--border);margin:10px 0 8px}
   .fix-row{display:flex;gap:10px;margin-bottom:8px}
   /* platform accordion */
@@ -634,30 +633,38 @@
   <div id="fix-content">
     <button class="modal-close" onclick="closeFixModal()">✕</button>
 
-    <!-- Header: title only -->
+    <!-- Title -->
     <div class="fix-title" id="fix-game-name"></div>
 
-    <!-- Display & Sort title side by side — no label -->
+    <!-- 1. Display & Sort title -->
     <div class="fix-row" style="margin-top:10px">
       <div style="flex:1"><label>Display title</label><input type="text" id="fix-display-title" placeholder="Shown in grid &amp; modal"></div>
       <div style="flex:1"><label>Sort title</label><input type="text" id="fix-sort-title" placeholder="Used for A–Z sort only"></div>
     </div>
 
-    <!-- Re-fetch side by side -->
-    <div class="fix-section-label">Re-fetch from RAWG</div>
-    <div class="fix-row">
-      <div style="flex:1;display:flex;gap:6px">
-        <input type="text" id="fix-title-input" placeholder="Search title" style="flex:1">
-        <button class="btn btn-accent" onclick="fixRefetchByTitle()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px;flex-shrink:0">Search</button>
-      </div>
-      <div style="flex:1;display:flex;gap:6px">
-        <input type="text" id="fix-rawgid-input" placeholder="RAWG Game ID (e.g. 3498)" style="flex:1">
-        <button class="btn btn-accent" onclick="fixRefetchById()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px;flex-shrink:0">Fetch</button>
-      </div>
-    </div>
-    <div id="fix-refetch-results" style="margin-bottom:6px"></div>
+    <!-- 2. Description + Notes -->
+    <div class="fix-divider"></div>
+    <div class="fix-row"><div style="flex:1"><label>Description</label><textarea id="fix-description" rows="1" placeholder="Game summary…" style="resize:vertical"></textarea></div></div>
+    <div class="fix-row"><div style="flex:1"><label>Notes <span style="color:var(--text-dim);font-weight:400">(personal)</span></label><textarea id="fix-notes" rows="1" placeholder="e.g. Beat the main game, have the DLC to play…" style="resize:vertical"></textarea></div></div>
 
-    <!-- Cover art single row -->
+    <!-- 3. Scores -->
+    <div class="fix-divider"></div>
+    <div class="fix-row">
+      <div style="flex:1"><label>Metacritic</label><input type="text" id="fix-mc" placeholder="e.g. 87"></div>
+      <div style="flex:1"><label>Main Story</label><input type="text" id="fix-hltb-main" placeholder="hrs"></div>
+      <div style="flex:1"><label>Main+Extras</label><input type="text" id="fix-hltb-extra" placeholder="hrs"></div>
+      <div style="flex:1"><label>100%</label><input type="text" id="fix-hltb-complete" placeholder="hrs"></div>
+    </div>
+
+    <!-- 4. Year / Dev / Pub / Genres -->
+    <div class="fix-row">
+      <div style="flex:1"><label>Year</label><input type="text" id="fix-year" placeholder="e.g. 2023"></div>
+      <div style="flex:1"><label>Developer</label><input type="text" id="fix-developer" placeholder="Studio name"></div>
+      <div style="flex:1"><label>Publisher</label><input type="text" id="fix-publisher" placeholder="Publisher name"></div>
+      <div style="flex:1"><label>Genres</label><input type="text" id="fix-genres" placeholder="Action, RPG…"></div>
+    </div>
+
+    <!-- 5. Cover Art -->
     <div class="fix-section-label">Cover Art</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
       <input type="text" id="fix-art-url" placeholder="https://… direct image URL" style="flex:1;min-width:140px">
@@ -667,7 +674,7 @@
     <input type="file" id="fix-art-file" accept="image/*" style="display:none" onchange="uploadCustomCover(event)">
     <div id="fix-art-status" style="font-size:.7rem;color:var(--text-muted);margin-top:2px;min-height:0"></div>
 
-    <!-- Platforms + Flags accordion — divider only -->
+    <!-- 6. Platforms + Flags accordion -->
     <div class="fix-divider"></div>
     <div class="plat-family-row" id="fix-family-row">
       <button class="plat-family-btn" data-family="pc"        onclick="toggleFixFamily('pc')">🖥 PC<span class="plat-fam-badge" id="fam-badge-pc" style="display:none"></span></button>
@@ -679,27 +686,9 @@
       <button class="plat-family-btn" data-family="flags"     onclick="toggleFixFamily('flags')">🚩 Flags<span class="plat-fam-badge" id="fam-badge-flags" style="display:none"></span></button>
     </div>
     <div class="plat-family-children" id="fix-family-children"></div>
-    <div class="fix-plat-summary" id="fix-plat-summary"></div>
 
-    <!-- Scores: all 4 in one row — divider only -->
+    <!-- 7. My Rating + Years Beaten -->
     <div class="fix-divider"></div>
-    <div class="fix-row">
-      <div style="flex:1"><label>Metacritic</label><input type="text" id="fix-mc" placeholder="e.g. 87"></div>
-      <div style="flex:1"><label>Main Story</label><input type="text" id="fix-hltb-main" placeholder="hrs"></div>
-      <div style="flex:1"><label>Main+Extras</label><input type="text" id="fix-hltb-extra" placeholder="hrs"></div>
-      <div style="flex:1"><label>100%</label><input type="text" id="fix-hltb-complete" placeholder="hrs"></div>
-    </div>
-
-    <!-- Year + Dev + Pub + Genres on one row — divider only -->
-    <div class="fix-divider"></div>
-    <div class="fix-row">
-      <div style="flex:1"><label>Year</label><input type="text" id="fix-year" placeholder="e.g. 2023"></div>
-      <div style="flex:1"><label>Developer</label><input type="text" id="fix-developer" placeholder="Studio name"></div>
-      <div style="flex:1"><label>Publisher</label><input type="text" id="fix-publisher" placeholder="Publisher name"></div>
-      <div style="flex:1"><label>Genres</label><input type="text" id="fix-genres" placeholder="Action, RPG…"></div>
-    </div>
-
-    <!-- My Rating + Years Beaten on one row -->
     <div class="fix-row" style="align-items:flex-start">
       <div style="flex:1">
         <label>My Rating</label>
@@ -721,16 +710,30 @@
       </div>
     </div>
 
-    <div class="fix-row"><div style="flex:1"><label>Description</label><textarea id="fix-description" rows="1" placeholder="Game summary…" style="resize:vertical"></textarea></div></div>
-    <div class="fix-row"><div style="flex:1"><label>Notes <span style="color:var(--text-dim);font-weight:400">(personal)</span></label><textarea id="fix-notes" rows="1" placeholder="e.g. Beat the main game, have the DLC to play…" style="resize:vertical"></textarea></div></div>
-
-    <!-- Action row: all three buttons on one line -->
+    <!-- Action row: Save · Convert · Remove · RAWG (hidden toggle) -->
     <div class="fix-divider"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.75rem;padding:9px 16px">✓ Save All Edits</button>
       <button class="btn" onclick="unmatchGame()" style="font-size:.75rem;padding:9px 16px;border-color:var(--s-100);color:var(--s-100)">⚡ Convert to Manual Entry</button>
-      <button class="btn-danger" onclick="deleteGame()" style="font-size:.75rem;padding:9px 16px">🗑 Remove from Collection</button>
+      <button class="btn" onclick="deleteGame()" style="font-size:.75rem;padding:9px 16px;border-color:var(--danger);color:var(--danger)">🗑 REMOVE</button>
+      <button class="btn" onclick="toggleRawgPanel()" id="fix-rawg-btn" style="font-size:.75rem;padding:9px 16px;border-color:var(--border);color:var(--text-dim);margin-left:auto">RAWG SEARCH</button>
     </div>
+
+    <!-- RAWG panel — hidden until toggled -->
+    <div id="fix-rawg-panel" style="display:none;margin-top:8px">
+      <div class="fix-row">
+        <div style="flex:1;display:flex;gap:6px">
+          <input type="text" id="fix-title-input" placeholder="Search by title" style="flex:1">
+          <button class="btn btn-accent" onclick="fixRefetchByTitle()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px;flex-shrink:0">Search</button>
+        </div>
+        <div style="flex:1;display:flex;gap:6px">
+          <input type="text" id="fix-rawgid-input" placeholder="RAWG Game ID (e.g. 3498)" style="flex:1">
+          <button class="btn btn-accent" onclick="fixRefetchById()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px;flex-shrink:0">Fetch</button>
+        </div>
+      </div>
+      <div id="fix-refetch-results" style="margin-bottom:6px"></div>
+    </div>
+
     <div class="fix-status" id="fix-status"></div>
   </div>
 </div>
@@ -1224,13 +1227,13 @@ function updateFamilyBadges() {
     else { count=members.filter(p=>fixPlatforms.has(p)).length; }
     badge.textContent=count; badge.style.display=count?'':'none';
   }
-  // Update selected platforms summary
-  const summary=document.getElementById('fix-plat-summary');
-  if(!summary) return;
-  const platLabels=[...fixPlatforms].map(p=>PLATFORM_LABELS[p]||p);
-  const flagLabels=Object.entries(fixFlags).filter(([,v])=>v).map(([k])=>FLAG_META[k].icon+' '+FLAG_META[k].label);
-  const all=[...platLabels,...flagLabels];
-  summary.textContent=all.length?all.join(' · '):'';
+}
+function toggleRawgPanel() {
+  const panel=document.getElementById('fix-rawg-panel');
+  const btn=document.getElementById('fix-rawg-btn');
+  const open=panel.style.display==='none';
+  panel.style.display=open?'block':'none';
+  btn.style.opacity=open?'1':'.55';
 }
 
 // ── RAWG SEARCH (ADD TAB) ──────────────────────────────────────────────────────
