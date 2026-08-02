@@ -276,8 +276,9 @@
   .fix-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px}
   .fix-title{font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:2px}
   .fix-sub{font-size:.7rem;color:var(--text-muted)}
-  .fix-section-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.18em;color:var(--text-dim);margin-bottom:8px;margin-top:20px;border-top:1px solid var(--border);padding-top:16px}
-  .fix-row{display:flex;gap:10px;margin-bottom:10px}
+  .fix-section-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.18em;color:var(--text-dim);margin-bottom:6px;margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
+  .fix-divider{border-top:1px solid var(--border);margin:10px 0 8px}
+  .fix-row{display:flex;gap:10px;margin-bottom:8px}
   /* platform accordion */
   .plat-family-row{display:flex;gap:4px;flex-wrap:wrap}
   .plat-family-btn{padding:5px 11px;border:1px solid var(--border);border-radius:2px;font-size:.7rem;letter-spacing:.06em;color:var(--text-dim);cursor:pointer;background:none;font-family:inherit;transition:all .15s;white-space:nowrap}
@@ -639,9 +640,8 @@
       <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.78rem;padding:10px 18px;white-space:nowrap;flex-shrink:0">✓ Save All Edits</button>
     </div>
 
-    <!-- Display & Sort title side by side -->
-    <div class="fix-section-label">Display &amp; Sort Title</div>
-    <div class="fix-row">
+    <!-- Display & Sort title side by side — no label -->
+    <div class="fix-row" style="margin-top:10px">
       <div style="flex:1"><label>Display title</label><input type="text" id="fix-display-title" placeholder="Shown in grid &amp; modal"></div>
       <div style="flex:1"><label>Sort title</label><input type="text" id="fix-sort-title" placeholder="Used for A–Z sort only"></div>
     </div>
@@ -658,7 +658,7 @@
         <button class="btn btn-accent" onclick="fixRefetchById()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px;flex-shrink:0">Fetch</button>
       </div>
     </div>
-    <div id="fix-refetch-results" style="margin-bottom:10px"></div>
+    <div id="fix-refetch-results" style="margin-bottom:6px"></div>
 
     <!-- Cover art single row -->
     <div class="fix-section-label">Cover Art</div>
@@ -669,10 +669,10 @@
       <button class="btn" id="fix-art-remove-btn" onclick="removeCustomCover()" style="display:none;font-size:.7rem;padding:8px 12px;flex-shrink:0">✕ Remove</button>
     </div>
     <input type="file" id="fix-art-file" accept="image/*" style="display:none" onchange="uploadCustomCover(event)">
-    <div id="fix-art-status" style="font-size:.7rem;color:var(--text-muted);margin-top:4px;min-height:16px"></div>
+    <div id="fix-art-status" style="font-size:.7rem;color:var(--text-muted);margin-top:2px;min-height:0"></div>
 
-    <!-- Platforms + Flags accordion -->
-    <div class="fix-section-label">Platforms &amp; Flags</div>
+    <!-- Platforms + Flags accordion — divider only -->
+    <div class="fix-divider"></div>
     <div class="plat-family-row" id="fix-family-row">
       <button class="plat-family-btn" data-family="pc"        onclick="toggleFixFamily('pc')">🖥 PC<span class="plat-fam-badge" id="fam-badge-pc" style="display:none"></span></button>
       <button class="plat-family-btn" data-family="sony"      onclick="toggleFixFamily('sony')">🎮 Sony<span class="plat-fam-badge" id="fam-badge-sony" style="display:none"></span></button>
@@ -684,8 +684,8 @@
     </div>
     <div class="plat-family-children" id="fix-family-children"></div>
 
-    <!-- Scores: all 4 in one row -->
-    <div class="fix-section-label">Scores &amp; Times</div>
+    <!-- Scores: all 4 in one row — divider only -->
+    <div class="fix-divider"></div>
     <div class="fix-row">
       <div style="flex:1"><label>Metacritic</label><input type="text" id="fix-mc" placeholder="e.g. 87"></div>
       <div style="flex:1"><label>Main Story</label><input type="text" id="fix-hltb-main" placeholder="hrs"></div>
@@ -693,12 +693,13 @@
       <div style="flex:1"><label>100%</label><input type="text" id="fix-hltb-complete" placeholder="hrs"></div>
     </div>
 
-    <!-- Game Info: Year + Dev + Pub on one row -->
-    <div class="fix-section-label">Game Info</div>
+    <!-- Year + Dev + Pub + Genres on one row — divider only -->
+    <div class="fix-divider"></div>
     <div class="fix-row">
-      <div style="flex:1"><label>Release Year</label><input type="text" id="fix-year" placeholder="e.g. 2023"></div>
+      <div style="flex:1"><label>Year</label><input type="text" id="fix-year" placeholder="e.g. 2023"></div>
       <div style="flex:1"><label>Developer</label><input type="text" id="fix-developer" placeholder="Studio name"></div>
       <div style="flex:1"><label>Publisher</label><input type="text" id="fix-publisher" placeholder="Publisher name"></div>
+      <div style="flex:1"><label>Genres</label><input type="text" id="fix-genres" placeholder="Action, RPG…"></div>
     </div>
 
     <!-- Years Beaten + My Rating on one row -->
@@ -723,18 +724,16 @@
       </div>
     </div>
 
-    <div class="fix-row"><div style="flex:1"><label>Genres <span style="color:var(--text-dim);font-weight:400">(comma separated)</span></label><input type="text" id="fix-genres" placeholder="e.g. Action, RPG, Indie"></div></div>
-    <div class="fix-row"><div style="flex:1"><label>Description</label><textarea id="fix-description" rows="3" placeholder="Game summary…" style="resize:vertical"></textarea></div></div>
-    <div class="fix-row"><div style="flex:1"><label>Notes <span style="color:var(--text-dim);font-weight:400">(personal)</span></label><textarea id="fix-notes" rows="2" placeholder="e.g. Beat the main game, have the DLC to play…" style="resize:vertical"></textarea></div></div>
+    <div class="fix-row"><div style="flex:1"><label>Description</label><textarea id="fix-description" rows="1" placeholder="Game summary…" style="resize:vertical"></textarea></div></div>
+    <div class="fix-row"><div style="flex:1"><label>Notes <span style="color:var(--text-dim);font-weight:400">(personal)</span></label><textarea id="fix-notes" rows="1" placeholder="e.g. Beat the main game, have the DLC to play…" style="resize:vertical"></textarea></div></div>
 
-    <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.78rem;padding:10px 18px;margin-top:4px">✓ Save All Edits</button>
-
-    <div class="fix-section-label" style="color:var(--s-100)">Unmatch from RAWG</div>
-    <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:8px">Strips RAWG metadata and gives this entry its own ID. Use for DLC or mismatched games. Keeps your title, platforms, status, scores and cover.</div>
-    <button class="btn" onclick="unmatchGame()" style="width:auto;padding:8px 14px;font-size:.68rem;border-color:var(--s-100);color:var(--s-100)">⚡ Convert to Manual Entry</button>
-
-    <div class="fix-section-label" style="color:var(--danger)">Remove Game</div>
-    <button class="btn-danger" onclick="deleteGame()" style="width:auto;padding:8px 14px;font-size:.68rem">🗑 Remove from Collection</button>
+    <!-- Action row: all three buttons on one line -->
+    <div class="fix-divider"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.75rem;padding:9px 16px">✓ Save All Edits</button>
+      <button class="btn" onclick="unmatchGame()" style="font-size:.75rem;padding:9px 16px;border-color:var(--s-100);color:var(--s-100)">⚡ Convert to Manual Entry</button>
+      <button class="btn-danger" onclick="deleteGame()" style="font-size:.75rem;padding:9px 16px">🗑 Remove from Collection</button>
+    </div>
     <div class="fix-status" id="fix-status"></div>
   </div>
 </div>
