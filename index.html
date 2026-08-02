@@ -274,8 +274,8 @@
   #fix-overlay.active{display:flex;align-items:flex-start;justify-content:center;padding:40px 12px}
   #fix-content{background:var(--surface);border:1px solid var(--border);border-radius:4px;width:100%;max-width:800px;padding:24px;position:relative}
   .fix-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px}
-  .fix-title{font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:2px}
-  .fix-sub{font-size:.7rem;color:var(--text-muted)}
+  .fix-title{font-family:'DM Serif Display',serif;font-size:1.55rem;margin-bottom:0}
+  .fix-plat-summary{font-size:.72rem;color:var(--text-muted);margin-top:6px;min-height:1em;letter-spacing:.03em}
   .fix-section-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.18em;color:var(--text-dim);margin-bottom:6px;margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
   .fix-divider{border-top:1px solid var(--border);margin:10px 0 8px}
   .fix-row{display:flex;gap:10px;margin-bottom:8px}
@@ -634,11 +634,8 @@
   <div id="fix-content">
     <button class="modal-close" onclick="closeFixModal()">✕</button>
 
-    <!-- Header: title left, save right -->
-    <div class="fix-header-row">
-      <div><div class="fix-title" id="fix-game-name"></div><div class="fix-sub">Edit game data</div></div>
-      <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.78rem;padding:10px 18px;white-space:nowrap;flex-shrink:0">✓ Save All Edits</button>
-    </div>
+    <!-- Header: title only -->
+    <div class="fix-title" id="fix-game-name"></div>
 
     <!-- Display & Sort title side by side — no label -->
     <div class="fix-row" style="margin-top:10px">
@@ -664,7 +661,6 @@
     <div class="fix-section-label">Cover Art</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
       <input type="text" id="fix-art-url" placeholder="https://… direct image URL" style="flex:1;min-width:140px">
-      <button class="btn btn-accent" onclick="applyArtUrl()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px;flex-shrink:0">Apply URL</button>
       <button class="btn" onclick="document.getElementById('fix-art-file').click()" style="font-size:.7rem;padding:8px 12px;flex-shrink:0">📷 Upload</button>
       <button class="btn" id="fix-art-remove-btn" onclick="removeCustomCover()" style="display:none;font-size:.7rem;padding:8px 12px;flex-shrink:0">✕ Remove</button>
     </div>
@@ -683,6 +679,7 @@
       <button class="plat-family-btn" data-family="flags"     onclick="toggleFixFamily('flags')">🚩 Flags<span class="plat-fam-badge" id="fam-badge-flags" style="display:none"></span></button>
     </div>
     <div class="plat-family-children" id="fix-family-children"></div>
+    <div class="fix-plat-summary" id="fix-plat-summary"></div>
 
     <!-- Scores: all 4 in one row — divider only -->
     <div class="fix-divider"></div>
@@ -1227,6 +1224,13 @@ function updateFamilyBadges() {
     else { count=members.filter(p=>fixPlatforms.has(p)).length; }
     badge.textContent=count; badge.style.display=count?'':'none';
   }
+  // Update selected platforms summary
+  const summary=document.getElementById('fix-plat-summary');
+  if(!summary) return;
+  const platLabels=[...fixPlatforms].map(p=>PLATFORM_LABELS[p]||p);
+  const flagLabels=Object.entries(fixFlags).filter(([,v])=>v).map(([k])=>FLAG_META[k].icon+' '+FLAG_META[k].label);
+  const all=[...platLabels,...flagLabels];
+  summary.textContent=all.length?all.join(' · '):'';
 }
 
 // ── RAWG SEARCH (ADD TAB) ──────────────────────────────────────────────────────
@@ -1851,6 +1855,7 @@ function openFixModal(id) {
   document.getElementById('fix-notes').value=game.notes||'';
   fixMyRating=game.myRating||0; renderFixMyStars();
   document.getElementById('fix-overlay').classList.add('active');
+  setTimeout(()=>document.getElementById('fix-display-title').focus(),50);
 }
 function closeFixModal() { document.getElementById('fix-overlay').classList.remove('active'); fixTargetId=null; }
 function setFixStatus(msg,isErr) { const el=document.getElementById('fix-status'); el.textContent=msg; el.style.color=isErr?'var(--danger)':'var(--text-muted)'; }
@@ -1859,6 +1864,8 @@ async function saveAllEdits() {
   const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
   games[i].displayTitle=document.getElementById('fix-display-title').value.trim()||null;
   games[i].sortTitle=document.getElementById('fix-sort-title').value.trim()||null;
+  const artUrl=document.getElementById('fix-art-url').value.trim();
+  if(artUrl){ games[i].customCover=artUrl; games[i].notFound=false; }
   games[i].userPlatforms=[...fixPlatforms];
   games[i].rating=parseInt(document.getElementById('fix-mc').value)||null;
   games[i].hltbMain=parseFloat(document.getElementById('fix-hltb-main').value)||null;
@@ -1976,15 +1983,16 @@ async function uploadCustomCover(event) {
   event.target.value='';
   const statusEl=document.getElementById('fix-art-status');
   statusEl.textContent='Uploading…';
+  // Stage: upload file to storage, write resulting URL into the art URL field
+  // so Save All Edits commits it together with everything else.
   const ext=file.name.split('.').pop().toLowerCase();
   const path=`games/${fixTargetId}.${ext}`;
   try {
     const res=await fetch(`${SB_URL}/storage/v1/object/shelf-posters/${path}`,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type,'x-upsert':'true'},body:file});
     if(!res.ok) throw new Error('Upload failed');
     const url=`${SB_URL}/storage/v1/object/public/shelf-posters/${path}?t=${Date.now()}`;
-    const i=games.findIndex(g=>g.id===fixTargetId);
-    if(i>=0){ games[i].customCover=url; games[i].notFound=false; await sbSaveGame(games[i]); applyFilters(); }
-    setFixStatus('✓ Saved'); setTimeout(closeFixModal,500);
+    document.getElementById('fix-art-url').value=url;
+    setFixStatus('✓ Image ready — click Save All Edits to apply');
   } catch(e) { setFixStatus('⚠ Upload failed: '+e.message,true); }
 }
 async function removeCustomCover() {
@@ -2241,6 +2249,15 @@ document.addEventListener('keydown', e => {
 // mark-played-stars is in HTML below this block — lazy-init on first open.
 attachStarHover1UP('#fix-my-stars', renderFixMyStars);
 let _mpStarsInit=false;
+
+// ── KEYBOARD SHORTCUTS ─────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('fix-overlay').classList.contains('active'))       { closeFixModal(); return; }
+  if (document.getElementById('modal-overlay').classList.contains('active'))     { closeModal(); return; }
+  if (document.getElementById('mark-played-overlay').classList.contains('active')){ closeMarkPlayedModal(); return; }
+  if (document.getElementById('stats-overlay-1up').classList.contains('active')) { closeStats1UP(); return; }
+});
 
 // ── BOOT ───────────────────────────────────────────────────────────────────────
 (function boot() {
