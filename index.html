@@ -705,8 +705,10 @@
       </div>
       <div style="flex:1">
         <label>Years Beaten</label>
-        <div id="fix-beat-years-list" style="margin-bottom:4px"></div>
-        <button class="btn" style="font-size:.66rem;padding:4px 10px;margin-top:2px" onclick="addBeatYearRow()">+ Add year</button>
+        <div style="margin-top:6px">
+          <div id="fix-beat-years-list" style="margin-bottom:4px"></div>
+          <button class="btn" style="font-size:.66rem;padding:4px 10px" onclick="addBeatYearRow()">+ Add year</button>
+        </div>
       </div>
     </div>
 
@@ -716,7 +718,7 @@
       <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.75rem;padding:9px 16px">✓ Save All Edits</button>
       <button class="btn" onclick="unmatchGame()" style="font-size:.75rem;padding:9px 16px;border-color:var(--s-100);color:var(--s-100)">⚡ Convert to Manual Entry</button>
       <button class="btn" onclick="deleteGame()" style="font-size:.75rem;padding:9px 16px;border-color:var(--danger);color:var(--danger)">🗑 REMOVE</button>
-      <button class="btn" onclick="toggleRawgPanel()" id="fix-rawg-btn" style="font-size:.75rem;padding:9px 16px;border-color:var(--border);color:var(--text-dim);margin-left:auto">RAWG SEARCH</button>
+      <button class="btn" onclick="toggleRawgPanel()" id="fix-rawg-btn" style="font-size:.75rem;padding:9px 16px;border-color:var(--border);color:var(--text-dim)">RAWG SEARCH</button>
     </div>
 
     <!-- RAWG panel — hidden until toggled -->
