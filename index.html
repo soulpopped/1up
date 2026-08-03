@@ -1503,12 +1503,18 @@ function applyFilters() {
       case 'added':    cmp=(new Date(a.dateAdded||0))-(new Date(b.dateAdded||0)); break;
       case 'platform': { const pa=(a.userPlatforms||[])[0]||'', pb=(b.userPlatforms||[])[0]||''; cmp=pa.localeCompare(pb); break; }
       case 'beaten': {
-        const maxBeat=g=>{const v=[...(g.beatYears||[]),...(g.yearBeaten?[g.yearBeaten]:[])].map(Number).filter(Boolean);return v.length?Math.max(...v):null;};
-        const ba=maxBeat(a),bb=maxBeat(b);
-        if(ba===null&&bb===null){cmp=0;break;}
-        if(ba===null) return 1;   // no beat date → always last
-        if(bb===null) return -1;
-        cmp=ba-bb; break;
+        // Use full dateBeaten if available; fall back to year-only as Jan 1
+        const beatVal=g=>{
+          if(g.dateBeaten) return g.dateBeaten; // ISO string sorts lexicographically
+          const v=[...(g.beatYears||[]),...(g.yearBeaten?[g.yearBeaten]:[])].map(Number).filter(Boolean);
+          const yr=v.length?Math.max(...v):null;
+          return yr?`${yr}-01-01`:null;
+        };
+        const ba=beatVal(a),bb=beatVal(b);
+        if(!ba&&!bb){cmp=0;break;}
+        if(!ba) return 1;   // no beat date → always last
+        if(!bb) return -1;
+        cmp=ba<bb?-1:ba>bb?1:0; break;
       }
       default: cmp=0;
     }
