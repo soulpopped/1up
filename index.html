@@ -241,6 +241,11 @@
   .modal-overview{font-size:1.05rem;line-height:1.7;color:var(--text-muted);font-style:italic;border-top:1px solid var(--border);padding-top:12px;margin-top:6px;margin-bottom:6px}
   .modal-close{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;color:#ccc;transition:all .15s;z-index:1}
   .modal-close:hover{background:rgba(0,0,0,.8);color:#fff}
+  .modal-nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.48);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;z-index:5;transition:background .15s,color .15s;padding:0;line-height:1}
+  .modal-nav-btn:hover{background:rgba(0,0,0,.82);color:#fff;border-color:rgba(255,255,255,.4)}
+  .modal-nav-btn:disabled{opacity:.18;cursor:default;pointer-events:none}
+  .modal-nav-prev{left:10px}
+  .modal-nav-next{right:10px}
   .modal-status-row{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:7px;flex-wrap:wrap}
   .status-btn{padding:6px 13px;border-radius:2px;border:1px solid var(--border);font-size:.68rem;font-family:inherit;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:none;color:var(--text-dim);transition:all .15s}
   .status-btn:hover{border-color:var(--text-muted);color:var(--text-muted)}
@@ -969,6 +974,7 @@ let hltbFilters=new Set();
 let currentModalGameId=null, fixTargetId=null;
 let fixPlatforms=new Set(), fixFlags={multiplayer:false,motion:false}, fixOpenFamily=null;
 let fixGameList=[], fixGameIdx=-1;
+let modalGameList=[], modalGameIdx=-1;
 let rawgKey='';
 
 // ── SUPABASE ───────────────────────────────────────────────────────────────────
@@ -1685,6 +1691,7 @@ function openModalById(id) { const game=games.find(g=>g.id===id); if(game) openM
 
 function openModal(game) {
   currentModalGameId=game.id;
+  modalGameList=[...filteredGames]; modalGameIdx=modalGameList.findIndex(g=>String(g.id)===String(game.id));
   const status=getGameStatus(game.id);
   const cover=game.customCover||game.coverLg||game.cover;
   const title=game.displayTitle||game.title;
@@ -1698,9 +1705,11 @@ function openModal(game) {
     game.publisher&&game.publisher!==game.developer?`<span class="modal-meta-label" style="margin:0 4px 0 10px">Pub</span><button class="person-chip" onclick="searchByPerson('${escJs(game.publisher)}')">${escHtml(game.publisher)}</button>`:''
   ].filter(Boolean).join('');
   const subText=escHtml([game.year,game.developer].filter(Boolean).join(' · '));
+  const navPrev=`<button class="modal-nav-btn modal-nav-prev" onclick="modalNavPrev()" ${modalGameIdx<=0?'disabled':''}">‹</button>`;
+  const navNext=`<button class="modal-nav-btn modal-nav-next" onclick="modalNavNext()" ${modalGameIdx>=modalGameList.length-1?'disabled':''}">›</button>`;
   const bannerHTML=cover
-    ? `<div class="modal-banner"><img class="modal-banner-img" src="${escHtml(cover)}" alt="${escHtml(title)}" onerror="this.style.display='none'"><div class="modal-banner-overlay"><div class="modal-title">${escHtml(title)}</div>${subText?`<div class="modal-sub">${subText}</div>`:''}</div></div>`
-    : `<div class="modal-banner modal-banner-empty"><div><div class="modal-title" style="color:var(--text)">${escHtml(title)}</div>${subText?`<div class="modal-sub" style="color:var(--text-muted)">${subText}</div>`:''}</div></div>`;
+    ? `<div class="modal-banner"><img class="modal-banner-img" src="${escHtml(cover)}" alt="${escHtml(title)}" onerror="this.style.display='none'"><div class="modal-banner-overlay"><div class="modal-title">${escHtml(title)}</div>${subText?`<div class="modal-sub">${subText}</div>`:''}</div>${navPrev}${navNext}</div>`
+    : `<div class="modal-banner modal-banner-empty"><div><div class="modal-title" style="color:var(--text)">${escHtml(title)}</div>${subText?`<div class="modal-sub" style="color:var(--text-muted)">${subText}</div>`:''}</div>${navPrev}${navNext}</div>`;
 
   // Beat years — deduped, sorted
   const beatYearsArr=[...new Set([...(game.beatYears||[]),...(game.yearBeaten?[game.yearBeaten]:[])])].map(Number).filter(Boolean).sort();
@@ -1756,6 +1765,8 @@ function openModal(game) {
   document.getElementById('modal-overlay').classList.add('active');
 }
 function closeModal() { currentModalGameId=null; document.getElementById('modal-overlay').classList.remove('active'); }
+function modalNavPrev() { if(modalGameIdx>0) openModal(modalGameList[modalGameIdx-1]); }
+function modalNavNext() { if(modalGameIdx<modalGameList.length-1) openModal(modalGameList[modalGameIdx+1]); }
 function handleModalOverlayClick(e) { if(e.target===document.getElementById('modal-overlay')) closeModal(); }
 function searchByPerson(name) { closeModal(); document.getElementById('search-input').value=name; applyFilters(); }
 
@@ -2268,15 +2279,18 @@ function quickMarkPlaying(id) {
   sbSetStatus(sid, 'playing').catch(e => console.error(e));
 }
 
-// ── ESC KEY ────────────────────────────────────────────────────────────────────
+// ── ESC / ARROW KEYS ───────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
+  const modalOpen = document.getElementById('modal-overlay').classList.contains('active');
+  if (e.key === 'ArrowLeft'  && modalOpen) { e.preventDefault(); modalNavPrev(); return; }
+  if (e.key === 'ArrowRight' && modalOpen) { e.preventDefault(); modalNavNext(); return; }
   if (e.key !== 'Escape') return;
   if (document.getElementById('stats-overlay-1up').classList.contains('active')) { closeStats1UP(); return; }
   if (document.getElementById('mark-played-overlay').classList.contains('active')) { closeMarkPlayedModal(); return; }
   if (document.getElementById('filter-panel').classList.contains('active')) { toggleFilterPanel(); return; }
   if (document.getElementById('hltb-panel').classList.contains('active')) { document.getElementById('hltb-panel').classList.remove('active'); return; }
   if (document.getElementById('fix-overlay').classList.contains('active'))    { closeFixModal(); return; }
-  if (document.getElementById('modal-overlay').classList.contains('active'))  { closeModal();    return; }
+  if (modalOpen) { closeModal(); return; }
   if (document.getElementById('random-overlay').classList.contains('active')) { closeRandom();   return; }
 });
 
