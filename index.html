@@ -492,6 +492,7 @@
       </div>
     </div>
     <div class="add-form-group"><label>Developer</label><input type="text" id="manual-developer" placeholder="e.g. Supergiant Games"></div>
+    <div class="add-form-group"><label>Publisher</label><input type="text" id="manual-publisher" placeholder="e.g. Annapurna Interactive"></div>
     <div class="add-form-group"><label>Genre(s) <span style="color:var(--text-dim);font-weight:400">(comma separated)</span></label><input type="text" id="manual-genres" placeholder="e.g. Action, Roguelike"></div>
     <div class="add-form-group"><label>Metacritic Score</label><input type="text" id="manual-mc" placeholder="e.g. 87"></div>
     <div class="add-form-group"><label>Main Story (hrs)</label><input type="text" id="manual-hltb-main" placeholder="e.g. 12.5"></div>
@@ -506,7 +507,10 @@
       <div id="manual-art-status" style="font-size:.68rem;color:var(--text-muted);margin-top:4px;min-height:14px"></div>
     </div>
     <div class="add-form-group"><label>Notes <span style="color:var(--text-dim);font-weight:400">(personal)</span></label><input type="text" id="manual-notes" placeholder="e.g. Have the sequel too, haven't started yet"></div>
-    <button class="btn btn-accent" onclick="addManualGame()">Add to Collection</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-accent" onclick="addManualGame(false)">Add to Collection</button>
+      <button class="btn" onclick="addManualGame(true)">Add Another</button>
+    </div>
     <div id="manual-status" style="font-size:.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
   </div>
 
@@ -1311,12 +1315,13 @@ async function addGame(stayInMode) {
 }
 
 // ── MANUAL ENTRY ───────────────────────────────────────────────────────────────
-async function addManualGame() {
+async function addManualGame(addAnother=false) {
   const title=document.getElementById('manual-title').value.trim();
   if (!title) { document.getElementById('manual-status').textContent='Title is required.'; return; }
   const platforms=getActivePlatforms('manual-platform-chips');
   const year=document.getElementById('manual-year').value.trim();
   const developer=document.getElementById('manual-developer').value.trim();
+  const publisher=document.getElementById('manual-publisher').value.trim();
   const genres=document.getElementById('manual-genres').value.trim().split(',').map(s=>s.trim()).filter(Boolean);
   const notes=document.getElementById('manual-notes').value.trim();
   const mc=parseInt(document.getElementById('manual-mc').value)||null;
@@ -1325,13 +1330,21 @@ async function addManualGame() {
   const hltbComplete=parseFloat(document.getElementById('manual-hltb-complete').value)||null;
   const artUrl=document.getElementById('manual-art-url').value.trim()||null;
   const id='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-  const game={id,rawgId:null,rawgSlug:null,searchTitle:title,title,displayTitle:null,sortTitle:null,cover:artUrl,coverLg:null,customCover:artUrl,year:year?parseInt(year):null,summary:null,notes:notes||null,developer:developer||null,publisher:null,genres,rawgPlatforms:[],userPlatforms:platforms,rating:mc,hltbMain,hltbExtra,hltbComplete,dateAdded:new Date().toISOString(),notFound:true};
+  const game={id,rawgId:null,rawgSlug:null,searchTitle:title,title,displayTitle:null,sortTitle:null,cover:artUrl,coverLg:null,customCover:artUrl,year:year?parseInt(year):null,summary:null,notes:notes||null,developer:developer||null,publisher:publisher||null,genres,rawgPlatforms:[],userPlatforms:platforms,rating:mc,hltbMain,hltbExtra,hltbComplete,dateAdded:new Date().toISOString(),notFound:true};
   try {
     games.push(game); await sbSaveGame(game);
-    document.getElementById('manual-status').textContent=`✓ Added ${title}`;
-    ['manual-title','manual-year','manual-developer','manual-genres','manual-notes','manual-mc','manual-hltb-main','manual-hltb-extra','manual-hltb-complete','manual-art-url'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('manual-art-status').textContent='';
-    resetPlatformToggles('manual-platform-chips');
+    if (addAnother) {
+      document.getElementById('manual-status').textContent=`✓ Added "${title}" — ready for next entry`;
+      ['manual-title','manual-year','manual-developer','manual-publisher','manual-genres','manual-notes','manual-mc','manual-hltb-main','manual-hltb-extra','manual-hltb-complete','manual-art-url'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('manual-art-status').textContent='';
+      resetPlatformToggles('manual-platform-chips');
+      document.getElementById('manual-title').focus();
+    } else {
+      // Go to library sorted by date added, newest first
+      currentSort='added'; currentSortDir='desc';
+      syncSort1UP('added');
+      openApp();
+    }
   } catch(e) { document.getElementById('manual-status').textContent='⚠ '+e.message; }
 }
 
