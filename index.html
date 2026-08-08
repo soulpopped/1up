@@ -1157,12 +1157,29 @@ async function igdbFetch(body) {
     }
   }
 }
+const IGDB_FIELDS = 'name,cover.image_id,screenshots.image_id,platforms.name,first_release_date,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,genres.name,summary,slug,aggregated_rating,time_to_beat.hastily,time_to_beat.normally,time_to_beat.completely';
 async function igdbSearch(title) {
-  const q = title.replace(/"/g,"'").slice(0,80);
-  return igdbFetch(`search "${q}"; fields name,cover.image_id,screenshots.image_id,platforms.name,first_release_date,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,genres.name,summary,slug,aggregated_rating,time_to_beat.hastily,time_to_beat.normally,time_to_beat.completely; limit 8;`);
+  const clean = s => s.replace(/"/g,"'").slice(0,80);
+  // Primary: search endpoint
+  const q = clean(title);
+  const results = await igdbFetch(`search "${q}"; fields ${IGDB_FIELDS}; limit 8;`);
+  if (results.length) return results;
+  // Fallback 1: accent-stripped search (handles é, ü, ñ etc.)
+  const qNorm = clean(title.normalize('NFD').replace(/[̀-ͯ]/g,''));
+  if (qNorm !== q) {
+    const r2 = await igdbFetch(`search "${qNorm}"; fields ${IGDB_FIELDS}; limit 8;`);
+    if (r2.length) return r2;
+  }
+  // Fallback 2: direct where name ~ prefix match on first significant word
+  const stem = clean(title.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9 ]/g,' ').trim().split(/\s+/).slice(0,4).join(' '));
+  if (stem) {
+    const r3 = await igdbFetch(`fields ${IGDB_FIELDS}; where name ~ *"${stem}"*; limit 8;`);
+    if (r3.length) return r3;
+  }
+  return [];
 }
 async function igdbFetchById(id) {
-  const rows = await igdbFetch(`fields name,cover.image_id,screenshots.image_id,platforms.name,first_release_date,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,genres.name,summary,slug,aggregated_rating,time_to_beat.hastily,time_to_beat.normally,time_to_beat.completely; where id = ${id}; limit 1;`);
+  const rows = await igdbFetch(`fields ${IGDB_FIELDS}; where id = ${id}; limit 1;`);
   if (!rows?.length) throw new Error(`No game found with IGDB ID ${id}`);
   return rows[0];
 }
@@ -2719,7 +2736,11 @@ async function bulkRematch() {
       await sleep(280);
       if (igdbResults.length) confidence=igdbMatchConfidence(title, igdbResults[0]);
     } catch(e) {
-      if (e.isCors) { statusEl.textContent='⚠ IGDB auth required — use manual token in credentials.'; return; }
+      if (e.isCors||e.needsToken||e.message?.includes('token')) {
+        statusEl.textContent='⚠ IGDB auth error — go to Settings and test/refresh your IGDB connection, then try again.';
+        return;
+      }
+      // Other errors (network blip etc.): mark this game as no-match and continue
     }
     _previewRows.push({ csvTitle:game.displayTitle||game.title, csvPlatforms:game.userPlatforms||[], igdbResults, selectedIdx, include:confidence!=='none', confidence, rematchGameId:game.id });
     renderPreviewRow(_previewRows.length-1);
