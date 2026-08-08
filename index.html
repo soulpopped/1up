@@ -616,6 +616,19 @@
         <button class="btn btn-accent" onclick="saveManualIGDBToken()" style="font-size:.72rem;padding:8px 14px">Save Token</button>
       </div>
     </div>
+    <!-- Custom CORS proxy -->
+    <div style="margin-top:14px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:4px">
+      <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:8px;line-height:1.7">
+        <strong>Custom Proxy URL</strong> — public CORS proxies block api.igdb.com. Deploy a free Cloudflare Worker (see README) and paste its URL here to fix all IGDB features permanently.
+      </div>
+      <label style="margin-bottom:6px">Cloudflare Worker URL</label>
+      <input type="text" id="igdb-proxy-input" placeholder="https://igdb-proxy.yourname.workers.dev/" style="font-family:monospace;font-size:.78rem">
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+        <button class="btn btn-accent" onclick="saveIGDBProxy()" style="font-size:.72rem;padding:8px 14px">Save Proxy</button>
+        <button class="btn" onclick="clearIGDBProxy()" style="font-size:.72rem;padding:8px 14px">Clear</button>
+        <span id="proxy-status" style="font-size:.7rem;color:var(--text-muted)"></span>
+      </div>
+    </div>
   </div>
 
   <!-- Backup -->
@@ -1140,11 +1153,13 @@ async function igdbFetch(body) {
   const token = await igdbGetToken();
   const headers = { 'Client-ID':IGDB_CLIENT_ID, 'Authorization':`Bearer ${token}`, 'Content-Type':'text/plain' };
   const IGDB_API = 'https://api.igdb.com/v4/games';
-  // Try direct first, then two CORS proxies in sequence
+  const customProxy = (()=>{ try{ return localStorage.getItem('igdb_proxy_url')||''; }catch(_){ return ''; } })();
+  // Try direct first, then custom proxy (if set), then public proxies as last resort
   const targets = [
     IGDB_API,
-    IGDB_PROXY + encodeURIComponent(IGDB_API),       // corsproxy.io
-    'https://proxy.cors.sh/' + IGDB_API,             // cors.sh fallback
+    ...(customProxy ? [customProxy] : []),
+    IGDB_PROXY + encodeURIComponent(IGDB_API),
+    'https://proxy.cors.sh/' + IGDB_API,
   ];
   let lastErr;
   for (let i = 0; i < targets.length; i++) {
@@ -1276,6 +1291,7 @@ function gateSubmit() {
 async function init() {
   if(READ_ONLY) document.body.classList.add('public-mode');
   createAppIcon();
+  initProxyInput();
   if(!READ_ONLY) {
     document.getElementById('import-panel').style.display='block';
     document.getElementById('add-tabs').style.display='none';
@@ -1349,6 +1365,24 @@ function saveManualIGDBToken() {
   localStorage.setItem('igdb_token', JSON.stringify({ token, exp: Date.now() + 60*24*3600*1000 }));
   el.style.color='var(--accent)'; el.textContent='✓ Token saved — click Test IGDB Connection to verify.';
   document.getElementById('igdb-manual-token-section').style.display='none';
+}
+function saveIGDBProxy() {
+  const url = document.getElementById('igdb-proxy-input').value.trim().replace(/\/?$/, '/');
+  const st = document.getElementById('proxy-status');
+  if (!url || url==='/') { st.style.color='var(--danger)'; st.textContent='Enter a URL first.'; return; }
+  try { localStorage.setItem('igdb_proxy_url', url); } catch(_) {}
+  st.style.color='var(--accent)'; st.textContent='✓ Saved — click Test IGDB Connection to verify.';
+}
+function clearIGDBProxy() {
+  try { localStorage.removeItem('igdb_proxy_url'); } catch(_) {}
+  document.getElementById('igdb-proxy-input').value='';
+  document.getElementById('proxy-status').textContent='Cleared.';
+}
+function initProxyInput() {
+  try {
+    const saved = localStorage.getItem('igdb_proxy_url');
+    if (saved) document.getElementById('igdb-proxy-input').value = saved;
+  } catch(_) {}
 }
 
 // ── TABS ───────────────────────────────────────────────────────────────────────
