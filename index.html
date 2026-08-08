@@ -1230,14 +1230,18 @@ function buildGameFromIGDB(r, csvData, userPlatforms, confidence) {
 function simpleHash(str) { let h=0; for(let i=0;i<str.length;i++){h=Math.imul(31,h)+str.charCodeAt(i)|0;} return h; }
 
 function gateSubmit() {
-  const pw = document.getElementById('gate-input').value;
-  if (simpleHash(pw)===PASS_HASH) {
-    localStorage.setItem(HASH_KEY, String(PASS_HASH));
-    document.getElementById('gate').style.display='none';
-    init().catch(e=>{ document.getElementById('gate').style.display=''; document.getElementById('gate-error').textContent='Error: '+e.message; });
-  } else {
-    document.getElementById('gate-error').textContent='Wrong password.';
-    document.getElementById('gate-input').value='';
+  try {
+    const pw = document.getElementById('gate-input').value;
+    if (simpleHash(pw)===PASS_HASH) {
+      try { localStorage.setItem(HASH_KEY, String(PASS_HASH)); } catch(_) {}
+      document.getElementById('gate').style.display='none';
+      init().catch(e=>{ document.getElementById('gate').style.display=''; document.getElementById('gate-error').textContent='Error: '+e.message; });
+    } else {
+      document.getElementById('gate-error').textContent='Wrong password.';
+      document.getElementById('gate-input').value='';
+    }
+  } catch(e) {
+    document.getElementById('gate-error').textContent='Error: '+e.message;
   }
 }
 
@@ -2815,4 +2819,132 @@ async function runIGDBRefresh() {
         const devCo = r.involved_companies?.find(c=>c.developer);
         const pubCo = r.involved_companies?.find(c=>c.publisher);
         if (devCo?.company?.name) games[i].developer = devCo.company.name;
-        if (pubCo?.company?.name) game
+        if (pubCo?.company?.name) games[i].publisher = pubCo.company.name;
+        if (r.genres?.length)    games[i].genres        = r.genres.map(g=>g.name);
+        if (r.platforms?.length) games[i].igdbPlatforms = r.platforms.map(p=>p.name);
+        // Only fill HLTB/rating if not already set (respect manual overrides)
+        const ttb = r.time_to_beat;
+        if (!games[i].hltbMain     && ttb?.normally)    games[i].hltbMain     = toHr(ttb.normally);
+        if (!games[i].hltbComplete && ttb?.completely)  games[i].hltbComplete = toHr(ttb.completely);
+        if (!games[i].rating && r.aggregated_rating)    games[i].rating       = Math.round(r.aggregated_rating);
+        await sbSaveGame(games[i]);
+        updatedNames.push(games[i].displayTitle||games[i].title);
+      }
+    } catch(e) {
+      errors.push(`${game.displayTitle||game.title}: ${e.message}`);
+    }
+    done++;
+    await sleep(280); // stay under IGDB ~4 req/s
+  }
+
+  hideProgress();
+  applyFilters(); buildFilterOptions();
+
+  const statusEl = document.getElementById('refresh-status');
+  if (statusEl) {
+    const msg = `✓ Refreshed ${updatedNames.length} game${updatedNames.length!==1?'s':''}${errors.length ? ` · ${errors.length} error${errors.length!==1?'s':''}` : ''}`;
+    statusEl.textContent = msg;
+    statusEl.style.color = errors.length ? 'var(--danger)' : 'var(--accent)';
+    statusEl.style.fontStyle = 'normal';
+  }
+}
+
+// ── BOOT ───────────────────────────────────────────────────────────────────────
+(function boot() {
+  if(READ_ONLY) {
+    document.getElementById('gate').style.display='none';
+    init().catch(e=>console.error('Public load error:',e));
+    return;
+  }
+  let stored = null;
+  try { stored = localStorage.getItem(HASH_KEY); } catch(_) {}
+  if (stored && parseInt(stored)===PASS_HASH) {
+    document.getElementById('gate').style.display='none';
+    init().catch(e=>{ document.getElementById('gate').style.display=''; document.getElementById('gate-error').textContent='Session error — please log in again.'; try{localStorage.removeItem(HASH_KEY);}catch(_){} });
+  }
+})();
+</script>
+<!-- MARK PLAYED MODAL -->
+<div id="mark-played-overlay" onclick="if(event.target===this)closeMarkPlayedModal()">
+  <div id="mark-played-content">
+    <div class="mark-played-title">Mark as Played</div>
+    <div id="mark-played-game-name"></div>
+    <div class="mark-played-label">Finish Date (optional)</div>
+    <input type="date" id="mark-played-date" onkeydown="if(event.key==='Enter')confirmMarkPlayed()">
+    <div class="mark-played-label">My Rating (optional)</div>
+    <div id="mark-played-stars-row">
+      <div class="star-row-1up" id="mark-played-stars">
+        <button class="star-btn-1up" data-val="1" onclick="setMarkPlayedRating(1,event)">★</button>
+        <button class="star-btn-1up" data-val="2" onclick="setMarkPlayedRating(2,event)">★</button>
+        <button class="star-btn-1up" data-val="3" onclick="setMarkPlayedRating(3,event)">★</button>
+        <button class="star-btn-1up" data-val="4" onclick="setMarkPlayedRating(4,event)">★</button>
+        <button class="star-btn-1up" data-val="5" onclick="setMarkPlayedRating(5,event)">★</button>
+      </div>
+      <button class="btn" onclick="setMarkPlayedRating(0,null)" style="font-size:.65rem;padding:3px 8px;margin-left:8px">Clear</button>
+    </div>
+    <div class="mark-played-btns">
+      <button class="btn btn-accent" style="flex:1" onclick="confirmMarkPlayed()">✓ Mark Played</button>
+      <button class="btn" onclick="closeMarkPlayedModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT PREVIEW MODAL -->
+<div id="import-preview-overlay">
+  <div id="import-preview-header">
+    <span id="import-preview-title">Preview Import</span>
+    <span id="import-preview-searching" style="font-size:.9rem;color:var(--text-muted)"></span>
+    <button class="btn" onclick="closeImportPreview()" style="font-size:.9rem;padding:8px 16px">Cancel</button>
+  </div>
+  <div id="import-preview-body">
+    <table class="preview-table">
+      <thead>
+        <tr>
+          <th style="width:40px"><input type="checkbox" id="preview-select-all" class="preview-include-cb" onchange="previewToggleAll(this.checked)" title="Select all"></th>
+          <th style="width:100px">Art</th>
+          <th>CSV Title</th>
+          <th>IGDB Match</th>
+          <th style="width:80px">Confidence</th>
+          <th style="width:90px">Platform</th>
+        </tr>
+      </thead>
+      <tbody id="preview-table-body"></tbody>
+    </table>
+  </div>
+  <div id="import-preview-footer">
+    <span id="import-preview-count"></span>
+    <button class="btn" onclick="previewSelectConfident()" style="font-size:.9rem;padding:10px 18px">✓ Select High+Medium</button>
+    <button class="btn btn-accent" id="import-preview-confirm-btn" onclick="confirmImport()" style="font-size:1rem;padding:11px 22px">Import Selected</button>
+  </div>
+</div>
+
+<!-- IMPORT SUMMARY MODAL -->
+<div id="import-summary-overlay">
+  <div id="import-summary-box">
+    <div id="import-summary-header">
+      <span id="import-summary-headline">Import Complete</span>
+      <span id="import-summary-subline"></span>
+    </div>
+    <div id="import-summary-body"></div>
+    <div id="import-summary-footer">
+      <button class="btn" id="import-summary-review-btn" onclick="closeImportSummary(true)" style="display:none">Go to ⚠ Review</button>
+      <button class="btn btn-accent" onclick="closeImportSummary(false)">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLATFORM FILTER PANEL -->
+<div id="plat-filter-panel" onclick="event.stopPropagation()"></div>
+
+<!-- HLTB FILTER PANEL -->
+<div id="hltb-panel" onclick="event.stopPropagation()">
+  <label class="hltb-check-label"><input type="checkbox" value="5" onchange="toggleHltbFilter('5')"> Under 5h</label>
+  <label class="hltb-check-label"><input type="checkbox" value="15" onchange="toggleHltbFilter('15')"> 5–15h</label>
+  <label class="hltb-check-label"><input type="checkbox" value="30" onchange="toggleHltbFilter('30')"> 15–30h</label>
+  <label class="hltb-check-label"><input type="checkbox" value="30plus" onchange="toggleHltbFilter('30plus')"> 30h+</label>
+  <label class="hltb-check-label"><input type="checkbox" value="missing" onchange="toggleHltbFilter('missing')"> No data</label>
+  <div style="margin-top:8px"><button class="btn" onclick="clearHltbFilter()" style="font-size:.66rem;padding:6px 12px">Clear</button></div>
+</div>
+
+</body>
+</html>
