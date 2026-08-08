@@ -1139,23 +1139,28 @@ async function igdbGetToken() {
 async function igdbFetch(body) {
   const token = await igdbGetToken();
   const headers = { 'Client-ID':IGDB_CLIENT_ID, 'Authorization':`Bearer ${token}`, 'Content-Type':'text/plain' };
-  // Try direct, then CORS proxy
-  const apiUrls = [
-    'https://api.igdb.com/v4/games',
-    IGDB_PROXY + encodeURIComponent('https://api.igdb.com/v4/games')
+  const IGDB_API = 'https://api.igdb.com/v4/games';
+  // Try direct first, then two CORS proxies in sequence
+  const targets = [
+    IGDB_API,
+    IGDB_PROXY + encodeURIComponent(IGDB_API),       // corsproxy.io
+    'https://proxy.cors.sh/' + IGDB_API,             // cors.sh fallback
   ];
-  for (let i=0; i<apiUrls.length; i++) {
+  let lastErr;
+  for (let i = 0; i < targets.length; i++) {
     try {
-      const res = await fetch(apiUrls[i], { method:'POST', headers, body });
+      const res = await fetch(targets[i], { method:'POST', headers, body });
       if (res.status===401) { localStorage.removeItem('igdb_token'); throw new Error('IGDB token expired — click Test IGDB Connection to refresh.'); }
-      if (!res.ok) throw new Error(`IGDB ${res.status}: ${res.statusText}`);
+      if (!res.ok) { lastErr = new Error(`IGDB ${res.status} (target ${i})`); console.warn('[1UP IGDB] target', i, 'returned', res.status); continue; }
       return res.json();
     } catch(e) {
-      const isNetwork = e instanceof TypeError || e.message.includes('Failed to fetch') || e.message.includes('NetworkError');
-      if (i < apiUrls.length-1 && isNetwork) continue; // try proxy
-      throw e;
+      if (e.message?.includes('token expired')) throw e; // auth error — don't retry
+      lastErr = e;
+      console.warn('[1UP IGDB] target', i, 'failed:', e.message);
+      // continue to next target regardless of error type
     }
   }
+  throw Object.assign(new Error('IGDB unreachable — ' + lastErr?.message), { isCors: true });
 }
 const IGDB_FIELDS = 'name,cover.image_id,screenshots.image_id,platforms.name,first_release_date,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,genres.name,summary,slug,aggregated_rating,time_to_beat.hastily,time_to_beat.normally,time_to_beat.completely';
 async function igdbSearch(title) {
