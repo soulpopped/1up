@@ -2684,9 +2684,10 @@ function renderPreviewRow(idx) {
   }
 
   // Col 3: two-title display in re-match mode, plain csvTitle in import mode
+  const rematchLine2=[p.year?String(p.year):null, (p.displayTitle&&p.displayTitle!==p.storedTitle)?p.displayTitle:null].filter(Boolean).join(' · ')||'—';
   const titleCell=_previewMode==='rematch'
     ? `<div style="font-size:.82rem;color:var(--text)">${escHtml(p.storedTitle||p.csvTitle)}</div>
-       <div style="font-size:.7rem;color:var(--text-muted)">${escHtml(p.displayTitle||'—')}</div>
+       <div style="font-size:.7rem;color:var(--text-muted)">${escHtml(rematchLine2)}</div>
        <div style="font-size:.65rem;color:var(--text-dim);margin-top:2px">${p.csvPlatforms.join(', ')||'—'}</div>`
     : `${escHtml(p.csvTitle)}<br><span style="font-size:.65rem;color:var(--text-dim)">${p.csvPlatforms.join(', ')||'—'}</span>`;
 
@@ -2875,7 +2876,7 @@ async function bulkRematch() {
       // Other errors: log and continue with no match
     }
     console.log('[1UP IGDB]', title, '→', igdbResults.length, 'results, confidence:', confidence);
-    _previewRows.push({ csvTitle:game.displayTitle||game.title, storedTitle:game.title, displayTitle:game.displayTitle||null, csvPlatforms:game.userPlatforms||[], igdbResults, selectedIdx, include:confidence!=='none', confidence, rematchGameId:game.id });
+    _previewRows.push({ csvTitle:game.displayTitle||game.title, storedTitle:game.title, displayTitle:game.displayTitle||null, year:game.year||null, csvPlatforms:game.userPlatforms||[], igdbResults, selectedIdx, include:confidence!=='none', confidence, rematchGameId:game.id });
     renderPreviewRow(_previewRows.length-1);
     statusEl.textContent=`${i+1} / ${toRematch.length} searched…`;
     updatePreviewCount();
