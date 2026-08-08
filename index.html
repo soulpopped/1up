@@ -170,16 +170,16 @@
   .status-pill[data-status="playing"].active{border-color:var(--s-playing);color:var(--s-playing);background:rgba(74,222,128,.12)}
   .status-pill[data-status="completed"].active{border-color:var(--s-completed);color:var(--s-completed);background:rgba(96,165,250,.12)}
 
-  /* GRID — landscape 16/9 cards */
+  /* GRID — portrait 2/3 cards */
   #grid-wrap{padding-top:calc(var(--header-height) + var(--safe-top) + 8px)}
-  #game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;padding:10px 10px 80px}
+  #game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:10px 10px 80px}
   .game-card{position:relative;cursor:pointer;border-radius:2px;overflow:hidden;background:var(--surface2);transition:transform .15s,box-shadow .15s}
   .game-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
   .game-card.selected-card{outline:2px solid var(--accent)}
   /* image wrapper keeps badges + fix-btn scoped to image area */
   .card-img-wrap{position:relative;overflow:hidden}
-  .card-cover{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
-  .card-cover-placeholder{width:100%;aspect-ratio:16/9;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:var(--text-dim)}
+  .card-cover{width:100%;aspect-ratio:2/3;object-fit:cover;display:block}
+  .card-cover-placeholder{width:100%;aspect-ratio:2/3;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:var(--text-dim)}
   /* fix button — appears on hover */
   .card-fix-btn{position:absolute;top:6px;left:6px;display:none;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.18);color:#ccc;border-radius:2px;padding:3px 8px;font-size:.6rem;letter-spacing:.08em;cursor:pointer;font-family:inherit;z-index:2;text-transform:uppercase}
   .game-card:hover .card-fix-btn{display:block}
@@ -241,6 +241,15 @@
   .modal-overview{font-size:1.05rem;line-height:1.7;color:var(--text-muted);font-style:italic;border-top:1px solid var(--border);padding-top:12px;margin-top:6px;margin-bottom:6px}
   .modal-close{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;color:#ccc;transition:all .15s;z-index:1}
   .modal-close:hover{background:rgba(0,0,0,.8);color:#fff}
+  /* portrait cover thumb shown beside platform row in modal body */
+  .modal-portrait-thumb{width:56px;height:80px;object-fit:cover;border-radius:2px;flex-shrink:0;display:block;border:1px solid var(--border)}
+  /* screenshot gallery strip */
+  .screenshot-gallery{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-top:12px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+  .screenshot-gallery::-webkit-scrollbar{height:3px}
+  .screenshot-gallery::-webkit-scrollbar-track{background:transparent}
+  .screenshot-gallery::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  .screenshot-gallery img{width:213px;height:120px;object-fit:cover;border-radius:2px;flex-shrink:0;scroll-snap-align:start;border:1px solid var(--border);cursor:pointer;transition:border-color .15s}
+  .screenshot-gallery img:hover{border-color:var(--text-dim)}
   .modal-nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.48);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;z-index:5;transition:background .15s,color .15s;padding:0;line-height:1}
   .modal-nav-btn:hover{background:rgba(0,0,0,.82);color:#fff;border-color:rgba(255,255,255,.4)}
   .modal-nav-btn:disabled{opacity:.18;cursor:default;pointer-events:none}
@@ -295,7 +304,7 @@
   /* RANDOM */
   #random-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:250;align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:24px}
   #random-overlay.active{display:flex}
-  #random-cover{width:280px;aspect-ratio:16/9;object-fit:cover;border-radius:2px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+  #random-cover{width:180px;aspect-ratio:2/3;object-fit:cover;border-radius:2px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
   #random-title{font-family:'DM Serif Display',serif;font-size:1.6rem;text-align:center;max-width:400px}
   #random-meta{font-size:.72rem;color:var(--text-muted);text-align:center}
   .random-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
@@ -337,7 +346,7 @@
   #plat-filter-btn.has-filter{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
 
   @media(max-width:600px){
-    #game-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+    #game-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
     .modal-banner-img{max-height:180px}
     .modal-title{font-size:1.3rem}
     /* uniform button heights in header row 1 */
@@ -369,8 +378,8 @@
   .preview-table th{font-size:.8rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);padding:12px 16px;border-bottom:1px solid var(--border);text-align:left;position:sticky;top:0;background:var(--bg);z-index:1}
   .preview-table td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;font-size:1rem}
   .preview-row-skip{opacity:.4}
-  .preview-thumb{width:88px;height:50px;object-fit:cover;border-radius:2px;display:block;background:var(--surface2)}
-  .preview-thumb-placeholder{width:88px;height:50px;background:var(--surface2);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--text-dim)}
+  .preview-thumb{width:40px;height:57px;object-fit:cover;border-radius:2px;display:block;background:var(--surface2)}
+  .preview-thumb-placeholder{width:40px;height:57px;background:var(--surface2);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--text-dim)}
   .conf-badge{display:inline-block;padding:4px 10px;border-radius:3px;font-size:.8rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
   .conf-high{background:rgba(74,222,128,.15);color:#4ade80;border:1px solid rgba(74,222,128,.3)}
   .conf-medium{background:rgba(251,191,36,.12);color:#d97706;border:1px solid rgba(251,191,36,.3)}
@@ -386,7 +395,7 @@
   .preview-swap-results{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;margin-top:8px}
   .preview-swap-result-row{display:flex;align-items:center;gap:10px;padding:7px;cursor:pointer;border-radius:3px;transition:background .1s}
   .preview-swap-result-row:hover{background:var(--accent-dim)}
-  .preview-swap-result-row img{width:88px;height:50px;object-fit:cover;border-radius:2px}
+  .preview-swap-result-row img{width:40px;height:57px;object-fit:cover;border-radius:2px}
 
   /* IMPORT SUMMARY MODAL */
   #import-summary-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:700;align-items:center;justify-content:center}
@@ -619,6 +628,12 @@
       <input type="file" id="backup-file-input" accept=".json" style="display:none" onchange="restoreBackup(event)">
     </div>
     <div id="backup-status" style="font-size:.7rem;color:var(--text-muted);min-height:18px;margin-top:8px;font-style:italic"></div>
+    <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px">
+      <div class="section-label">Refresh from IGDB</div>
+      <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px;line-height:1.7">Re-fetch covers, screenshots, summaries, and metadata for all IGDB-sourced games. Your platforms, status, personal ratings, notes, and beat dates are never touched.</div>
+      <button class="btn" onclick="runIGDBRefresh()" style="font-size:.68rem;padding:8px 14px">↺ Refresh All from IGDB</button>
+      <div id="refresh-status" style="font-size:.7rem;color:var(--text-muted);min-height:18px;margin-top:8px;font-style:italic"></div>
+    </div>
     <div id="danger-section" style="display:none;margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
       <div class="section-label">Danger Zone</div>
       <button class="btn-danger" onclick="resetAllStatus()" style="width:auto;padding:8px 14px;font-size:.68rem">↺ Reset All Progress to Unplayed</button>
@@ -842,7 +857,7 @@
 <!-- RANDOM PICKER -->
 <div id="random-overlay">
   <img id="random-cover" src="" alt="" style="display:none">
-  <div id="random-cover-placeholder" style="width:280px;aspect-ratio:16/9;background:var(--surface2);border-radius:2px;display:none;align-items:center;justify-content:center;font-size:3rem;color:var(--text-dim)">🎮</div>
+  <div id="random-cover-placeholder" style="width:180px;aspect-ratio:2/3;background:var(--surface2);border-radius:2px;display:none;align-items:center;justify-content:center;font-size:3rem;color:var(--text-dim)">🎮</div>
   <div id="random-title"></div>
   <div id="random-meta"></div>
   <div class="random-btns">
@@ -1143,20 +1158,22 @@ async function igdbFetch(body) {
 }
 async function igdbSearch(title) {
   const q = title.replace(/"/g,"'").slice(0,80);
-  return igdbFetch(`search "${q}"; fields name,cover.image_id,screenshots.image_id,platforms.name,first_release_date,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,genres.name,summary,slug; limit 8;`);
+  return igdbFetch(`search "${q}"; fields name,cover.image_id,screenshots.image_id,platforms.name,first_release_date,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,genres.name,summary,slug,aggregated_rating,time_to_beat.hastily,time_to_beat.normally,time_to_beat.completely; limit 8;`);
 }
 async function igdbFetchById(id) {
-  const rows = await igdbFetch(`fields name,cover.image_id,screenshots.image_id,platforms.name,first_release_date,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,genres.name,summary,slug; where id = ${id}; limit 1;`);
+  const rows = await igdbFetch(`fields name,cover.image_id,screenshots.image_id,platforms.name,first_release_date,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,genres.name,summary,slug,aggregated_rating,time_to_beat.hastily,time_to_beat.normally,time_to_beat.completely; where id = ${id}; limit 1;`);
   if (!rows?.length) throw new Error(`No game found with IGDB ID ${id}`);
   return rows[0];
 }
 
-function igdbCoverUrl(r, size='screenshot_big') {
-  const sid = r?.screenshots?.[0]?.image_id;
+// Portrait cover URL for grid cards and thumbnails (2:3)
+function igdbCoverUrl(r) {
   const cid = r?.cover?.image_id;
-  if (size === 'screenshot_big')  return sid ? `${IGDB_IMG}/t_screenshot_big/${sid}.jpg`  : cid ? `${IGDB_IMG}/t_cover_big/${cid}.jpg`  : null;
-  if (size === 'screenshot_huge') return sid ? `${IGDB_IMG}/t_screenshot_huge/${sid}.jpg` : cid ? `${IGDB_IMG}/t_cover_big_2x/${cid}.jpg` : null;
-  return null;
+  return cid ? `${IGDB_IMG}/t_cover_big/${cid}.jpg` : null;
+}
+// Screenshot URL — used in modal banner and gallery
+function igdbShotUrl(imageId, size='screenshot_big') {
+  return imageId ? `${IGDB_IMG}/t_${size}/${imageId}.jpg` : null;
 }
 
 function igdbMatchConfidence(searchTitle, result) {
@@ -1173,8 +1190,10 @@ function igdbMatchConfidence(searchTitle, result) {
 }
 
 function buildGameFromIGDB(r, csvData, userPlatforms, confidence) {
-  const cover   = igdbCoverUrl(r, 'screenshot_big');
-  const coverLg = igdbCoverUrl(r, 'screenshot_huge');
+  const cid = r?.cover?.image_id;
+  const cover   = cid ? `${IGDB_IMG}/t_cover_big/${cid}.jpg`    : null;  // portrait 264×374
+  const coverLg = cid ? `${IGDB_IMG}/t_cover_big_2x/${cid}.jpg` : null;  // portrait 528×748
+  const screenshots = (r.screenshots||[]).map(s=>s.image_id);             // IDs only
   const year = r.first_release_date ? new Date(r.first_release_date*1000).getFullYear() : null;
   const devCo = r.involved_companies?.find(c=>c.developer);
   const pubCo = r.involved_companies?.find(c=>c.publisher);
@@ -1183,18 +1202,23 @@ function buildGameFromIGDB(r, csvData, userPlatforms, confidence) {
   const genres = (r.genres||[]).map(g=>g.name);
   const apiPlatforms = (r.platforms||[]).map(p=>p.name);
   const igdbId = String(r.id);
+  // time_to_beat: IGDB values are in seconds; convert to hours (1 decimal)
+  const ttb = r.time_to_beat;
+  const toHr = s => s ? Math.round(s/360)/10 : null;
   return {
     id:igdbId, igdbId, rawgId:null, rawgSlug:null,
     searchTitle:csvData?.title||r.name, title:r.name,
     displayTitle:null, sortTitle:null,
-    cover, coverLg, customCover:null,
+    cover, coverLg, screenshots, customCover:null,
     year,
-    summary:r.summary ? r.summary.slice(0,600) : null,
+    summary: r.summary || null,                          // no character cap
     developer, publisher, genres,
     igdbPlatforms:apiPlatforms, rawgPlatforms:apiPlatforms,
     userPlatforms:userPlatforms||[],
-    rating:csvData?.metacritic||null,
-    hltbMain:csvData?.hltbMain||null, hltbExtra:csvData?.hltbExtra||null, hltbComplete:csvData?.hltbComplete||null,
+    rating: csvData?.metacritic || (r.aggregated_rating ? Math.round(r.aggregated_rating) : null) || null,
+    hltbMain:     csvData?.hltbMain     || toHr(ttb?.normally)   || null,
+    hltbExtra:    csvData?.hltbExtra                             || null,
+    hltbComplete: csvData?.hltbComplete || toHr(ttb?.completely) || null,
     yearBeaten:csvData?.yearBeaten||null, beatYears:csvData?.beatYears||[],
     notes:csvData?.notes||null,
     dateAdded:new Date().toISOString(), notFound:false,
@@ -1409,7 +1433,7 @@ async function searchIGDBUI() {
     resultsEl.style.display='block';
     resultsEl.innerHTML=results.map((r,i)=>{
       const yr=r.first_release_date?new Date(r.first_release_date*1000).getFullYear():'?';
-      const thumb=igdbCoverUrl(r,'screenshot_big');
+      const thumb=igdbCoverUrl(r);
       const genres=(r.genres||[]).map(g=>g.name).slice(0,2).join(', ');
       return `<div class="search-result" onclick="selectSearchResult(${i},this)">
         <div class="search-result-cover">${thumb?`<img src="${escHtml(thumb)}" alt="" loading="lazy" style="width:40px;height:56px;object-fit:cover;border-radius:1px">`:'<div class="no-cover">🎮</div>'}</div>
@@ -1858,8 +1882,24 @@ function openModal(game) {
   currentModalGameId=game.id;
   modalGameList=[...filteredGames]; modalGameIdx=modalGameList.findIndex(g=>String(g.id)===String(game.id));
   const status=getGameStatus(game.id);
-  const cover=game.customCover||game.coverLg||game.cover;
   const title=game.displayTitle||game.title;
+
+  // Banner: prefer IGDB screenshots for a cinematic wide image; fallback to cover/custom
+  const hasShotArr = Array.isArray(game.screenshots) && game.screenshots.length > 0;
+  const bannerSrc = hasShotArr
+    ? `${IGDB_IMG}/t_screenshot_huge/${game.screenshots[0]}.jpg`
+    : (game.customCover || game.coverLg || game.cover);
+  // Portrait cover thumbnail shown beside platform row (only when we also have screenshots)
+  const portraitSrc = game.customCover || game.cover;
+  const portraitThumbHTML = portraitSrc && hasShotArr
+    ? `<img class="modal-portrait-thumb" src="${escHtml(portraitSrc)}" alt="${escHtml(title)}" onerror="this.style.display='none'">`
+    : '';
+  // Screenshot gallery: remaining shots after banner (index 1+)
+  const galleryIds = hasShotArr ? game.screenshots.slice(1) : [];
+  const galleryHTML = galleryIds.length
+    ? `<div class="screenshot-gallery">${galleryIds.map(id=>`<img src="${IGDB_IMG}/t_screenshot_big/${id}.jpg" loading="lazy" alt="screenshot" onclick="window.open('${IGDB_IMG}/t_screenshot_huge/${id}.jpg','_blank')" title="Open full size">`).join('')}</div>`
+    : '';
+
   const platBadges=(game.userPlatforms||[]).map(p=>platBadgeHTML(p,true)).join('');
   const statusBtns=READ_ONLY?'':Object.entries(STATUS_CONFIG).map(([key,cfg])=>
     `<button class="status-btn ${status===key?`active-${key}`:''}" onclick="setGameStatus('${escJs(String(game.id))}','${key}',this)">${cfg.label}</button>`
@@ -1877,8 +1917,8 @@ function openModal(game) {
   const subText=escHtml([game.year,game.developer].filter(Boolean).join(' · '));
   const navPrev=`<button class="modal-nav-btn modal-nav-prev" onclick="modalNavPrev()" ${modalGameIdx<=0?'disabled':''}">‹</button>`;
   const navNext=`<button class="modal-nav-btn modal-nav-next" onclick="modalNavNext()" ${modalGameIdx>=modalGameList.length-1?'disabled':''}">›</button>`;
-  const bannerHTML=cover
-    ? `<div class="modal-banner"><img class="modal-banner-img" src="${escHtml(cover)}" alt="${escHtml(title)}" onerror="this.style.display='none'"><div class="modal-banner-overlay"><div class="modal-title">${escHtml(title)}</div>${subText?`<div class="modal-sub">${subText}</div>`:''}</div>${navPrev}${navNext}</div>`
+  const bannerHTML=bannerSrc
+    ? `<div class="modal-banner"><img class="modal-banner-img" src="${escHtml(bannerSrc)}" alt="${escHtml(title)}" onerror="this.style.display='none'"><div class="modal-banner-overlay"><div class="modal-title">${escHtml(title)}</div>${subText?`<div class="modal-sub">${subText}</div>`:''}</div>${navPrev}${navNext}</div>`
     : `<div class="modal-banner modal-banner-empty"><div><div class="modal-title" style="color:var(--text)">${escHtml(title)}</div>${subText?`<div class="modal-sub" style="color:var(--text-muted)">${subText}</div>`:''}</div>${navPrev}${navNext}</div>`;
 
   // Beat years — deduped, sorted
@@ -1887,7 +1927,7 @@ function openModal(game) {
     ? `<div class="modal-beaten-years"><span class="modal-beaten-label">Beaten</span><span class="modal-beaten-vals">${beatYearsArr.join(' · ')}</span></div>`
     : '';
 
-  // Unified meta row: Year + MC + HLTB — same font, color variations
+  // Unified meta row: Year + MC + HLTB
   const metaRowHTML=`<div class="modal-meta-row">
     ${game.year    ?`<div class="modal-meta-item"><div class="modal-meta-label">Year</div><div class="modal-meta-value">${game.year}</div></div>`:''}
     ${game.rating  ?`<div class="modal-meta-item"><div class="modal-meta-label">Metacritic</div><div class="modal-meta-value" style="color:var(--accent)">${game.rating}</div></div>`:''}
@@ -1897,14 +1937,14 @@ function openModal(game) {
     ${game.myRating?`<div class="modal-meta-item"><div class="modal-meta-label">My Rating</div><div style="display:flex;gap:2px;align-items:center;padding-top:2px">${myRatingStarsHTML(game.myRating)}</div></div>`:''}
   </div>`;
 
-  // Genres + multiplayer + motion all in one pill row (flags use same style as genres)
+  // Genres + flags
   const genresHTML=`<div class="modal-genres">
     ${(game.genres||[]).map(g=>`<span class="genre-pill">${escHtml(g)}</span>`).join('')}
     ${game.multiplayerOnly?`<span class="genre-pill">👥 Multiplayer Only</span>`:''}
     ${game.motionGame?`<span class="genre-pill">🕹 Motion</span>`:''}
   </div>`;
 
-  // Notes right-column (beside platform row only)
+  // Notes callout
   const notesColHTML=game.notes?`<div class="modal-notes-col">
     <div class="modal-notes-label">Notes</div>
     <div class="modal-notes-callout">${escHtml(game.notes)}</div>
@@ -1915,8 +1955,9 @@ function openModal(game) {
     <button class="modal-close" onclick="closeModal()">✕</button>
     ${verifyBanner}
     <div class="modal-body">
-      <div style="display:flex;gap:20px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:14px">
-        <div style="flex:1;min-width:0;display:flex;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;gap:14px;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:14px">
+        ${portraitThumbHTML}
+        <div style="flex:1;min-width:0;display:flex;align-items:center;flex-wrap:wrap;gap:0">
           ${platBadges?`<div class="modal-platforms" style="margin-bottom:0">${platBadges}</div>`:''}
           ${beatYearsHTML}
         </div>
@@ -1925,7 +1966,8 @@ function openModal(game) {
       ${metaRowHTML}
       ${genresHTML}
       ${devCredits?`<div class="modal-credits">${devCredits}</div>`:''}
-      ${game.summary?`<div class="modal-overview">${escHtml(game.summary.slice(0,300))}${game.summary.length>300?'…':''}</div>`:''}
+      ${game.summary?`<div class="modal-overview">${escHtml(game.summary)}</div>`:''}
+      ${galleryHTML}
     </div>
     <div class="modal-status-row">${statusBtns}</div>
     <div class="modal-actions">
@@ -2039,7 +2081,7 @@ function openFixModal(id) {
   document.getElementById('fix-display-title').value=game.displayTitle||'';
   document.getElementById('fix-sort-title').value=game.sortTitle||'';
   document.getElementById('fix-title-input').value=game.searchTitle||game.title||'';
-  document.getElementById('fix-rawgid-input').value='';
+  document.getElementById('fix-igdbid-input').value='';
   document.getElementById('fix-art-url').value='';
   document.getElementById('fix-refetch-results').innerHTML='';
   document.getElementById('fix-status').textContent='';
@@ -2124,7 +2166,7 @@ function showFixResults(results) {
   if (!results?.length) { el.innerHTML='<div style="font-size:.72rem;color:var(--text-dim)">No results.</div>'; return; }
   el.innerHTML=results.slice(0,6).map((r,i)=>{
     const yr=r.first_release_date?new Date(r.first_release_date*1000).getFullYear():'?';
-    const thumb=igdbCoverUrl(r,'screenshot_big');
+    const thumb=igdbCoverUrl(r);
     return `<div class="search-result" onclick="applyFixResult(${i})" style="margin-bottom:6px">
       <div class="search-result-cover">${thumb?`<img src="${escHtml(thumb)}" alt="" style="width:40px;height:56px;object-fit:cover;border-radius:1px">`:'<div class="no-cover">🎮</div>'}</div>
       <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr} · IGDB ID: ${r.id}</div></div>
@@ -2514,7 +2556,7 @@ function renderPreviewRow(idx) {
   } else {
     const r=p.igdbResults[p.selectedIdx];
     const yr=r.first_release_date?new Date(r.first_release_date*1000).getFullYear():'?';
-    const thumb=igdbCoverUrl(r,'screenshot_big');
+    const thumb=igdbCoverUrl(r);
     thumbHTML=thumb?`<img class="preview-thumb" src="${escHtml(thumb)}" loading="lazy">`:`<div class="preview-thumb-placeholder">🎮</div>`;
     const swapBtn=p.igdbResults.length>1?`<button class="preview-swap-btn" onclick="openPreviewSwap(${idx})">⇄ Swap</button>`:'';
     matchHTML=`<div style="display:flex;align-items:flex-start;gap:6px"><div><div class="preview-match-title">${escHtml(r.name)}</div><div class="preview-match-meta">${yr} · IGDB #${r.id}</div></div>${swapBtn}</div>`;
@@ -2560,9 +2602,9 @@ function openPreviewSwap(idx) {
   swapDiv=document.createElement('div'); swapDiv.className='preview-swap-results';
   swapDiv.innerHTML=p.igdbResults.map((r,i)=>{
     const yr=r.first_release_date?new Date(r.first_release_date*1000).getFullYear():'?';
-    const thumb=igdbCoverUrl(r,'screenshot_big');
+    const thumb=igdbCoverUrl(r);
     return `<div class="preview-swap-result-row" onclick="applyPreviewSwap(${idx},${i})">
-      ${thumb?`<img src="${escHtml(thumb)}" loading="lazy">`:`<div class="preview-thumb-placeholder" style="width:88px;height:50px">🎮</div>`}
+      ${thumb?`<img src="${escHtml(thumb)}" loading="lazy">`:`<div class="preview-thumb-placeholder">🎮</div>`}
       <div><div style="font-size:1rem;color:var(--text)">${escHtml(r.name)}</div><div style="font-size:.85rem;color:var(--text-dim)">${yr} · IGDB #${r.id}</div></div>
       ${i===p.selectedIdx?'<span style="color:var(--accent);font-size:.85rem;margin-left:auto">✓ current</span>':''}
     </div>`;
@@ -2740,101 +2782,37 @@ function openRematch(id) {
   }, 150);
 }
 
-// ── BOOT ───────────────────────────────────────────────────────────────────────
-(function boot() {
-  if(READ_ONLY) {
-    document.getElementById('gate').style.display='none';
-    init().catch(e=>console.error('Public load error:',e));
+// ── REFRESH FROM IGDB ─────────────────────────────────────────────────────────
+async function runIGDBRefresh() {
+  const toRefresh = games.filter(g => g.igdbId);
+  if (!toRefresh.length) {
+    const el = document.getElementById('refresh-status');
+    if (el) { el.textContent = 'No IGDB-sourced games to refresh.'; el.style.color = 'var(--text-muted)'; }
     return;
   }
-  const stored=localStorage.getItem(HASH_KEY);
-  if (stored&&parseInt(stored)===PASS_HASH) {
-    document.getElementById('gate').style.display='none';
-    init().catch(e=>{ document.getElementById('gate').style.display=''; document.getElementById('gate-error').textContent='Session error — please log in again.'; localStorage.removeItem(HASH_KEY); });
-  }
-})();
-</script>
-<!-- MARK PLAYED MODAL -->
-<div id="mark-played-overlay" onclick="if(event.target===this)closeMarkPlayedModal()">
-  <div id="mark-played-content">
-    <div class="mark-played-title">Mark as Played</div>
-    <div id="mark-played-game-name"></div>
-    <div class="mark-played-label">Finish Date (optional)</div>
-    <input type="date" id="mark-played-date" onkeydown="if(event.key==='Enter')confirmMarkPlayed()">
-    <div class="mark-played-label">My Rating (optional)</div>
-    <div id="mark-played-stars-row">
-      <div class="star-row-1up" id="mark-played-stars">
-        <button class="star-btn-1up" data-val="1" onclick="setMarkPlayedRating(1,event)">★</button>
-        <button class="star-btn-1up" data-val="2" onclick="setMarkPlayedRating(2,event)">★</button>
-        <button class="star-btn-1up" data-val="3" onclick="setMarkPlayedRating(3,event)">★</button>
-        <button class="star-btn-1up" data-val="4" onclick="setMarkPlayedRating(4,event)">★</button>
-        <button class="star-btn-1up" data-val="5" onclick="setMarkPlayedRating(5,event)">★</button>
-      </div>
-      <button class="btn" onclick="setMarkPlayedRating(0,null)" style="font-size:.65rem;padding:3px 8px;margin-left:8px">Clear</button>
-    </div>
-    <div class="mark-played-btns">
-      <button class="btn btn-accent" style="flex:1" onclick="confirmMarkPlayed()">✓ Mark Played</button>
-      <button class="btn" onclick="closeMarkPlayedModal()">Cancel</button>
-    </div>
-  </div>
-</div>
+  if (!confirm(`Refresh ${toRefresh.length} IGDB-sourced game${toRefresh.length!==1?'s':''}?\n\nUpdates covers, screenshots, summaries, ratings, and HLTB estimates from IGDB. Your platforms, status, personal ratings, notes, and beat dates are never changed.`)) return;
 
-<!-- IMPORT PREVIEW MODAL -->
-<div id="import-preview-overlay">
-  <div id="import-preview-header">
-    <span id="import-preview-title">Preview Import</span>
-    <span id="import-preview-searching" style="font-size:.9rem;color:var(--text-muted)"></span>
-    <button class="btn" onclick="closeImportPreview()" style="font-size:.9rem;padding:8px 16px">Cancel</button>
-  </div>
-  <div id="import-preview-body">
-    <table class="preview-table">
-      <thead>
-        <tr>
-          <th style="width:40px"><input type="checkbox" id="preview-select-all" class="preview-include-cb" onchange="previewToggleAll(this.checked)" title="Select all"></th>
-          <th style="width:100px">Art</th>
-          <th>CSV Title</th>
-          <th>IGDB Match</th>
-          <th style="width:80px">Confidence</th>
-          <th style="width:90px">Platform</th>
-        </tr>
-      </thead>
-      <tbody id="preview-table-body"></tbody>
-    </table>
-  </div>
-  <div id="import-preview-footer">
-    <span id="import-preview-count"></span>
-    <button class="btn" onclick="previewSelectConfident()" style="font-size:.9rem;padding:10px 18px">✓ Select High+Medium</button>
-    <button class="btn btn-accent" id="import-preview-confirm-btn" onclick="confirmImport()" style="font-size:1rem;padding:11px 22px">Import Selected</button>
-  </div>
-</div>
+  showProgress('Refreshing from IGDB', `0 / ${toRefresh.length}`);
+  let done = 0, updatedNames = [], errors = [];
+  const toHr = s => s ? Math.round(s/360)/10 : null;
 
-<!-- IMPORT SUMMARY MODAL -->
-<div id="import-summary-overlay">
-  <div id="import-summary-box">
-    <div id="import-summary-header">
-      <span id="import-summary-headline">Import Complete</span>
-      <span id="import-summary-subline"></span>
-    </div>
-    <div id="import-summary-body"></div>
-    <div id="import-summary-footer">
-      <button class="btn" id="import-summary-review-btn" onclick="closeImportSummary(true)" style="display:none">Go to ⚠ Review</button>
-      <button class="btn btn-accent" onclick="closeImportSummary(false)">Done</button>
-    </div>
-  </div>
-</div>
-
-<!-- PLATFORM FILTER PANEL -->
-<div id="plat-filter-panel" onclick="event.stopPropagation()"></div>
-
-<!-- HLTB FILTER PANEL -->
-<div id="hltb-panel" onclick="event.stopPropagation()">
-  <label class="hltb-check-label"><input type="checkbox" value="5" onchange="toggleHltbFilter('5')"> Under 5h</label>
-  <label class="hltb-check-label"><input type="checkbox" value="15" onchange="toggleHltbFilter('15')"> 5–15h</label>
-  <label class="hltb-check-label"><input type="checkbox" value="30" onchange="toggleHltbFilter('30')"> 15–30h</label>
-  <label class="hltb-check-label"><input type="checkbox" value="30plus" onchange="toggleHltbFilter('30plus')"> 30h+</label>
-  <label class="hltb-check-label"><input type="checkbox" value="missing" onchange="toggleHltbFilter('missing')"> No data</label>
-  <div style="margin-top:8px"><button class="btn" onclick="clearHltbFilter()" style="font-size:.66rem;padding:6px 12px">Clear</button></div>
-</div>
-
-</body>
-</html>
+  for (const game of toRefresh) {
+    setProgress(`${game.displayTitle||game.title}`, Math.round(done/toRefresh.length*100));
+    try {
+      const r = await igdbFetchById(parseInt(game.igdbId));
+      const i = games.findIndex(g=>g.id===game.id);
+      if (i >= 0) {
+        const cid = r?.cover?.image_id;
+        // Update IGDB-sourced fields — never touch user data
+        if (cid) {
+          games[i].cover   = `${IGDB_IMG}/t_cover_big/${cid}.jpg`;
+          games[i].coverLg = `${IGDB_IMG}/t_cover_big_2x/${cid}.jpg`;
+        }
+        games[i].screenshots = (r.screenshots||[]).map(s=>s.image_id);
+        if (r.name)           games[i].title      = r.name;
+        if (r.summary)        games[i].summary    = r.summary;
+        if (r.first_release_date) games[i].year   = new Date(r.first_release_date*1000).getFullYear();
+        const devCo = r.involved_companies?.find(c=>c.developer);
+        const pubCo = r.involved_companies?.find(c=>c.publisher);
+        if (devCo?.company?.name) games[i].developer = devCo.company.name;
+        if (pubCo?.company?.name) game
