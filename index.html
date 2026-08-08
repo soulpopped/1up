@@ -1073,44 +1073,53 @@ async function sbDeleteGame(id) {
 }
 
 // ── IGDB ───────────────────────────────────────────────────────────────────────
+// api.igdb.com blocks direct browser CORS — we fall back to corsproxy.io automatically.
+const IGDB_PROXY = 'https://corsproxy.io/?url=';
+
 async function igdbGetToken() {
   const c = JSON.parse(localStorage.getItem('igdb_token')||'{}');
   if (c.token && c.exp > Date.now()) return c.token;
-  // Try auto-fetch (requires Twitch to allow CORS — works in most browsers)
-  try {
-    const res = await fetch('https://id.twitch.tv/oauth2/token', {
-      method:'POST',
-      body: new URLSearchParams({ client_id:IGDB_CLIENT_ID, client_secret:IGDB_CLIENT_SECRET, grant_type:'client_credentials' })
-    });
-    if (!res.ok) throw new Error(`Twitch ${res.status}`);
-    const { access_token, expires_in } = await res.json();
-    localStorage.setItem('igdb_token', JSON.stringify({ token:access_token, exp:Date.now()+expires_in*1000-60000 }));
-    return access_token;
-  } catch(e) {
-    // CORS fallback — show manual token UI
-    const manual = JSON.parse(localStorage.getItem('igdb_token')||'{}');
-    if (manual.token) return manual.token; // stale but try
-    throw Object.assign(new Error('IGDB_CORS'), { isCors:true });
+  // Try direct Twitch token fetch, then proxy fallback
+  const body = new URLSearchParams({ client_id:IGDB_CLIENT_ID, client_secret:IGDB_CLIENT_SECRET, grant_type:'client_credentials' });
+  const tokenUrls = [
+    'https://id.twitch.tv/oauth2/token',
+    IGDB_PROXY + encodeURIComponent('https://id.twitch.tv/oauth2/token')
+  ];
+  for (const url of tokenUrls) {
+    try {
+      const res = await fetch(url, { method:'POST', body });
+      if (!res.ok) continue;
+      const { access_token, expires_in } = await res.json();
+      localStorage.setItem('igdb_token', JSON.stringify({ token:access_token, exp:Date.now()+expires_in*1000-60000 }));
+      return access_token;
+    } catch(e) { continue; }
   }
+  // Auto-fetch failed — use saved token if any, else prompt manual
+  if (c.token) return c.token; // stale but let the API 401 handle it
+  document.getElementById('igdb-manual-token-section').style.display='block';
+  throw Object.assign(new Error('IGDB token needed — see Settings'), { needsToken:true });
 }
+
 async function igdbFetch(body) {
-  let token;
-  try { token = await igdbGetToken(); }
-  catch(e) {
-    if (e.isCors) { document.getElementById('igdb-manual-token-section').style.display='block'; }
-    throw e;
+  const token = await igdbGetToken();
+  const headers = { 'Client-ID':IGDB_CLIENT_ID, 'Authorization':`Bearer ${token}`, 'Content-Type':'text/plain' };
+  // Try direct, then CORS proxy
+  const apiUrls = [
+    'https://api.igdb.com/v4/games',
+    IGDB_PROXY + encodeURIComponent('https://api.igdb.com/v4/games')
+  ];
+  for (let i=0; i<apiUrls.length; i++) {
+    try {
+      const res = await fetch(apiUrls[i], { method:'POST', headers, body });
+      if (res.status===401) { localStorage.removeItem('igdb_token'); throw new Error('IGDB token expired — click Test IGDB Connection to refresh.'); }
+      if (!res.ok) throw new Error(`IGDB ${res.status}: ${res.statusText}`);
+      return res.json();
+    } catch(e) {
+      const isNetwork = e instanceof TypeError || e.message.includes('Failed to fetch') || e.message.includes('NetworkError');
+      if (i < apiUrls.length-1 && isNetwork) continue; // try proxy
+      throw e;
+    }
   }
-  const res = await fetch('https://api.igdb.com/v4/games', {
-    method:'POST',
-    headers:{ 'Client-ID':IGDB_CLIENT_ID, 'Authorization':`Bearer ${token}`, 'Content-Type':'text/plain' },
-    body
-  });
-  if (res.status===401) {
-    localStorage.removeItem('igdb_token');
-    throw new Error('IGDB token expired — click Test IGDB Connection to refresh.');
-  }
-  if (!res.ok) throw new Error(`IGDB ${res.status}: ${res.statusText}`);
-  return res.json();
 }
 async function igdbSearch(title) {
   const q = title.replace(/"/g,"'").slice(0,80);
@@ -1247,14 +1256,15 @@ async function testIGDBConnection() {
     el.textContent=`✓ IGDB connected! (${results?.[0]?.name||'ok'}) · Supabase `;
     document.getElementById('igdb-manual-token-section').style.display='none';
   } catch(e) {
-    if (e.isCors) {
-      el.style.color='#d97706'; el.textContent='⚠ Auto-auth blocked by browser — use manual token below.';
+    if (e.needsToken) {
+      el.style.color='#d97706'; el.textContent='⚠ No IGDB token saved — paste one below.';
       document.getElementById('igdb-manual-token-section').style.display='block';
     } else {
-      el.style.color='var(--danger)'; el.textContent='⚠ IGDB: '+e.message+' · Supabase ';
+      el.style.color='var(--danger)'; el.textContent='⚠ IGDB: '+e.message;
+      document.getElementById('igdb-manual-token-section').style.display='block';
     }
   }
-  try { await sbFetch('games?limit=1'); el.textContent+='✓'; } catch(e) { el.textContent+='⚠ '+e.message; }
+  try { const sb=await sbFetch('games?limit=1'); el.textContent+=' · Supabase ✓'; } catch(e) { el.textContent+=' · Supabase ⚠ '+e.message; }
 }
 function saveManualIGDBToken() {
   const token = document.getElementById('igdb-manual-token-input').value.trim();
