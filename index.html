@@ -3035,7 +3035,7 @@ async function confirmGameMatch(id) {
   const remaining=games.filter(g=>g.matchConfidence==='low');
   if (remaining.length) {
     applyFilters();
-    openModal(remaining[0].id);
+    openModal(remaining[0]);
   } else {
     closeModal(); applyFilters();
     const toast=document.createElement('div');
