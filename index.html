@@ -346,6 +346,47 @@
     .header-row3-1up{justify-content:flex-start;padding-top:2px}
     #main-header{border-bottom:none}
   }
+
+  /* VERIFICATION BADGE */
+  .card-review-badge{position:absolute;top:6px;left:6px;background:rgba(234,179,8,.88);color:#000;font-size:.58rem;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:.06em;pointer-events:none;z-index:3}
+  .verify-banner{margin:10px 28px 0;padding:10px 14px;background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.4);border-radius:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .verify-banner-text{font-size:.75rem;color:#d97706;flex:1}
+  .verify-btn{padding:5px 12px;font-size:.68rem;font-family:inherit;letter-spacing:.08em;text-transform:uppercase;border-radius:2px;cursor:pointer;border:1px solid;transition:all .15s}
+  .verify-btn-confirm{background:transparent;border-color:#4ade80;color:#4ade80}
+  .verify-btn-confirm:hover{background:rgba(74,222,128,.12)}
+  .verify-btn-rematch{background:transparent;border-color:#888;color:#888}
+  .verify-btn-rematch:hover{border-color:#ccc;color:#ccc}
+
+  /* IMPORT PREVIEW MODAL */
+  #import-preview-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:600;flex-direction:column}
+  #import-preview-overlay.active{display:flex}
+  #import-preview-header{display:flex;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)}
+  #import-preview-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.1em;color:var(--accent);flex:1}
+  #import-preview-body{flex:1;overflow-y:auto;padding:0}
+  #import-preview-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-shrink:0;background:var(--surface)}
+  #import-preview-count{font-size:.72rem;color:var(--text-muted);flex:1}
+  .preview-table{width:100%;border-collapse:collapse}
+  .preview-table th{font-size:.58rem;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;position:sticky;top:0;background:var(--bg);z-index:1}
+  .preview-table td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;font-size:.82rem}
+  .preview-row-skip{opacity:.4}
+  .preview-thumb{width:48px;height:27px;object-fit:cover;border-radius:1px;display:block;background:var(--surface2)}
+  .preview-thumb-placeholder{width:48px;height:27px;background:var(--surface2);border-radius:1px;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--text-dim)}
+  .conf-badge{display:inline-block;padding:2px 7px;border-radius:2px;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .conf-high{background:rgba(74,222,128,.15);color:#4ade80;border:1px solid rgba(74,222,128,.3)}
+  .conf-medium{background:rgba(251,191,36,.12);color:#d97706;border:1px solid rgba(251,191,36,.3)}
+  .conf-low{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+  .conf-exists{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3)}
+  .conf-none{background:rgba(100,100,100,.1);color:#666;border:1px solid rgba(100,100,100,.2)}
+  .preview-match-title{color:var(--text);font-size:.82rem}
+  .preview-match-meta{color:var(--text-dim);font-size:.68rem;margin-top:1px}
+  .preview-swap-btn{background:none;border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-size:.6rem;font-family:inherit;padding:2px 7px;cursor:pointer;white-space:nowrap;transition:all .15s}
+  .preview-swap-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .preview-include-cb{accent-color:var(--accent);width:16px;height:16px;cursor:pointer}
+  /* swap results inline */
+  .preview-swap-results{background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:8px;margin-top:6px}
+  .preview-swap-result-row{display:flex;align-items:center;gap:8px;padding:5px;cursor:pointer;border-radius:2px;transition:background .1s}
+  .preview-swap-result-row:hover{background:var(--accent-dim)}
+  .preview-swap-result-row img{width:48px;height:27px;object-fit:cover;border-radius:1px}
 </style>
 </head>
 <body>
@@ -368,12 +409,12 @@
   <div class="import-actions" id="import-actions"></div>
 
   <div class="tab-bar" id="add-tabs" style="display:none">
-    <button class="tab-btn active" onclick="switchTab('search')">Search RAWG</button>
+    <button class="tab-btn active" onclick="switchTab('search')">Search IGDB</button>
     <button class="tab-btn" onclick="switchTab('manual')">Manual Entry</button>
     <button class="tab-btn" onclick="switchTab('csv')">Import CSV</button>
   </div>
 
-  <!-- Search RAWG tab -->
+  <!-- Search IGDB tab -->
   <div class="tab-pane active" id="tab-search">
     <div class="add-form-group">
       <div class="add-form-label">Platform(s) owned on</div>
@@ -424,10 +465,10 @@
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:8px">
-      <input type="text" id="rawg-search-input" placeholder="Search for a game… e.g. Hades" onkeydown="if(event.key==='Enter')searchRAWGUI()">
-      <button class="btn btn-accent" onclick="searchRAWGUI()" style="white-space:nowrap">Search</button>
+      <input type="text" id="igdb-search-input" placeholder="Search for a game… e.g. Hades" onkeydown="if(event.key==='Enter')searchIGDBUI()">
+      <button class="btn btn-accent" onclick="searchIGDBUI()" style="white-space:nowrap">Search</button>
     </div>
-    <div id="rawg-search-status" style="font-size:.72rem;color:var(--text-muted);min-height:18px;margin-bottom:6px"></div>
+    <div id="igdb-search-status" style="font-size:.72rem;color:var(--text-muted);min-height:18px;margin-bottom:6px"></div>
     <div id="search-results"></div>
     <div id="add-game-form" style="display:none;margin-top:16px">
       <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -517,8 +558,8 @@
   <!-- CSV tab -->
   <div class="tab-pane" id="tab-csv">
     <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:14px;line-height:1.6">
-      Required: <strong>Title</strong>. Optional: <strong>Platform</strong>, <strong>Metacritic</strong>, <strong>Status</strong> (unplayed/playing/completed), <strong>YearBeaten</strong>, <strong>HLTBMain</strong>, <strong>HLTBExtra</strong>, <strong>HLTBComplete</strong>.<br>
-      Each row is looked up on RAWG automatically. RAWG API key required (below).
+      Required: <strong>Title</strong>. Optional: <strong>Platform</strong>, <strong>Status</strong> (unplayed/playing/completed), <strong>Year</strong>, <strong>YearBeaten</strong>, <strong>Rating</strong>, <strong>Notes</strong>, <strong>HLTBMain</strong>, <strong>HLTBExtra</strong>, <strong>HLTBComplete</strong>.<br>
+      Each row is matched on IGDB. A <strong>preview table</strong> shows every proposed match before anything is saved — approve, swap, or skip individual rows.
     </div>
     <input type="file" id="csv-file-input" accept=".csv,.txt" onchange="handleCSVFile(event)" style="display:none">
     <button class="btn" onclick="document.getElementById('csv-file-input').click()">📂 Choose CSV File</button>
@@ -527,16 +568,25 @@
 
   <!-- Credentials -->
   <div style="margin-top:32px;border-top:1px solid var(--border);padding-top:24px">
-    <div class="section-label">RAWG API Key</div>
+    <div class="section-label">IGDB Connection</div>
     <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:14px;line-height:1.7">
-      Free at <strong>rawg.io/apidocs</strong> — click Get API key, paste below.
+      Powered by <strong>IGDB (Twitch)</strong> — credentials are built in. Click Test to verify the connection. If auto-auth fails (browser CORS), paste a manual token below.
     </div>
-    <div style="margin-bottom:12px"><label>API Key</label><input type="password" id="rawg-key-input" placeholder="Paste your RAWG API key"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-accent" onclick="saveCredentials()">Save</button>
-      <button class="btn" onclick="testCredentials()">Test Connection</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn btn-accent" onclick="testIGDBConnection()">Test IGDB Connection</button>
     </div>
-    <div id="cred-status" style="font-size:.72rem;color:var(--text-muted);margin-top:8px;min-height:18px"></div>
+    <div id="cred-status" style="font-size:.72rem;color:var(--text-muted);margin-top:4px;min-height:18px"></div>
+    <div id="igdb-manual-token-section" style="display:none;margin-top:14px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:4px">
+      <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px;line-height:1.7">
+        Auto-auth failed. Run this once in Terminal, then paste the <code>access_token</code> below (valid ~60 days):
+      </div>
+      <code style="display:block;font-size:.65rem;background:var(--bg);padding:10px;border-radius:2px;color:#8be;margin-bottom:10px;line-height:1.8;word-break:break-all">curl -s -X POST "https://id.twitch.tv/oauth2/token" -d "client_id=jmru96n62l6ccdeddyt57vqez1sslb" -d "client_secret=uzxebkou1trpkfpy7u7dpxhsnxv9jr" -d "grant_type=client_credentials"</code>
+      <label style="margin-bottom:6px">Paste access_token here</label>
+      <input type="text" id="igdb-manual-token-input" placeholder="eyJhbGciOiJSUzI1NiIs…">
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-accent" onclick="saveManualIGDBToken()" style="font-size:.72rem;padding:8px 14px">Save Token</button>
+      </div>
+    </div>
   </div>
 
   <!-- Backup -->
@@ -588,6 +638,7 @@
         <button class="status-pill" data-status="unplayed" onclick="setStatusFilter('unplayed',this)">Unplayed</button>
         <button class="status-pill" data-status="playing" onclick="setStatusFilter('playing',this)">Playing</button>
         <button class="status-pill" data-status="completed" onclick="setStatusFilter('completed',this)">Completed</button>
+        <button class="status-pill" data-status="review" onclick="setStatusFilter('review',this)" id="review-pill" style="display:none;border-color:rgba(234,179,8,.4);color:#d97706">⚠ Review</button>
         <select class="header-select" id="filter-year-beaten" onchange="applyFilters()" style="display:none;width:90px;flex-shrink:0">
           <option value="">Year</option>
         </select>
@@ -721,25 +772,25 @@
       </div>
     </div>
 
-    <!-- Action row: Save · Convert · Remove · RAWG (hidden toggle) -->
+    <!-- Action row: Save · Convert · Remove · IGDB (hidden toggle) -->
     <div class="fix-divider"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:stretch">
       <button class="btn btn-accent" onclick="saveAllEdits()" style="font-size:.75rem;padding:9px 16px">✓ Save All Edits</button>
       <button class="btn btn-accent" id="fix-save-next-btn" onclick="saveAndNext()" style="font-size:.75rem;padding:9px 12px">Save ▶</button>
       <button class="btn" onclick="unmatchGame()" style="font-size:.75rem;padding:9px 16px;border-color:var(--s-100);color:var(--s-100)">⚡ Convert to Manual Entry</button>
       <button class="btn" onclick="deleteGame()" style="font-size:.75rem;padding:9px 16px;border-color:var(--danger);color:var(--danger)">🗑 REMOVE</button>
-      <button class="btn" onclick="toggleRawgPanel()" id="fix-rawg-btn" style="font-size:.75rem;padding:9px 16px;border-color:var(--border);color:var(--text-dim)">RAWG SEARCH</button>
+      <button class="btn" onclick="toggleIGDBPanel()" id="fix-igdb-btn" style="font-size:.75rem;padding:9px 16px;border-color:var(--border);color:var(--text-dim)">IGDB SEARCH</button>
     </div>
 
-    <!-- RAWG panel — hidden until toggled -->
-    <div id="fix-rawg-panel" style="display:none;margin-top:8px">
+    <!-- IGDB panel — hidden until toggled -->
+    <div id="fix-igdb-panel" style="display:none;margin-top:8px">
       <div class="fix-row">
         <div style="flex:1;display:flex;gap:6px">
           <input type="text" id="fix-title-input" placeholder="Search by title" style="flex:1">
           <button class="btn btn-accent" onclick="fixRefetchByTitle()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px;flex-shrink:0">Search</button>
         </div>
         <div style="flex:1;display:flex;gap:6px">
-          <input type="text" id="fix-rawgid-input" placeholder="RAWG Game ID (e.g. 3498)" style="flex:1">
+          <input type="text" id="fix-igdbid-input" placeholder="IGDB Game ID (e.g. 26192)" style="flex:1">
           <button class="btn btn-accent" onclick="fixRefetchById()" style="white-space:nowrap;font-size:.7rem;padding:8px 12px;flex-shrink:0">Fetch</button>
         </div>
       </div>
@@ -822,7 +873,9 @@
 const SB_URL = 'https://lpfixzzzboopszwueidp.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZml4enp6Ym9vcHN6d3VlaWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4NDg4MjIsImV4cCI6MjA4NjQyNDgyMn0.xeX1dMHsJGVZPnMwIyZASQoVo7OWC-0Qj7Eq5V8KwW8';
 const SB_HDR = { 'Content-Type':'application/json', 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}` };
-const RAWG = 'https://api.rawg.io/api';
+const IGDB_CLIENT_ID     = 'jmru96n62l6ccdeddyt57vqez1sslb';
+const IGDB_CLIENT_SECRET = 'uzxebkou1trpkfpy7u7dpxhsnxv9jr';
+const IGDB_IMG           = 'https://images.igdb.com/igdb/image/upload';
 const HASH_KEY = 'up1_auth';
 const PASS_HASH = 90161058; // "paddington"
 const READ_ONLY = new URLSearchParams(window.location.search).has('public');
@@ -979,7 +1032,6 @@ let currentModalGameId=null, fixTargetId=null;
 let fixPlatforms=new Set(), fixFlags={multiplayer:false,motion:false}, fixOpenFamily=null;
 let fixGameList=[], fixGameIdx=-1;
 let modalGameList=[], modalGameIdx=-1;
-let rawgKey='';
 
 // ── SUPABASE ───────────────────────────────────────────────────────────────────
 async function sbFetch(path, opts={}) {
@@ -1020,49 +1072,104 @@ async function sbDeleteGame(id) {
   ]);
 }
 
-// ── RAWG ───────────────────────────────────────────────────────────────────────
-async function rawgFetch(endpoint, params={}) {
-  if (!rawgKey) throw new Error('No RAWG API key — add one in the credentials section.');
-  const qs = new URLSearchParams({key:rawgKey,...params}).toString();
-  for (let attempt=0; attempt<3; attempt++) {
-    if (attempt>0) await sleep(1500*attempt);
-    const res = await fetch(`${RAWG}/${endpoint}?${qs}`);
-    if (res.status===429) { await sleep(3000); continue; }
-    if (!res.ok) throw new Error(`RAWG ${res.status}: ${res.statusText}`);
-    const text = await res.text();
-    if (!text.trim()) { await sleep(1500); continue; }
-    try { return JSON.parse(text); } catch(e) { if(attempt===2) throw new Error('RAWG returned invalid response'); await sleep(1000); }
+// ── IGDB ───────────────────────────────────────────────────────────────────────
+async function igdbGetToken() {
+  const c = JSON.parse(localStorage.getItem('igdb_token')||'{}');
+  if (c.token && c.exp > Date.now()) return c.token;
+  // Try auto-fetch (requires Twitch to allow CORS — works in most browsers)
+  try {
+    const res = await fetch('https://id.twitch.tv/oauth2/token', {
+      method:'POST',
+      body: new URLSearchParams({ client_id:IGDB_CLIENT_ID, client_secret:IGDB_CLIENT_SECRET, grant_type:'client_credentials' })
+    });
+    if (!res.ok) throw new Error(`Twitch ${res.status}`);
+    const { access_token, expires_in } = await res.json();
+    localStorage.setItem('igdb_token', JSON.stringify({ token:access_token, exp:Date.now()+expires_in*1000-60000 }));
+    return access_token;
+  } catch(e) {
+    // CORS fallback — show manual token UI
+    const manual = JSON.parse(localStorage.getItem('igdb_token')||'{}');
+    if (manual.token) return manual.token; // stale but try
+    throw Object.assign(new Error('IGDB_CORS'), { isCors:true });
   }
-  throw new Error('RAWG rate limited — try again in a moment');
 }
-async function rawgSearch(title) {
-  const data = await rawgFetch('games', {search:title,page_size:8});
-  return data.results||[];
+async function igdbFetch(body) {
+  let token;
+  try { token = await igdbGetToken(); }
+  catch(e) {
+    if (e.isCors) { document.getElementById('igdb-manual-token-section').style.display='block'; }
+    throw e;
+  }
+  const res = await fetch('https://api.igdb.com/v4/games', {
+    method:'POST',
+    headers:{ 'Client-ID':IGDB_CLIENT_ID, 'Authorization':`Bearer ${token}`, 'Content-Type':'text/plain' },
+    body
+  });
+  if (res.status===401) {
+    localStorage.removeItem('igdb_token');
+    throw new Error('IGDB token expired — click Test IGDB Connection to refresh.');
+  }
+  if (!res.ok) throw new Error(`IGDB ${res.status}: ${res.statusText}`);
+  return res.json();
 }
-async function rawgFetchGame(id) { return rawgFetch(`games/${id}`); }
+async function igdbSearch(title) {
+  const q = title.replace(/"/g,"'").slice(0,80);
+  return igdbFetch(`search "${q}"; fields name,cover.image_id,screenshots.image_id,platforms.name,first_release_date,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,genres.name,summary,slug; limit 8;`);
+}
+async function igdbFetchById(id) {
+  const rows = await igdbFetch(`fields name,cover.image_id,screenshots.image_id,platforms.name,first_release_date,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,genres.name,summary,slug; where id = ${id}; limit 1;`);
+  if (!rows?.length) throw new Error(`No game found with IGDB ID ${id}`);
+  return rows[0];
+}
 
-function buildGameObject(result, detail, csvData, userPlatforms) {
-  const d = detail||result;
-  const developer  = d.developers?.[0]?.name||result.developers?.[0]?.name||null;
-  const publisher  = d.publishers?.[0]?.name||null;
-  const released   = d.released||result.released;
-  const year       = released ? new Date(released).getFullYear() : null;
-  const genres     = (d.genres||result.genres||[]).map(g=>g.name);
-  const cover      = d.background_image||result.background_image||null;
-  const rating     = d.metacritic||result.metacritic||null;
-  const slug       = d.slug||result.slug||null;
+function igdbCoverUrl(r, size='screenshot_big') {
+  const sid = r?.screenshots?.[0]?.image_id;
+  const cid = r?.cover?.image_id;
+  if (size === 'screenshot_big')  return sid ? `${IGDB_IMG}/t_screenshot_big/${sid}.jpg`  : cid ? `${IGDB_IMG}/t_cover_big/${cid}.jpg`  : null;
+  if (size === 'screenshot_huge') return sid ? `${IGDB_IMG}/t_screenshot_huge/${sid}.jpg` : cid ? `${IGDB_IMG}/t_cover_big_2x/${cid}.jpg` : null;
+  return null;
+}
+
+function igdbMatchConfidence(searchTitle, result) {
+  const norm = t => (t||'').toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+  const sn = norm(searchTitle), rn = norm(result.name||'');
+  if (!rn) return 'low';
+  if (sn === rn) return 'high';
+  if (sn.length > 3 && (rn.includes(sn) || sn.includes(rn))) return 'high';
+  const sw = sn.split(' ').filter(w=>w.length>1);
+  const rw = rn.split(' ');
+  const overlap = sw.filter(w=>rw.includes(w));
+  if (sw.length && overlap.length / sw.length >= 0.7) return 'medium';
+  return 'low';
+}
+
+function buildGameFromIGDB(r, csvData, userPlatforms, confidence) {
+  const cover   = igdbCoverUrl(r, 'screenshot_big');
+  const coverLg = igdbCoverUrl(r, 'screenshot_huge');
+  const year = r.first_release_date ? new Date(r.first_release_date*1000).getFullYear() : null;
+  const devCo = r.involved_companies?.find(c=>c.developer);
+  const pubCo = r.involved_companies?.find(c=>c.publisher);
+  const developer = devCo?.company?.name || null;
+  const publisher = pubCo?.company?.name || null;
+  const genres = (r.genres||[]).map(g=>g.name);
+  const apiPlatforms = (r.platforms||[]).map(p=>p.name);
+  const igdbId = String(r.id);
   return {
-    id:String(result.id), rawgId:String(result.id), rawgSlug:slug,
-    searchTitle:csvData?.title||result.name, title:result.name,
+    id:igdbId, igdbId, rawgId:null, rawgSlug:null,
+    searchTitle:csvData?.title||r.name, title:r.name,
     displayTitle:null, sortTitle:null,
-    cover, coverLg:cover, customCover:null,
-    year, summary:d.description_raw?d.description_raw.slice(0,600):null,
+    cover, coverLg, customCover:null,
+    year,
+    summary:r.summary ? r.summary.slice(0,600) : null,
     developer, publisher, genres,
-    rawgPlatforms:(d.platforms||result.platforms||[]).map(p=>p.platform.name),
-    userPlatforms:userPlatforms||[], rating,
+    igdbPlatforms:apiPlatforms, rawgPlatforms:apiPlatforms,
+    userPlatforms:userPlatforms||[],
+    rating:csvData?.metacritic||null,
     hltbMain:csvData?.hltbMain||null, hltbExtra:csvData?.hltbExtra||null, hltbComplete:csvData?.hltbComplete||null,
-    yearBeaten:csvData?.yearBeaten||null,
+    yearBeaten:csvData?.yearBeaten||null, beatYears:csvData?.beatYears||[],
+    notes:csvData?.notes||null,
     dateAdded:new Date().toISOString(), notFound:false,
+    matchSource:'igdb', matchConfidence:confidence||'high',
   };
 }
 
@@ -1084,8 +1191,6 @@ function gateSubmit() {
 // ── INIT ───────────────────────────────────────────────────────────────────────
 async function init() {
   if(READ_ONLY) document.body.classList.add('public-mode');
-  rawgKey = localStorage.getItem('rawg_key')||'';
-  if (rawgKey && !READ_ONLY) document.getElementById('rawg-key-input').value=rawgKey;
   createAppIcon();
   if(!READ_ONLY) {
     document.getElementById('import-panel').style.display='block';
@@ -1127,28 +1232,38 @@ function openApp() {
   document.getElementById('import-panel').style.display='none';
   document.getElementById('main-header').classList.add('active');
   document.getElementById('app').classList.add('active');
-  buildFilterOptions(); applyFilters(); updateStats();
+  buildFilterOptions(); applyFilters(); updateStats(); showReviewPillIfNeeded();
   const hdrEl=document.getElementById('main-header');
   if(hdrEl) new ResizeObserver(()=>document.documentElement.style.setProperty('--header-height',hdrEl.offsetHeight+'px')).observe(hdrEl);
 }
 
 // ── CREDENTIALS ────────────────────────────────────────────────────────────────
-function saveCredentials() {
-  const key=document.getElementById('rawg-key-input').value.trim();
+async function testIGDBConnection() {
   const el=document.getElementById('cred-status');
-  if (!key) { el.style.color='var(--danger)'; el.textContent='⚠ Paste your RAWG API key first.'; return; }
-  rawgKey=key; localStorage.setItem('rawg_key',key);
-  el.style.color='var(--text-muted)'; el.textContent='✓ Key saved — click Test Connection to verify.';
-}
-async function testCredentials() {
-  const el=document.getElementById('cred-status');
-  el.style.color='var(--text-muted)'; el.textContent='⟳ Testing…';
+  el.style.color='var(--text-muted)'; el.textContent='⟳ Testing IGDB…';
   try {
-    const data=await rawgFetch('games',{search:'Hades',page_size:1});
+    const results = await igdbSearch('Hades');
     el.style.color='var(--accent)';
-    el.textContent=`✓ RAWG connected! (${data.results?.[0]?.name||'ok'}) · Supabase `;
-  } catch(e) { el.style.color='var(--danger)'; el.textContent='⚠ RAWG error: '+e.message+' · Supabase '; }
+    el.textContent=`✓ IGDB connected! (${results?.[0]?.name||'ok'}) · Supabase `;
+    document.getElementById('igdb-manual-token-section').style.display='none';
+  } catch(e) {
+    if (e.isCors) {
+      el.style.color='#d97706'; el.textContent='⚠ Auto-auth blocked by browser — use manual token below.';
+      document.getElementById('igdb-manual-token-section').style.display='block';
+    } else {
+      el.style.color='var(--danger)'; el.textContent='⚠ IGDB: '+e.message+' · Supabase ';
+    }
+  }
   try { await sbFetch('games?limit=1'); el.textContent+='✓'; } catch(e) { el.textContent+='⚠ '+e.message; }
+}
+function saveManualIGDBToken() {
+  const token = document.getElementById('igdb-manual-token-input').value.trim();
+  const el = document.getElementById('cred-status');
+  if (!token) { el.style.color='var(--danger)'; el.textContent='⚠ Paste the access_token first.'; return; }
+  // Store with 60-day expiry
+  localStorage.setItem('igdb_token', JSON.stringify({ token, exp: Date.now() + 60*24*3600*1000 }));
+  el.style.color='var(--accent)'; el.textContent='✓ Token saved — click Test IGDB Connection to verify.';
+  document.getElementById('igdb-manual-token-section').style.display='none';
 }
 
 // ── TABS ───────────────────────────────────────────────────────────────────────
@@ -1242,31 +1357,33 @@ function updateFamilyBadges() {
     badge.textContent=count; badge.style.display=count?'':'none';
   }
 }
-function toggleRawgPanel() {
-  const panel=document.getElementById('fix-rawg-panel');
-  const btn=document.getElementById('fix-rawg-btn');
+function toggleIGDBPanel() {
+  const panel=document.getElementById('fix-igdb-panel');
+  const btn=document.getElementById('fix-igdb-btn');
   const open=panel.style.display==='none';
   panel.style.display=open?'block':'none';
   btn.style.opacity=open?'1':'.55';
 }
 
-// ── RAWG SEARCH (ADD TAB) ──────────────────────────────────────────────────────
-async function searchRAWGUI() {
-  const query=document.getElementById('rawg-search-input').value.trim(); if(!query) return;
-  const statusEl=document.getElementById('rawg-search-status');
+// ── IGDB SEARCH (ADD TAB) ──────────────────────────────────────────────────────
+async function searchIGDBUI() {
+  const query=document.getElementById('igdb-search-input').value.trim(); if(!query) return;
+  const statusEl=document.getElementById('igdb-search-status');
   const resultsEl=document.getElementById('search-results');
-  statusEl.textContent='⟳ Searching…'; resultsEl.style.display='none'; resultsEl.innerHTML='';
+  statusEl.textContent='⟳ Searching IGDB…'; resultsEl.style.display='none'; resultsEl.innerHTML='';
   selectedSearchResult=null; document.getElementById('add-game-form').style.display='none';
   try {
-    const results=await rawgSearch(query);
+    const results=await igdbSearch(query);
     if (!results.length) { statusEl.textContent='No results found.'; return; }
     statusEl.textContent=`${results.length} result${results.length!==1?'s':''} — tap to select`;
     resultsEl.style.display='block';
     resultsEl.innerHTML=results.map((r,i)=>{
-      const yr=r.released?new Date(r.released).getFullYear():'?';
+      const yr=r.first_release_date?new Date(r.first_release_date*1000).getFullYear():'?';
+      const thumb=igdbCoverUrl(r,'screenshot_big');
+      const genres=(r.genres||[]).map(g=>g.name).slice(0,2).join(', ');
       return `<div class="search-result" onclick="selectSearchResult(${i},this)">
-        <div class="search-result-cover">${r.background_image?`<img src="${escHtml(r.background_image)}" alt="" loading="lazy">`:'<div class="no-cover">🎮</div>'}</div>
-        <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr}${r.metacritic?' · MC: '+r.metacritic:''}${r.genres?.length?' · '+r.genres.map(g=>g.name).join(', '):''}</div></div>
+        <div class="search-result-cover">${thumb?`<img src="${escHtml(thumb)}" alt="" loading="lazy" style="width:40px;height:56px;object-fit:cover;border-radius:1px">`:'<div class="no-cover">🎮</div>'}</div>
+        <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr}${genres?' · '+genres:''}</div></div>
       </div>`;
     }).join('');
     resultsEl._results=results;
@@ -1287,18 +1404,18 @@ async function addGame(stayInMode) {
   if (!selectedSearchResult) return;
   const platforms=getActivePlatforms('add-platform-chips');
   const statusEl=document.getElementById('add-game-status');
-  statusEl.textContent='Fetching details…';
+  statusEl.textContent='Adding…';
   try {
     const r=selectedSearchResult;
-    const detail=await rawgFetchGame(r.id);
-    const existing=games.find(g=>g.id===String(r.id)||g.rawgId===r.id);
+    const igdbId=String(r.id);
+    const existing=games.find(g=>g.id===igdbId||g.igdbId===igdbId);
     if (existing) {
       platforms.forEach(p=>{ if(!existing.userPlatforms.includes(p)) existing.userPlatforms.push(p); });
       await sbSaveGame(existing);
       statusEl.style.color='var(--s-100)';
       statusEl.textContent=`⚠ Already in collection as "${existing.displayTitle||existing.title}" — platforms merged. Use Manual Entry to add a separate copy.`;
     } else {
-      const game=buildGameObject(r,detail,null,platforms);
+      const game=buildGameFromIGDB(r,null,platforms,'high');
       games.push(game); await sbSaveGame(game);
       statusEl.textContent=`✓ Added ${game.title}`;
     }
@@ -1308,8 +1425,8 @@ async function addGame(stayInMode) {
       document.getElementById('add-game-form').style.display='none';
       document.getElementById('search-results').innerHTML='';
       document.getElementById('search-results').style.display='none';
-      document.getElementById('rawg-search-input').value='';
-      document.getElementById('rawg-search-status').textContent='';
+      document.getElementById('igdb-search-input').value='';
+      document.getElementById('igdb-search-status').textContent='';
     }
   } catch(e) { statusEl.textContent='⚠ '+e.message; }
 }
@@ -1330,7 +1447,7 @@ async function addManualGame(addAnother=false) {
   const hltbComplete=parseFloat(document.getElementById('manual-hltb-complete').value)||null;
   const artUrl=document.getElementById('manual-art-url').value.trim()||null;
   const id='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-  const game={id,rawgId:null,rawgSlug:null,searchTitle:title,title,displayTitle:null,sortTitle:null,cover:artUrl,coverLg:null,customCover:artUrl,year:year?parseInt(year):null,summary:null,notes:notes||null,developer:developer||null,publisher:publisher||null,genres,rawgPlatforms:[],userPlatforms:platforms,rating:mc,hltbMain,hltbExtra,hltbComplete,dateAdded:new Date().toISOString(),notFound:true};
+  const game={id,igdbId:null,rawgId:null,rawgSlug:null,searchTitle:title,title,displayTitle:null,sortTitle:null,cover:artUrl,coverLg:null,customCover:artUrl,year:year?parseInt(year):null,summary:null,notes:notes||null,developer:developer||null,publisher:publisher||null,genres,igdbPlatforms:[],rawgPlatforms:[],userPlatforms:platforms,rating:mc,hltbMain,hltbExtra,hltbComplete,dateAdded:new Date().toISOString(),notFound:true,matchSource:'manual',matchConfidence:null};
   try {
     games.push(game); await sbSaveGame(game);
     if (addAnother) {
@@ -1349,6 +1466,8 @@ async function addManualGame(addAnother=false) {
 }
 
 // ── CSV IMPORT ─────────────────────────────────────────────────────────────────
+let _previewRows = [];  // [{csvTitle, csvPlatforms, csvData, csvStatus, igdbResults, selectedIdx, include}]
+
 async function handleCSVFile(event) {
   const file=event.target.files[0]; if(!file) return;
   event.target.value='';
@@ -1357,80 +1476,74 @@ async function handleCSVFile(event) {
   const rows=parseCSV(await file.text());
   if (!rows.length) { statusEl.textContent='No rows found.'; return; }
   const headers=rows[0].map(h=>h.toLowerCase().trim());
-  const colTitle    = headers.findIndex(h=>h==='title'||h==='game'||h==='name');
-  const colPlatform = headers.findIndex(h=>h==='platform'||h==='console'||h==='system');
+  const colTitle     = headers.findIndex(h=>h==='title'||h==='game'||h==='name');
+  const colPlatform  = headers.findIndex(h=>h==='platform'||h==='console'||h==='system');
   if (colTitle<0) { statusEl.textContent='⚠ No "Title" column found.'; return; }
+  const colStatus    = headers.findIndex(h=>h==='status');
+  const colYear      = headers.findIndex(h=>h==='year');
+  const colNotes     = headers.findIndex(h=>h==='notes');
+  const colRating    = headers.findIndex(h=>h==='rating'||h==='myrating'||h==='my rating');
   const colMeta      = headers.findIndex(h=>h.includes('metacritic')||h==='score'||h==='mc');
   const colHltbMain  = headers.findIndex(h=>h.includes('hltbmain')||h==='main');
   const colHltbExtra = headers.findIndex(h=>h.includes('hltbextra')||h.includes('extra'));
   const colHltbComp  = headers.findIndex(h=>h.includes('hltbcomplete')||h.includes('complet'));
-  const colStatus    = headers.findIndex(h=>h==='status');
-  const colYearBeaten= headers.findIndex(h=>['yearbeaten','year beaten','year_beaten','year finished','year finished','beaten','year'].includes(h));
+  const colYearBeaten= headers.findIndex(h=>['yearbeaten','year beaten','year_beaten','beaten'].includes(h));
+
   const dataRows=rows.slice(1).filter(r=>r[colTitle]?.trim());
-  const titlePlatformMap=new Map();
+  const titleMap=new Map();
   dataRows.forEach(row=>{
     const title=row[colTitle].trim(), plat=colPlatform>=0?(row[colPlatform]?.trim()||''):'';
-    if (!titlePlatformMap.has(title)) titlePlatformMap.set(title,{platforms:[],beatYears:[],row});
-    const entry=titlePlatformMap.get(title);
-    if (plat&&!entry.platforms.includes(plat)) entry.platforms.push(plat);
-    if (colYearBeaten>=0) { const y=parseInt(row[colYearBeaten]); if(y&&!entry.beatYears.includes(y)) entry.beatYears.push(y); }
+    if (!titleMap.has(title)) titleMap.set(title,{platforms:[],beatYears:[],row});
+    const e=titleMap.get(title);
+    if (plat&&!e.platforms.includes(plat)) e.platforms.push(plat);
+    if (colYearBeaten>=0) { const y=parseInt(row[colYearBeaten]); if(y&&!e.beatYears.includes(y)) e.beatYears.push(y); }
   });
-  const entries=[...titlePlatformMap.entries()];
-  const total=entries.length;
-  showProgress('Importing Games',`0 / ${total}`);
-  let done=0, skipped=0, errors=[], skippedTitles=[];
+  const entries=[...titleMap.entries()];
+  if (!entries.length) { statusEl.textContent='No games found in CSV.'; return; }
+
+  statusEl.textContent=`Parsed ${entries.length} games — searching IGDB…`;
+  _previewRows=[];
+
+  // Open preview modal immediately, then fill it as results come in
+  openImportPreview(entries.length);
+
+  let searched=0;
   for (const [title,{platforms,beatYears,row}] of entries) {
-    setProgress(title, Math.round(done/total*100));
-    const existing=games.find(g=>[g.title,g.displayTitle,g.searchTitle].some(t=>t?.toLowerCase()===title.toLowerCase()));
-    if (existing) {
-      let changed=false;
-      platforms.forEach(p=>{ if(!(existing.userPlatforms||[]).includes(p)){existing.userPlatforms=existing.userPlatforms||[];existing.userPlatforms.push(p);changed=true;} });
-      beatYears.forEach(y=>{ if(!(existing.beatYears||[]).includes(y)){existing.beatYears=existing.beatYears||[];existing.beatYears.push(y);if(!existing.yearBeaten)existing.yearBeaten=y;changed=true;} });
-      if(changed) await sbSaveGame(existing).catch(()=>{});
-      skipped++; skippedTitles.push(title); done++; continue;
-    }
-    const csvData={ title, hltbMain:colHltbMain>=0?parseFloat(row[colHltbMain])||null:null, hltbExtra:colHltbExtra>=0?parseFloat(row[colHltbExtra])||null:null, hltbComplete:colHltbComp>=0?parseFloat(row[colHltbComp])||null:null, yearBeaten:beatYears[0]||null, beatYears:beatYears.length?[...beatYears]:[] };
-    const csvMeta=colMeta>=0?parseInt(row[colMeta])||null:null;
+    const csvData={
+      title,
+      hltbMain:colHltbMain>=0?parseFloat(row[colHltbMain])||null:null,
+      hltbExtra:colHltbExtra>=0?parseFloat(row[colHltbExtra])||null:null,
+      hltbComplete:colHltbComp>=0?parseFloat(row[colHltbComp])||null:null,
+      yearBeaten:beatYears[0]||null, beatYears:beatYears.length?[...beatYears]:[],
+      metacritic:colMeta>=0?parseInt(row[colMeta])||null:null,
+      notes:colNotes>=0?row[colNotes]?.trim()||null:null,
+      myRating:colRating>=0?parseFloat(row[colRating])||null:null,
+    };
     const csvStatusRaw=colStatus>=0?row[colStatus]?.trim().toLowerCase():null;
     const csvStatus=['unplayed','playing','completed'].includes(csvStatusRaw)?csvStatusRaw:null;
-    try {
-      const results=await rawgSearch(title);
-      await sleep(500);
-      if (results.length) {
-        const r=results[0];
-        const game=buildGameObject(r,null,csvData,platforms);
-        if(!game.rating&&csvMeta) game.rating=csvMeta;
-        // If this RAWG ID is already used by another game (e.g. DLC matched to base game), use a manual ID
-        if(games.some(g=>g.id===game.id||g.rawgId===game.rawgId)) {
-          game.id='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-          game.notFound=true;
-        }
-        games.push(game); await sbSaveGame(game);
-        if(csvStatus){ statusMap.set(game.id,csvStatus); await sbSetStatus(game.id,csvStatus).catch(()=>{}); }
-      } else {
-        const id='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-        const game={id,rawgId:null,rawgSlug:null,searchTitle:title,title,displayTitle:null,sortTitle:null,cover:null,coverLg:null,customCover:null,year:null,summary:null,developer:null,publisher:null,genres:[],rawgPlatforms:[],userPlatforms:platforms,rating:csvMeta,...csvData,dateAdded:new Date().toISOString(),notFound:true};
-        games.push(game); await sbSaveGame(game);
-        if(csvStatus){ statusMap.set(game.id,csvStatus); await sbSetStatus(game.id,csvStatus).catch(()=>{}); }
+
+    const existingGame=games.find(g=>[g.title,g.displayTitle,g.searchTitle].some(t=>t?.toLowerCase()===title.toLowerCase()));
+
+    let igdbResults=[], selectedIdx=0, confidence='none';
+    if (!existingGame) {
+      try {
+        igdbResults = await igdbSearch(title);
+        await sleep(280); // ~3.5 req/s — stay under IGDB 4/s limit
+        if (igdbResults.length) confidence = igdbMatchConfidence(title, igdbResults[0]);
+      } catch(e) {
+        if (e.isCors) { statusEl.textContent='⚠ IGDB auth required — use manual token in credentials.'; closeImportPreview(); return; }
+        confidence='none';
       }
-    } catch(e) { errors.push(`"${title}": ${e.message}`); }
-    done++;
+    }
+    searched++;
+    _previewRows.push({ csvTitle:title, csvPlatforms:platforms, csvData, csvStatus, igdbResults, selectedIdx, include: confidence!=='none'||!!existingGame, existingGame, confidence });
+    renderPreviewRow(_previewRows.length-1);
+    document.getElementById('import-preview-searching').textContent=`${searched}/${entries.length} searched…`;
+    updatePreviewCount();
   }
-  hideProgress();
-  function skippedDetailHTML() {
-    if (!skippedTitles.length) return '';
-    const id='skipped-detail-list';
-    return ` <button onclick="document.getElementById('${id}').style.display=document.getElementById('${id}').style.display==='none'?'block':'none'" style="background:none;border:none;color:var(--accent);font-size:.72rem;cursor:pointer;padding:0;text-decoration:underline">${skippedTitles.length} skipped ▸</button><div id="${id}" style="display:none;margin-top:6px;font-size:.65rem;line-height:1.8;color:var(--text-muted)">${skippedTitles.map(escHtml).join('<br>')}</div>`;
-  }
-  if (errors.length) {
-    statusEl.style.color='var(--danger)';
-    statusEl.innerHTML=`⚠ ${errors.length} error(s):<br><code style="font-size:.65rem;line-height:1.8">${errors.slice(0,5).map(escHtml).join('<br>')}${errors.length>5?`<br>…and ${errors.length-5} more`:''}</code>${skippedDetailHTML()}`;
-    if(done-skipped-errors.length>0) setTimeout(()=>openApp(),3000);
-  } else {
-    statusEl.style.color='';
-    statusEl.innerHTML=`✓ Imported ${done-skipped} new games.${skippedDetailHTML()}`;
-    setTimeout(()=>openApp(),1200);
-  }
+  document.getElementById('import-preview-searching').textContent='✓ Search complete';
+  statusEl.textContent='';
+  showReviewPillIfNeeded();
 }
 function parseCSV(text) {
   return text.split(/\r?\n/).filter(l=>l.trim()).map(line=>{
@@ -1467,7 +1580,8 @@ function applyFilters() {
   const genreF=document.getElementById('filter-genre')?.value||'';
   const mcF=document.getElementById('filter-mc')?.value||'';
   filteredGames=games.filter(g=>{
-    if (currentStatusFilter!=='all'&&getGameStatus(g.id)!==currentStatusFilter) return false;
+    if (currentStatusFilter==='review') { if (g.matchConfidence!=='low') return false; }
+    else if (currentStatusFilter!=='all'&&getGameStatus(g.id)!==currentStatusFilter) return false;
     if (platFilters.size>0) {
       const plats=g.userPlatforms||[];
       const includeKeys=[];
@@ -1622,10 +1736,12 @@ function renderGrid(list) {
       ? `<img class="card-cover" src="${escHtml(cover)}" alt="${escHtml(title)}" loading="lazy" onerror="this.outerHTML='<div class=\\'card-cover-placeholder\\'>🎮</div>'">`
       : `<div class="card-cover-placeholder">🎮</div>`;
     const clickFn=selectionMode?`toggleCardSelection('${escJs(String(game.id))}')`:`openModalById('${escJs(String(game.id))}')`;
+    const reviewBadge=game.matchConfidence==='low'?`<div class="card-review-badge">⚠ REVIEW</div>`:'';
     return `<div class="game-card ${(game.notFound&&!game.customCover&&!game.cover)?'not-found-card':''} ${selectionMode&&selectedIds.has(String(game.id))?'selected-card':''}" onclick="${clickFn}" data-id="${escHtml(String(game.id))}">
       <div class="card-img-wrap">
         ${imgHTML}
         ${statusDotHTML(status)}
+        ${reviewBadge}
         ${platBadges?`<div class="card-platforms">${platBadges}</div>`:''}
         <button class="card-fix-btn" onclick="event.stopPropagation();openFixModal('${escJs(String(game.id))}')">✎ Edit</button>
         ${status==='unplayed'?`<button class="card-action-btn" onclick="event.stopPropagation();quickMarkPlaying('${escJs(String(game.id))}')">▶ Mark Playing</button>`:status==='playing'?`<button class="card-action-btn" onclick="event.stopPropagation();openMarkPlayedModal('${escJs(String(game.id))}')">✓ Mark Played</button>`:''}
@@ -1637,8 +1753,14 @@ function renderGrid(list) {
 function updateStats() {
   const counts={all:games.length,unplayed:0,playing:0,completed:0};
   games.forEach(g=>{const s=getGameStatus(g.id);if(counts[s]!==undefined)counts[s]++;});
+  const reviewCount=games.filter(g=>g.matchConfidence==='low').length;
   document.querySelectorAll('.status-pill').forEach(pill=>{
     const s=pill.dataset.status;
+    if (s==='review') {
+      pill.style.display=reviewCount>0?'':'none';
+      pill.textContent=`⚠ Review ${reviewCount}`;
+      return;
+    }
     const label=s==='all'?'All':(STATUS_CONFIG[s]?.label||s);
     pill.textContent=`${label} ${counts[s]??0}`;
   });
@@ -1712,7 +1834,12 @@ function openModal(game) {
   const statusBtns=READ_ONLY?'':Object.entries(STATUS_CONFIG).map(([key,cfg])=>
     `<button class="status-btn ${status===key?`active-${key}`:''}" onclick="setGameStatus('${escJs(String(game.id))}','${key}',this)">${cfg.label}</button>`
   ).join('');
-  const rawgLink=game.rawgSlug?`<a class="btn-link" href="https://rawg.io/games/${escHtml(game.rawgSlug)}" target="_blank" rel="noopener">View on RAWG ↗</a>`:'';
+  const igdbLink=game.igdbId?`<a class="btn-link" href="https://www.igdb.com/games/${escHtml(game.rawgSlug||String(game.igdbId))}" target="_blank" rel="noopener">View on IGDB ↗</a>`:game.rawgSlug?`<a class="btn-link" href="https://rawg.io/games/${escHtml(game.rawgSlug)}" target="_blank" rel="noopener">View on RAWG ↗</a>`:'';
+  const verifyBanner=game.matchConfidence==='low'?`<div class="verify-banner">
+    <span class="verify-banner-text">⚠ This match may be incorrect — please review</span>
+    <button class="verify-btn verify-btn-confirm" onclick="confirmGameMatch('${escJs(String(game.id))}')">✓ Looks Correct</button>
+    <button class="verify-btn verify-btn-rematch" onclick="openRematch('${escJs(String(game.id))}')">🔍 Re-match</button>
+  </div>`:'';
   const devCredits=[
     game.developer?`<span class="modal-meta-label" style="margin-right:4px">Dev</span><button class="person-chip" onclick="searchByPerson('${escJs(game.developer)}')">${escHtml(game.developer)}</button>`:'',
     game.publisher&&game.publisher!==game.developer?`<span class="modal-meta-label" style="margin:0 4px 0 10px">Pub</span><button class="person-chip" onclick="searchByPerson('${escJs(game.publisher)}')">${escHtml(game.publisher)}</button>`:''
@@ -1756,6 +1883,7 @@ function openModal(game) {
   document.getElementById('modal-content').innerHTML=`
     ${bannerHTML}
     <button class="modal-close" onclick="closeModal()">✕</button>
+    ${verifyBanner}
     <div class="modal-body">
       <div style="display:flex;gap:20px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:14px">
         <div style="flex:1;min-width:0;display:flex;align-items:center;flex-wrap:wrap">
@@ -1772,7 +1900,7 @@ function openModal(game) {
     <div class="modal-status-row">${statusBtns}</div>
     <div class="modal-actions">
       ${READ_ONLY?'':`<button class="btn-link" onclick="openFixModal('${escJs(String(game.id))}')">✎ Edit</button>`}
-      ${rawgLink}
+      ${igdbLink}
     </div>`;
 
   document.getElementById('modal-overlay').classList.add('active');
@@ -1948,42 +2076,43 @@ async function saveAndNext() {
   const ok=await saveAllEdits({suppressClose:true});
   if(ok) openFixModal(nextId);
 }
-// legacy stubs (no longer called but kept for safety)
+// legacy stub
 async function saveTitleOverrides() { return saveAllEdits(); }
 async function fixRefetchByTitle() {
   const title=document.getElementById('fix-title-input').value.trim(); if(!title) return;
-  setFixStatus('Searching…');
-  try { showFixResults(await rawgSearch(title)); setFixStatus(''); } catch(e) { setFixStatus('⚠ '+e.message,true); }
+  setFixStatus('Searching IGDB…');
+  try { showFixResults(await igdbSearch(title)); setFixStatus(''); } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
 async function fixRefetchById() {
-  const rawId=document.getElementById('fix-rawgid-input').value.trim();
-  if (!rawId||isNaN(parseInt(rawId))) { setFixStatus('Enter a valid RAWG ID.',true); return; }
+  const rawId=document.getElementById('fix-igdbid-input').value.trim();
+  if (!rawId||isNaN(parseInt(rawId))) { setFixStatus('Enter a valid IGDB Game ID.',true); return; }
   setFixStatus('Fetching…');
-  try { showFixResults([await rawgFetchGame(parseInt(rawId))]); setFixStatus(''); } catch(e) { setFixStatus('⚠ '+e.message,true); }
+  try { showFixResults([await igdbFetchById(parseInt(rawId))]); setFixStatus(''); } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
 function showFixResults(results) {
   const el=document.getElementById('fix-refetch-results');
   if (!results?.length) { el.innerHTML='<div style="font-size:.72rem;color:var(--text-dim)">No results.</div>'; return; }
-  el.innerHTML=results.slice(0,4).map((r,i)=>{
-    const yr=r.released?new Date(r.released).getFullYear():'?';
+  el.innerHTML=results.slice(0,6).map((r,i)=>{
+    const yr=r.first_release_date?new Date(r.first_release_date*1000).getFullYear():'?';
+    const thumb=igdbCoverUrl(r,'screenshot_big');
     return `<div class="search-result" onclick="applyFixResult(${i})" style="margin-bottom:6px">
-      <div class="search-result-cover">${r.background_image?`<img src="${escHtml(r.background_image)}" alt="" style="width:40px;height:56px;object-fit:cover;border-radius:1px">`:'<div class="no-cover">🎮</div>'}</div>
-      <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr} · RAWG ID: ${r.id}</div></div>
+      <div class="search-result-cover">${thumb?`<img src="${escHtml(thumb)}" alt="" style="width:40px;height:56px;object-fit:cover;border-radius:1px">`:'<div class="no-cover">🎮</div>'}</div>
+      <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr} · IGDB ID: ${r.id}</div></div>
     </div>`;
   }).join('');
   el._results=results;
 }
 async function applyFixResult(idx) {
   const r=document.getElementById('fix-refetch-results')._results[idx];
-  setFixStatus('Fetching details…');
+  setFixStatus('Applying…');
   try {
-    const detail=await rawgFetchGame(r.id);
     const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
     const old=games[i];
-    const newData=buildGameObject(r,detail,{hltbMain:old.hltbMain,hltbExtra:old.hltbExtra,hltbComplete:old.hltbComplete},old.userPlatforms);
+    const newData=buildGameFromIGDB(r,{hltbMain:old.hltbMain,hltbExtra:old.hltbExtra,hltbComplete:old.hltbComplete},old.userPlatforms,'high');
     newData.id=old.id; newData.displayTitle=old.displayTitle; newData.sortTitle=old.sortTitle;
     newData.customCover=old.customCover; newData.dateAdded=old.dateAdded;
     newData.yearBeaten=old.yearBeaten; newData.beatYears=old.beatYears||[];
+    newData.notes=old.notes||null; newData.myRating=old.myRating||null;
     games[i]=newData; await sbSaveGame(newData);
     setFixStatus('✓ Updated'); applyFilters(); setTimeout(closeFixModal,800);
   } catch(e) { setFixStatus('⚠ '+e.message,true); }
@@ -1991,22 +2120,22 @@ async function applyFixResult(idx) {
 async function unmatchGame() {
   const i=games.findIndex(g=>g.id===fixTargetId); if(i<0) return;
   const old=games[i];
-  if(!confirm(`Convert "${old.displayTitle||old.title}" to a manual entry? This strips RAWG metadata (cover, description, developer, publisher, genres) but keeps your title, platforms, status, scores and any custom art.`)) return;
+  if(!confirm(`Convert "${old.displayTitle||old.title}" to a manual entry? This strips IGDB metadata (cover, description, developer, publisher, genres) but keeps your title, platforms, status, scores and any custom art.`)) return;
   const newId='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
   const manual={
-    id:newId, rawgId:null, rawgSlug:null,
+    id:newId, igdbId:null, rawgId:null, rawgSlug:null,
     searchTitle:old.displayTitle||old.title,
     title:old.displayTitle||old.title,
     displayTitle:old.displayTitle||null, sortTitle:old.sortTitle||null,
     cover:null, coverLg:null, customCover:old.customCover||null,
     year:null, summary:null, developer:null, publisher:null,
-    genres:[], rawgPlatforms:[],
+    genres:[], igdbPlatforms:[], rawgPlatforms:[],
     userPlatforms:old.userPlatforms||[],
     rating:old.rating||null,
     hltbMain:old.hltbMain||null, hltbExtra:old.hltbExtra||null, hltbComplete:old.hltbComplete||null,
     yearBeaten:old.yearBeaten||null,
     dateAdded:old.dateAdded||new Date().toISOString(),
-    notFound:!old.customCover,
+    notFound:!old.customCover, matchSource:'manual', matchConfidence:null,
   };
   try {
     await sbSaveGame(manual);
@@ -2316,11 +2445,178 @@ let _mpStarsInit=false;
 // ── KEYBOARD SHORTCUTS ─────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
+  if (document.getElementById('import-preview-overlay').classList.contains('active')) { closeImportPreview(); return; }
   if (document.getElementById('fix-overlay').classList.contains('active'))       { closeFixModal(); return; }
   if (document.getElementById('modal-overlay').classList.contains('active'))     { closeModal(); return; }
   if (document.getElementById('mark-played-overlay').classList.contains('active')){ closeMarkPlayedModal(); return; }
   if (document.getElementById('stats-overlay-1up').classList.contains('active')) { closeStats1UP(); return; }
 });
+
+// ── IMPORT PREVIEW ─────────────────────────────────────────────────────────────
+function openImportPreview(total) {
+  document.getElementById('import-preview-title').textContent=`Preview Import — ${total} games`;
+  document.getElementById('import-preview-searching').textContent='Searching IGDB…';
+  document.getElementById('preview-table-body').innerHTML='';
+  document.getElementById('import-preview-overlay').classList.add('active');
+}
+function closeImportPreview() {
+  document.getElementById('import-preview-overlay').classList.remove('active');
+  _previewRows=[];
+}
+function renderPreviewRow(idx) {
+  const p=_previewRows[idx];
+  const tbody=document.getElementById('preview-table-body');
+  const existing=p.existingGame;
+  let tr=tbody.querySelector(`tr[data-preview-idx="${idx}"]`);
+  if (!tr) { tr=document.createElement('tr'); tr.dataset.previewIdx=idx; tbody.appendChild(tr); }
+  tr.className=(!p.include&&!existing)?'preview-row-skip':'';
+
+  let matchHTML='', thumbHTML='', confHTML='';
+  if (existing) {
+    thumbHTML=`<div class="preview-thumb-placeholder" title="Already in collection">📚</div>`;
+    matchHTML=`<div class="preview-match-title">${escHtml(existing.displayTitle||existing.title)}</div><div class="preview-match-meta">Already in collection — platforms will be merged</div>`;
+    confHTML=`<span class="conf-badge conf-exists">Exists</span>`;
+  } else if (!p.igdbResults.length) {
+    thumbHTML=`<div class="preview-thumb-placeholder">🎮</div>`;
+    matchHTML=`<div class="preview-match-title" style="color:var(--text-dim)">No match found</div><div class="preview-match-meta">Will import as manual entry</div>`;
+    confHTML=`<span class="conf-badge conf-none">No match</span>`;
+  } else {
+    const r=p.igdbResults[p.selectedIdx];
+    const yr=r.first_release_date?new Date(r.first_release_date*1000).getFullYear():'?';
+    const thumb=igdbCoverUrl(r,'screenshot_big');
+    thumbHTML=thumb?`<img class="preview-thumb" src="${escHtml(thumb)}" loading="lazy">`:`<div class="preview-thumb-placeholder">🎮</div>`;
+    const swapBtn=p.igdbResults.length>1?`<button class="preview-swap-btn" onclick="openPreviewSwap(${idx})">⇄ Swap</button>`:'';
+    matchHTML=`<div style="display:flex;align-items:flex-start;gap:6px"><div><div class="preview-match-title">${escHtml(r.name)}</div><div class="preview-match-meta">${yr} · IGDB #${r.id}</div></div>${swapBtn}</div>`;
+    const cls=p.confidence==='high'?'conf-high':p.confidence==='medium'?'conf-medium':'conf-low';
+    confHTML=`<span class="conf-badge ${cls}">${p.confidence}</span>`;
+  }
+  const cbDisabled=existing?'disabled':'';
+  const cbChecked=(p.include||existing)?'checked':'';
+  tr.innerHTML=`
+    <td><input type="checkbox" class="preview-include-cb" ${cbChecked} ${cbDisabled} onchange="previewToggleRow(${idx},this.checked)"></td>
+    <td>${thumbHTML}</td>
+    <td style="color:var(--text-muted)">${escHtml(p.csvTitle)}<br><span style="font-size:.65rem;color:var(--text-dim)">${p.csvPlatforms.join(', ')||'—'}</span></td>
+    <td>${matchHTML}</td>
+    <td>${confHTML}</td>
+    <td style="font-size:.72rem;color:var(--text-dim)">${p.csvPlatforms.join(', ')||'—'}</td>`;
+}
+function previewToggleRow(idx, checked) {
+  _previewRows[idx].include=checked;
+  document.querySelector(`tr[data-preview-idx="${idx}"]`).className=!checked?'preview-row-skip':'';
+  updatePreviewCount();
+}
+function previewToggleAll(checked) {
+  _previewRows.forEach((p,i)=>{ if(!p.existingGame){ p.include=checked; renderPreviewRow(i); } });
+  updatePreviewCount();
+}
+function previewSelectConfident() {
+  _previewRows.forEach((p,i)=>{ if(!p.existingGame){ p.include=p.confidence==='high'||p.confidence==='medium'; renderPreviewRow(i); } });
+  document.getElementById('preview-select-all').checked=false;
+  updatePreviewCount();
+}
+function updatePreviewCount() {
+  const inc=_previewRows.filter(p=>p.include||p.existingGame).length;
+  const tot=_previewRows.length;
+  document.getElementById('import-preview-count').textContent=`${inc} of ${tot} selected`;
+  document.getElementById('import-preview-confirm-btn').textContent=`Import ${inc} Games`;
+}
+function openPreviewSwap(idx) {
+  const p=_previewRows[idx]; if (!p.igdbResults.length) return;
+  const tr=document.querySelector(`tr[data-preview-idx="${idx}"]`);
+  // Check if swap panel already open
+  let swapDiv=tr.querySelector('.preview-swap-results');
+  if (swapDiv) { swapDiv.remove(); return; }
+  swapDiv=document.createElement('div'); swapDiv.className='preview-swap-results';
+  swapDiv.innerHTML=p.igdbResults.map((r,i)=>{
+    const yr=r.first_release_date?new Date(r.first_release_date*1000).getFullYear():'?';
+    const thumb=igdbCoverUrl(r,'screenshot_big');
+    return `<div class="preview-swap-result-row" onclick="applyPreviewSwap(${idx},${i})">
+      ${thumb?`<img src="${escHtml(thumb)}" loading="lazy">`:`<div class="preview-thumb-placeholder" style="width:48px;height:27px">🎮</div>`}
+      <div><div style="font-size:.8rem;color:var(--text)">${escHtml(r.name)}</div><div style="font-size:.65rem;color:var(--text-dim)">${yr} · IGDB #${r.id}</div></div>
+      ${i===p.selectedIdx?'<span style="color:var(--accent);font-size:.65rem;margin-left:auto">✓ current</span>':''}
+    </div>`;
+  }).join('');
+  tr.querySelector('td:nth-child(4)').appendChild(swapDiv);
+}
+function applyPreviewSwap(rowIdx, resultIdx) {
+  const p=_previewRows[rowIdx];
+  p.selectedIdx=resultIdx;
+  p.confidence=igdbMatchConfidence(p.csvTitle, p.igdbResults[resultIdx]);
+  renderPreviewRow(rowIdx);
+  updatePreviewCount();
+}
+async function confirmImport() {
+  const toImport=_previewRows.filter(p=>p.include||p.existingGame);
+  if (!toImport.length) return;
+  closeImportPreview();
+  showProgress('Importing Games', `0 / ${toImport.length}`);
+  let done=0, errors=[];
+  for (const p of toImport) {
+    setProgress(p.csvTitle, Math.round(done/toImport.length*100));
+    try {
+      if (p.existingGame) {
+        const g=p.existingGame; let changed=false;
+        p.csvPlatforms.forEach(pl=>{ if(!(g.userPlatforms||[]).includes(pl)){g.userPlatforms=g.userPlatforms||[];g.userPlatforms.push(pl);changed=true;} });
+        (p.csvData.beatYears||[]).forEach(y=>{ if(!(g.beatYears||[]).includes(y)){g.beatYears=g.beatYears||[];g.beatYears.push(y);if(!g.yearBeaten)g.yearBeaten=y;changed=true;} });
+        if(changed) await sbSaveGame(g).catch(()=>{});
+      } else if (p.igdbResults.length) {
+        const r=p.igdbResults[p.selectedIdx];
+        const igdbId=String(r.id);
+        if (games.some(g=>g.id===igdbId||g.igdbId===igdbId)) {
+          // ID collision — import as manual
+          const id='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+          const g={id,igdbId:null,rawgId:null,rawgSlug:null,searchTitle:p.csvTitle,title:p.csvTitle,displayTitle:null,sortTitle:null,cover:null,coverLg:null,customCover:null,year:null,summary:null,developer:null,publisher:null,genres:[],igdbPlatforms:[],rawgPlatforms:[],userPlatforms:p.csvPlatforms,...p.csvData,rating:p.csvData.metacritic||null,dateAdded:new Date().toISOString(),notFound:true,matchSource:'manual',matchConfidence:null};
+          games.push(g); await sbSaveGame(g);
+          if(p.csvStatus){statusMap.set(g.id,p.csvStatus);await sbSetStatus(g.id,p.csvStatus).catch(()=>{});}
+        } else {
+          const g=buildGameFromIGDB(r,p.csvData,p.csvPlatforms,p.confidence);
+          if(p.csvData.myRating) g.myRating=p.csvData.myRating;
+          games.push(g); await sbSaveGame(g);
+          if(p.csvStatus){statusMap.set(g.id,p.csvStatus);await sbSetStatus(g.id,p.csvStatus).catch(()=>{});}
+        }
+      } else {
+        // No IGDB match — manual entry
+        const id='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+        const g={id,igdbId:null,rawgId:null,rawgSlug:null,searchTitle:p.csvTitle,title:p.csvTitle,displayTitle:null,sortTitle:null,cover:null,coverLg:null,customCover:null,year:null,summary:null,developer:null,publisher:null,genres:[],igdbPlatforms:[],rawgPlatforms:[],userPlatforms:p.csvPlatforms,...p.csvData,rating:p.csvData.metacritic||null,dateAdded:new Date().toISOString(),notFound:true,matchSource:'manual',matchConfidence:null};
+        if(p.csvData.myRating) g.myRating=p.csvData.myRating;
+        games.push(g); await sbSaveGame(g);
+        if(p.csvStatus){statusMap.set(g.id,p.csvStatus);await sbSetStatus(g.id,p.csvStatus).catch(()=>{});}
+      }
+    } catch(e) { errors.push(`"${p.csvTitle}": ${e.message}`); }
+    done++;
+  }
+  hideProgress(); _previewRows=[];
+  showReviewPillIfNeeded();
+  const lowCount=games.filter(g=>g.matchConfidence==='low').length;
+  const msg=errors.length
+    ? `⚠ ${errors.length} error(s). ${done-errors.length} games imported.`
+    : `✓ ${done} games imported.${lowCount?` ${lowCount} have low-confidence matches — use the ⚠ Review filter.`:''}`;
+  document.getElementById('csv-status').textContent=msg;
+  setTimeout(openApp, 1200);
+}
+
+// ── VERIFICATION ────────────────────────────────────────────────────────────────
+function showReviewPillIfNeeded() {
+  const pill=document.getElementById('review-pill');
+  if (!pill) return;
+  const count=games.filter(g=>g.matchConfidence==='low').length;
+  pill.style.display=count>0?'':'none';
+  updateStats();
+}
+async function confirmGameMatch(id) {
+  const g=games.find(g=>g.id===id); if(!g) return;
+  g.matchConfidence='high';
+  await sbSaveGame(g).catch(()=>{});
+  closeModal(); applyFilters(); updateStats(); showReviewPillIfNeeded();
+}
+function openRematch(id) {
+  closeModal(); openFixModal(id);
+  // Open the IGDB search panel automatically
+  setTimeout(()=>{
+    const panel=document.getElementById('fix-igdb-panel');
+    if(panel) { panel.style.display='block'; document.getElementById('fix-igdb-btn').style.opacity='1'; }
+  }, 150);
+}
 
 // ── BOOT ───────────────────────────────────────────────────────────────────────
 (function boot() {
@@ -2358,6 +2654,35 @@ document.addEventListener('keydown', e => {
       <button class="btn btn-accent" style="flex:1" onclick="confirmMarkPlayed()">✓ Mark Played</button>
       <button class="btn" onclick="closeMarkPlayedModal()">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- IMPORT PREVIEW MODAL -->
+<div id="import-preview-overlay">
+  <div id="import-preview-header">
+    <span id="import-preview-title">Preview Import</span>
+    <span id="import-preview-searching" style="font-size:.72rem;color:var(--text-muted)"></span>
+    <button class="btn" onclick="closeImportPreview()" style="font-size:.68rem;padding:6px 12px">Cancel</button>
+  </div>
+  <div id="import-preview-body">
+    <table class="preview-table">
+      <thead>
+        <tr>
+          <th style="width:32px"><input type="checkbox" id="preview-select-all" class="preview-include-cb" onchange="previewToggleAll(this.checked)" title="Select all"></th>
+          <th style="width:56px">Art</th>
+          <th>CSV Title</th>
+          <th>IGDB Match</th>
+          <th style="width:80px">Confidence</th>
+          <th style="width:90px">Platform</th>
+        </tr>
+      </thead>
+      <tbody id="preview-table-body"></tbody>
+    </table>
+  </div>
+  <div id="import-preview-footer">
+    <span id="import-preview-count"></span>
+    <button class="btn" onclick="previewSelectConfident()" style="font-size:.68rem;padding:8px 14px">✓ Select High+Medium</button>
+    <button class="btn btn-accent" id="import-preview-confirm-btn" onclick="confirmImport()" style="font-size:.75rem;padding:9px 18px">Import Selected</button>
   </div>
 </div>
 
