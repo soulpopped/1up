@@ -493,9 +493,14 @@
         <button class="platform-toggle" data-platform="Mobile" onclick="togglePlatform(this)">Mobile</button>
       </div>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:8px">
+    <div style="display:flex;gap:8px;margin-bottom:6px">
       <input type="text" id="igdb-search-input" placeholder="Search for a game… e.g. Hades" onkeydown="if(event.key==='Enter')searchIGDBUI()">
       <button class="btn btn-accent" onclick="searchIGDBUI()" style="white-space:nowrap">Search</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap">Or by IGDB ID:</span>
+      <input type="number" id="igdb-id-input" placeholder="e.g. 1905" onkeydown="if(event.key==='Enter')searchIGDBByIdUI()" style="width:130px">
+      <button class="btn" onclick="searchIGDBByIdUI()" style="white-space:nowrap;font-size:.75rem;padding:6px 12px">Look up</button>
     </div>
     <div id="igdb-search-status" style="font-size:.72rem;color:var(--text-muted);min-height:18px;margin-bottom:6px"></div>
     <div id="search-results"></div>
@@ -1005,7 +1010,7 @@ const PLATFORM_FAMILIES = [
   { label:'🕹 Other',     platforms:['UFO 50','Atari','Mobile']                                                            },
 ];
 function normalPlatform(p) { return PLATFORM_ALIASES[p] || p; }
-function normSearch(s) { return (s||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim(); }
+function normSearch(s) { return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim(); }
 function toggleFilterPanel() {
   const panel = document.getElementById('filter-panel');
   const btn   = document.getElementById('search-all-btn');
@@ -1219,7 +1224,7 @@ function igdbShotUrl(imageId, size='screenshot_big') {
 }
 
 function igdbMatchConfidence(searchTitle, result) {
-  const norm = t => (t||'').toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+  const norm = t => (t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
   const sn = norm(searchTitle), rn = norm(result.name||'');
   if (!rn) return 'low';
   if (sn === rn) return 'high';
@@ -1248,7 +1253,7 @@ function buildGameFromIGDB(r, csvData, userPlatforms, confidence) {
   const ttb = null;
   const toHr = s => s ? Math.round(s/360)/10 : null;
   return {
-    id:igdbId, igdbId, rawgId:null, rawgSlug:null,
+    id:igdbId, igdbId, igdbSlug:r.slug||null, rawgId:null, rawgSlug:null,
     searchTitle:csvData?.title||r.name, title:r.name,
     displayTitle:null, sortTitle:null,
     cover, coverLg, screenshots, customCover:null,
@@ -1507,6 +1512,31 @@ async function searchIGDBUI() {
     }).join('');
     resultsEl._results=results;
   } catch(e) { statusEl.textContent='⚠ '+e.message; }
+}
+async function searchIGDBByIdUI() {
+  const idVal = document.getElementById('igdb-id-input').value.trim();
+  const statusEl = document.getElementById('igdb-search-status');
+  const resultsEl = document.getElementById('search-results');
+  if (!idVal || isNaN(idVal)) { statusEl.textContent = 'Enter a valid IGDB game ID.'; return; }
+  statusEl.textContent = `⟳ Looking up IGDB #${idVal}…`;
+  resultsEl.style.display = 'none'; resultsEl.innerHTML = '';
+  selectedSearchResult = null; document.getElementById('add-game-form').style.display = 'none';
+  try {
+    const results = await igdbFetch(`fields ${IGDB_FIELDS}; where id = ${idVal}; limit 1;`);
+    if (!results.length) { statusEl.textContent = `No game found with IGDB ID ${idVal}.`; return; }
+    statusEl.textContent = `1 result — tap to select`;
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = results.map((r, i) => {
+      const yr = r.first_release_date ? new Date(r.first_release_date * 1000).getFullYear() : '?';
+      const thumb = igdbCoverUrl(r);
+      const genres = (r.genres || []).map(g => g.name).slice(0, 2).join(', ');
+      return `<div class="search-result" onclick="selectSearchResult(${i},this)">
+        <div class="search-result-cover">${thumb ? `<img src="${escHtml(thumb)}" alt="" loading="lazy" style="width:40px;height:56px;object-fit:cover;border-radius:1px">` : '<div class="no-cover">🎮</div>'}</div>
+        <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr}${genres ? ' · ' + genres : ''} · IGDB #${r.id}</div></div>
+      </div>`;
+    }).join('');
+    resultsEl._results = results;
+  } catch(e) { statusEl.textContent = '⚠ ' + e.message; }
 }
 function selectSearchResult(idx,el) {
   document.querySelectorAll('.search-result').forEach(d=>d.classList.remove('selected'));
@@ -1963,14 +1993,14 @@ function openModal(game) {
   // Screenshot gallery: remaining shots after banner (index 1+)
   const galleryIds = hasShotArr ? game.screenshots.slice(1) : [];
   const galleryHTML = galleryIds.length
-    ? `<div class="screenshot-gallery">${galleryIds.map(id=>`<img src="${IGDB_IMG}/t_screenshot_big/${id}.jpg" loading="lazy" alt="screenshot" onclick="window.open('${IGDB_IMG}/t_screenshot_huge/${id}.jpg','_blank')" title="Open full size">`).join('')}</div>`
+    ? `<div class="screenshot-gallery">${galleryIds.map(id=>`<img src="${IGDB_IMG}/t_screenshot_big/${id}.jpg" loading="lazy" alt="screenshot" onclick="openScreenshotLightbox('${id}')" style="cursor:zoom-in">`).join('')}</div>`
     : '';
 
   const platBadges=(game.userPlatforms||[]).map(p=>platBadgeHTML(p,true)).join('');
   const statusBtns=READ_ONLY?'':Object.entries(STATUS_CONFIG).map(([key,cfg])=>
     `<button class="status-btn ${status===key?`active-${key}`:''}" onclick="setGameStatus('${escJs(String(game.id))}','${key}',this)">${cfg.label}</button>`
   ).join('');
-  const igdbLink=game.igdbId?`<a class="btn-link" href="https://www.igdb.com/games/${escHtml(game.rawgSlug||String(game.igdbId))}" target="_blank" rel="noopener">View on IGDB ↗</a>`:game.rawgSlug?`<a class="btn-link" href="https://rawg.io/games/${escHtml(game.rawgSlug)}" target="_blank" rel="noopener">View on RAWG ↗</a>`:'';
+  const igdbLink=game.igdbId?`<a class="btn-link" href="https://www.igdb.com/games/${escHtml(game.igdbSlug||String(game.igdbId))}" target="_blank" rel="noopener">View on IGDB ↗</a>`:'';
   const verifyBanner=game.matchConfidence==='low'?`<div class="verify-banner">
     <span class="verify-banner-text">⚠ This match may be incorrect — please review</span>
     <button class="verify-btn verify-btn-confirm" onclick="confirmGameMatch('${escJs(String(game.id))}')">✓ Looks Correct</button>
@@ -2044,6 +2074,15 @@ function openModal(game) {
   document.getElementById('modal-overlay').classList.add('active');
 }
 function closeModal() { currentModalGameId=null; document.getElementById('modal-overlay').classList.remove('active'); }
+function openScreenshotLightbox(id) {
+  const lb=document.getElementById('screenshot-lightbox');
+  document.getElementById('screenshot-lightbox-img').src=`${IGDB_IMG}/t_screenshot_huge/${id}.jpg`;
+  lb.style.display='flex';
+}
+function closeScreenshotLightbox() {
+  document.getElementById('screenshot-lightbox').style.display='none';
+  document.getElementById('screenshot-lightbox-img').src='';
+}
 function modalNavPrev() { if(modalGameIdx>0) openModal(modalGameList[modalGameIdx-1]); }
 function modalNavNext() { if(modalGameIdx<modalGameList.length-1) openModal(modalGameList[modalGameIdx+1]); }
 function handleModalOverlayClick(e) { if(e.target===document.getElementById('modal-overlay')) closeModal(); }
@@ -2583,8 +2622,9 @@ let _mpStarsInit=false;
 // ── KEYBOARD SHORTCUTS ─────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
+  if (document.getElementById('screenshot-lightbox').style.display!=='none') { closeScreenshotLightbox(); return; }
   if (document.getElementById('import-summary-overlay').classList.contains('active')) { closeImportSummary(false); return; }
-  if (document.getElementById('import-preview-overlay').classList.contains('active')) { closeImportPreview(); return; }
+  // import-preview-overlay intentionally NOT closed by Escape (too easy to lose progress)
   if (document.getElementById('fix-overlay').classList.contains('active'))       { closeFixModal(); return; }
   if (document.getElementById('modal-overlay').classList.contains('active'))     { closeModal(); return; }
   if (document.getElementById('mark-played-overlay').classList.contains('active')){ closeMarkPlayedModal(); return; }
@@ -2614,6 +2654,14 @@ function renderPreviewRow(idx) {
   if (!tr) { tr=document.createElement('tr'); tr.dataset.previewIdx=idx; tbody.appendChild(tr); }
   tr.className=(!p.include&&!existing)?'preview-row-skip':'';
 
+  // Per-row search box (shown in all non-existing rows)
+  const searchBox=existing?'':
+    `<div style="margin-top:5px;display:flex;gap:4px;align-items:center">
+      <input class="preview-row-search" type="text" placeholder="Search title or IGDB ID…" style="flex:1;font-size:.68rem;padding:3px 6px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:2px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')previewRowSearch(${idx},this.value.trim())">
+      <button style="font-size:.65rem;padding:3px 7px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:2px;cursor:pointer" onclick="previewRowSearch(${idx},this.previousElementSibling.value.trim())">↵</button>
+      <span class="preview-row-search-status" style="font-size:.65rem;color:var(--text-muted);white-space:nowrap"></span>
+    </div>`;
+
   let matchHTML='', thumbHTML='', confHTML='';
   if (existing) {
     thumbHTML=`<div class="preview-thumb-placeholder" title="Already in collection">📚</div>`;
@@ -2621,24 +2669,33 @@ function renderPreviewRow(idx) {
     confHTML=`<span class="conf-badge conf-exists">Exists</span>`;
   } else if (!p.igdbResults.length) {
     thumbHTML=`<div class="preview-thumb-placeholder">🎮</div>`;
-    matchHTML=`<div class="preview-match-title" style="color:var(--text-dim)">No match found</div><div class="preview-match-meta">Will import as manual entry</div>`;
+    matchHTML=`<div class="preview-match-title" style="color:var(--text-dim)">No match found</div><div class="preview-match-meta">Will import as manual entry</div>${searchBox}`;
     confHTML=`<span class="conf-badge conf-none">No match</span>`;
   } else {
     const r=p.igdbResults[p.selectedIdx];
     const yr=r.first_release_date?new Date(r.first_release_date*1000).getFullYear():'?';
+    const plats=(r.platforms||[]).map(p=>p.name).join(', ');
     const thumb=igdbCoverUrl(r);
     thumbHTML=thumb?`<img class="preview-thumb" src="${escHtml(thumb)}" loading="lazy">`:`<div class="preview-thumb-placeholder">🎮</div>`;
     const swapBtn=p.igdbResults.length>1?`<button class="preview-swap-btn" onclick="openPreviewSwap(${idx})">⇄ Swap</button>`:'';
-    matchHTML=`<div style="display:flex;align-items:flex-start;gap:6px"><div><div class="preview-match-title">${escHtml(r.name)}</div><div class="preview-match-meta">${yr} · IGDB #${r.id}</div></div>${swapBtn}</div>`;
+    matchHTML=`<div style="display:flex;align-items:flex-start;gap:6px"><div><div class="preview-match-title">${escHtml(r.name)}</div><div class="preview-match-meta">${yr}${plats?' · '+escHtml(plats):''} · IGDB #${r.id}</div></div>${swapBtn}</div>${searchBox}`;
     const cls=p.confidence==='high'?'conf-high':p.confidence==='medium'?'conf-medium':'conf-low';
     confHTML=`<span class="conf-badge ${cls}">${p.confidence}</span>`;
   }
+
+  // Col 3: two-title display in re-match mode, plain csvTitle in import mode
+  const titleCell=_previewMode==='rematch'
+    ? `<div style="font-size:.82rem;color:var(--text)">${escHtml(p.storedTitle||p.csvTitle)}</div>
+       <div style="font-size:.7rem;color:var(--text-muted)">${escHtml(p.displayTitle||'—')}</div>
+       <div style="font-size:.65rem;color:var(--text-dim);margin-top:2px">${p.csvPlatforms.join(', ')||'—'}</div>`
+    : `${escHtml(p.csvTitle)}<br><span style="font-size:.65rem;color:var(--text-dim)">${p.csvPlatforms.join(', ')||'—'}</span>`;
+
   const cbDisabled=existing?'disabled':'';
   const cbChecked=(p.include||existing)?'checked':'';
   tr.innerHTML=`
     <td><input type="checkbox" class="preview-include-cb" ${cbChecked} ${cbDisabled} onchange="previewToggleRow(${idx},this.checked)"></td>
     <td>${thumbHTML}</td>
-    <td style="color:var(--text-muted)">${escHtml(p.csvTitle)}<br><span style="font-size:.65rem;color:var(--text-dim)">${p.csvPlatforms.join(', ')||'—'}</span></td>
+    <td style="color:var(--text-muted)">${titleCell}</td>
     <td>${matchHTML}</td>
     <td>${confHTML}</td>
     <td style="font-size:.72rem;color:var(--text-dim)">${p.csvPlatforms.join(', ')||'—'}</td>`;
@@ -2688,6 +2745,36 @@ function applyPreviewSwap(rowIdx, resultIdx) {
   p.confidence=igdbMatchConfidence(p.csvTitle, p.igdbResults[resultIdx]);
   renderPreviewRow(rowIdx);
   updatePreviewCount();
+}
+async function previewRowSearch(idx, query) {
+  if (!query) return;
+  const p=_previewRows[idx]; if (!p) return;
+  const tr=document.querySelector(`tr[data-preview-idx="${idx}"]`);
+  const statusSpan=tr?.querySelector('.preview-row-search-status');
+  if (statusSpan) statusSpan.textContent='Searching…';
+  try {
+    let results;
+    if (/^\d+$/.test(query)) {
+      // IGDB ID lookup
+      results=await igdbFetch(`fields ${IGDB_FIELDS}; where id = ${query}; limit 1;`);
+    } else {
+      results=await igdbSearch(query);
+    }
+    if (!results.length) { if (statusSpan) statusSpan.textContent='No results'; return; }
+    if (statusSpan) statusSpan.textContent='';
+    p.igdbResults=results;
+    p.selectedIdx=0;
+    p.confidence=igdbMatchConfidence(p.csvTitle, results[0]);
+    if (!p.include) p.include=true;
+    // Preserve the search input value across re-render
+    const prevQuery=tr?.querySelector('.preview-row-search')?.value||'';
+    renderPreviewRow(idx);
+    const newInput=document.querySelector(`tr[data-preview-idx="${idx}"] .preview-row-search`);
+    if (newInput) newInput.value=prevQuery;
+    updatePreviewCount();
+  } catch(e) {
+    if (statusSpan) statusSpan.textContent='⚠ '+e.message.slice(0,40);
+  }
 }
 async function confirmImport() {
   const toImport=_previewRows.filter(p=>p.include||p.existingGame);
@@ -2758,9 +2845,9 @@ async function bulkRematch() {
   _previewMode='rematch';
   _previewRows=[];
 
-  // Swap column header
+  // Update column header for re-match mode
   const th=document.querySelector('#import-preview-overlay thead th:nth-child(3)');
-  if(th) th.textContent='Your Title';
+  if(th) th.innerHTML='Stored Title<br><span style="font-size:.65rem;font-weight:normal;color:var(--text-muted)">/ Display Title</span>';
 
   document.getElementById('import-preview-title').textContent=`Re-match to IGDB — ${toRematch.length} game${toRematch.length!==1?'s':''}`;
   document.getElementById('import-preview-searching').textContent='Searching IGDB…';
@@ -2788,7 +2875,7 @@ async function bulkRematch() {
       // Other errors: log and continue with no match
     }
     console.log('[1UP IGDB]', title, '→', igdbResults.length, 'results, confidence:', confidence);
-    _previewRows.push({ csvTitle:game.displayTitle||game.title, csvPlatforms:game.userPlatforms||[], igdbResults, selectedIdx, include:confidence!=='none', confidence, rematchGameId:game.id });
+    _previewRows.push({ csvTitle:game.displayTitle||game.title, storedTitle:game.title, displayTitle:game.displayTitle||null, csvPlatforms:game.userPlatforms||[], igdbResults, selectedIdx, include:confidence!=='none', confidence, rematchGameId:game.id });
     renderPreviewRow(_previewRows.length-1);
     statusEl.textContent=`${i+1} / ${toRematch.length} searched…`;
     updatePreviewCount();
@@ -2815,6 +2902,7 @@ async function confirmRematch() {
 
       const cid=r?.cover?.image_id;
       game.igdbId=String(r.id);
+      game.igdbSlug=r.slug||null;
       game.rawgId=null; game.rawgSlug=null;
       game.title=r.name;
       if(cid){ game.cover=`${IGDB_IMG}/t_cover_big/${cid}.jpg`; game.coverLg=`${IGDB_IMG}/t_cover_big_2x/${cid}.jpg`; }
@@ -2938,10 +3026,23 @@ function showReviewPillIfNeeded() {
   updateStats();
 }
 async function confirmGameMatch(id) {
-  const g=games.find(g=>g.id===id); if(!g) return;
+  const g=games.find(g=>String(g.id)===String(id)); if(!g) return;
   g.matchConfidence='high';
   await sbSaveGame(g).catch(()=>{});
-  closeModal(); applyFilters(); updateStats(); showReviewPillIfNeeded();
+  updateStats(); showReviewPillIfNeeded();
+  // Advance to next low-confidence game instead of returning to library
+  const remaining=games.filter(g=>g.matchConfidence==='low');
+  if (remaining.length) {
+    applyFilters();
+    openModal(remaining[0].id);
+  } else {
+    closeModal(); applyFilters();
+    const toast=document.createElement('div');
+    toast.textContent='✓ All games reviewed!';
+    toast.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:10px 22px;border-radius:4px;font-weight:600;z-index:9999;font-size:.95rem;pointer-events:none';
+    document.body.appendChild(toast);
+    setTimeout(()=>toast.remove(),3000);
+  }
 }
 function openRematch(id) {
   closeModal(); openFixModal(id);
@@ -2980,6 +3081,7 @@ async function runIGDBRefresh() {
         }
         games[i].screenshots = (r.screenshots||[]).map(s=>s.image_id);
         if (r.name)           games[i].title      = r.name;
+        if (r.slug)           games[i].igdbSlug   = r.slug;
         if (r.summary)        games[i].summary    = r.summary;
         if (r.first_release_date) games[i].year   = new Date(r.first_release_date*1000).getFullYear();
         const devCo = r.involved_companies?.find(c=>c.developer);
@@ -3108,6 +3210,12 @@ async function runIGDBRefresh() {
   <label class="hltb-check-label"><input type="checkbox" value="30plus" onchange="toggleHltbFilter('30plus')"> 30h+</label>
   <label class="hltb-check-label"><input type="checkbox" value="missing" onchange="toggleHltbFilter('missing')"> No data</label>
   <div style="margin-top:8px"><button class="btn" onclick="clearHltbFilter()" style="font-size:.66rem;padding:6px 12px">Clear</button></div>
+</div>
+
+<!-- SCREENSHOT LIGHTBOX -->
+<div id="screenshot-lightbox" onclick="closeScreenshotLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9500;align-items:center;justify-content:center;cursor:zoom-out">
+  <img id="screenshot-lightbox-img" src="" alt="screenshot" style="max-width:92vw;max-height:92vh;object-fit:contain;border-radius:2px;box-shadow:0 4px 40px rgba(0,0,0,.8)" onclick="event.stopPropagation()">
+  <button onclick="closeScreenshotLightbox()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;line-height:1;opacity:.7" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.7">✕</button>
 </div>
 
 </body>
