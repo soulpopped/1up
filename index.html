@@ -893,6 +893,7 @@
   <button class="btn btn-accent" onclick="saveBulkEdit()" style="font-size:.7rem;padding:7px 12px">Apply</button>
   <button class="btn" onclick="bulkToggleFlag('multiplayer')" style="font-size:.7rem;padding:7px 12px">👥 Multiplayer</button>
   <button class="btn" onclick="bulkToggleFlag('motion')" style="font-size:.7rem;padding:7px 12px">🕹 Motion</button>
+  <button class="btn" onclick="bulkRematch()" style="font-size:.7rem;padding:7px 12px">↺ Re-match IGDB</button>
   <button class="btn" onclick="exitSelectionMode()" style="font-size:.7rem;padding:7px 12px">Cancel</button>
 </div>
 
@@ -1524,7 +1525,8 @@ async function addManualGame(addAnother=false) {
 }
 
 // ── CSV IMPORT ─────────────────────────────────────────────────────────────────
-let _previewRows = [];  // [{csvTitle, csvPlatforms, csvData, csvStatus, igdbResults, selectedIdx, include}]
+let _previewRows = [];  // [{csvTitle, csvPlatforms, csvData, csvStatus, igdbResults, selectedIdx, include, rematchGameId?}]
+let _previewMode = 'import'; // 'import' | 'rematch'
 
 async function handleCSVFile(event) {
   const file=event.target.files[0]; if(!file) return;
@@ -2539,6 +2541,10 @@ function openImportPreview(total) {
 function closeImportPreview() {
   document.getElementById('import-preview-overlay').classList.remove('active');
   _previewRows=[];
+  _previewMode='import';
+  // Reset column header
+  const th=document.querySelector('#import-preview-overlay thead th:nth-child(3)');
+  if(th) th.textContent='CSV Title';
 }
 function renderPreviewRow(idx) {
   const p=_previewRows[idx];
@@ -2595,7 +2601,8 @@ function updatePreviewCount() {
   const inc=_previewRows.filter(p=>p.include||p.existingGame).length;
   const tot=_previewRows.length;
   document.getElementById('import-preview-count').textContent=`${inc} of ${tot} selected`;
-  document.getElementById('import-preview-confirm-btn').textContent=`Import ${inc} Games`;
+  const label=_previewMode==='rematch'?`Re-match ${inc} Games`:`Import ${inc} Games`;
+  document.getElementById('import-preview-confirm-btn').textContent=label;
 }
 function openPreviewSwap(idx) {
   const p=_previewRows[idx]; if (!p.igdbResults.length) return;
@@ -2676,6 +2683,101 @@ async function confirmImport() {
   hideProgress(); _previewRows=[];
   showReviewPillIfNeeded();
   openApp();
+  showImportSummary(summary);
+}
+
+// ── CONFIRM DISPATCHER ─────────────────────────────────────────────────────────
+function confirmPreview() { _previewMode==='rematch' ? confirmRematch() : confirmImport(); }
+
+// ── BULK RE-MATCH ──────────────────────────────────────────────────────────────
+async function bulkRematch() {
+  if (!selectedIds.size) return;
+  const toRematch=games.filter(g=>selectedIds.has(String(g.id)));
+  exitSelectionMode();
+
+  _previewMode='rematch';
+  _previewRows=[];
+
+  // Swap column header
+  const th=document.querySelector('#import-preview-overlay thead th:nth-child(3)');
+  if(th) th.textContent='Your Title';
+
+  document.getElementById('import-preview-title').textContent=`Re-match to IGDB — ${toRematch.length} game${toRematch.length!==1?'s':''}`;
+  document.getElementById('import-preview-searching').textContent='Searching IGDB…';
+  document.getElementById('preview-table-body').innerHTML='';
+  document.getElementById('import-preview-overlay').classList.add('active');
+  updatePreviewCount();
+
+  const statusEl=document.getElementById('import-preview-searching');
+
+  for (let i=0; i<toRematch.length; i++) {
+    const game=toRematch[i];
+    const title=game.searchTitle||game.displayTitle||game.title;
+    let igdbResults=[], selectedIdx=0, confidence='none';
+    try {
+      igdbResults=await igdbSearch(title);
+      await sleep(280);
+      if (igdbResults.length) confidence=igdbMatchConfidence(title, igdbResults[0]);
+    } catch(e) {
+      if (e.isCors) { statusEl.textContent='⚠ IGDB auth required — use manual token in credentials.'; return; }
+    }
+    _previewRows.push({ csvTitle:game.displayTitle||game.title, csvPlatforms:game.userPlatforms||[], igdbResults, selectedIdx, include:confidence!=='none', confidence, rematchGameId:game.id });
+    renderPreviewRow(_previewRows.length-1);
+    statusEl.textContent=`${i+1} / ${toRematch.length} searched…`;
+    updatePreviewCount();
+  }
+  statusEl.textContent='✓ Search complete';
+}
+
+async function confirmRematch() {
+  const toUpdate=_previewRows.filter(p=>p.include&&p.igdbResults.length);
+  if (!toUpdate.length) return;
+  closeImportPreview();
+  showProgress('Re-matching Games', `0 / ${toUpdate.length}`);
+
+  const toHr=s=>s?Math.round(s/360)/10:null;
+  const summary={ high:[], medium:[], low:[], noMatch:[], exists:[], errors:[] };
+  let done=0;
+
+  for (const p of toUpdate) {
+    setProgress(p.csvTitle, Math.round(done/toUpdate.length*100));
+    try {
+      const r=p.igdbResults[p.selectedIdx];
+      const game=games.find(g=>String(g.id)===String(p.rematchGameId));
+      if (!game) { summary.errors.push(`${p.csvTitle}: game not found in local state`); done++; continue; }
+
+      const cid=r?.cover?.image_id;
+      game.igdbId=String(r.id);
+      game.rawgId=null; game.rawgSlug=null;
+      game.title=r.name;
+      if(cid){ game.cover=`${IGDB_IMG}/t_cover_big/${cid}.jpg`; game.coverLg=`${IGDB_IMG}/t_cover_big_2x/${cid}.jpg`; }
+      game.screenshots=(r.screenshots||[]).map(s=>s.image_id);
+      if(r.summary) game.summary=r.summary;
+      if(r.first_release_date) game.year=new Date(r.first_release_date*1000).getFullYear();
+      const devCo=r.involved_companies?.find(c=>c.developer);
+      const pubCo=r.involved_companies?.find(c=>c.publisher);
+      if(devCo?.company?.name) game.developer=devCo.company.name;
+      if(pubCo?.company?.name) game.publisher=pubCo.company.name;
+      if((r.genres||[]).length) game.genres=(r.genres||[]).map(g=>g.name);
+      game.igdbPlatforms=(r.platforms||[]).map(p=>p.name);
+      game.matchSource='igdb'; game.matchConfidence=p.confidence; game.notFound=false;
+      const ttb=r.time_to_beat;
+      if(!game.rating&&r.aggregated_rating) game.rating=Math.round(r.aggregated_rating);
+      if(!game.hltbMain&&ttb?.normally) game.hltbMain=toHr(ttb.normally);
+      if(!game.hltbComplete&&ttb?.completely) game.hltbComplete=toHr(ttb.completely);
+
+      await sbSaveGame(game);
+      if(p.confidence==='high') summary.high.push(r.name);
+      else if(p.confidence==='medium') summary.medium.push({csv:p.csvTitle,igdb:r.name});
+      else summary.low.push({csv:p.csvTitle,igdb:r.name});
+    } catch(e) { summary.errors.push(`${p.csvTitle}: ${e.message}`); }
+    done++;
+  }
+
+  hideProgress(); _previewRows=[];
+  applyFilters(); updateStats(); showReviewPillIfNeeded();
+  // Re-use import summary overlay with re-match framing
+  document.getElementById('import-summary-headline').textContent='Re-match Complete';
   showImportSummary(summary);
 }
 
@@ -2914,7 +3016,7 @@ async function runIGDBRefresh() {
   <div id="import-preview-footer">
     <span id="import-preview-count"></span>
     <button class="btn" onclick="previewSelectConfident()" style="font-size:.9rem;padding:10px 18px">✓ Select High+Medium</button>
-    <button class="btn btn-accent" id="import-preview-confirm-btn" onclick="confirmImport()" style="font-size:1rem;padding:11px 22px">Import Selected</button>
+    <button class="btn btn-accent" id="import-preview-confirm-btn" onclick="confirmPreview()" style="font-size:1rem;padding:11px 22px">Import Selected</button>
   </div>
 </div>
 
