@@ -1162,20 +1162,24 @@ async function igdbSearch(title) {
   const clean = s => s.replace(/"/g,"'").slice(0,80);
   // Primary: search endpoint
   const q = clean(title);
+  console.log('[1UP IGDB] search query:', q);
   const results = await igdbFetch(`search "${q}"; fields ${IGDB_FIELDS}; limit 8;`);
+  console.log('[1UP IGDB] search results:', results.length, results);
   if (results.length) return results;
   // Fallback 1: accent-stripped search (handles é, ü, ñ etc.)
   const qNorm = clean(title.normalize('NFD').replace(/[̀-ͯ]/g,''));
+  console.log('[1UP IGDB] fallback1 query:', qNorm);
   if (qNorm !== q) {
     const r2 = await igdbFetch(`search "${qNorm}"; fields ${IGDB_FIELDS}; limit 8;`);
+    console.log('[1UP IGDB] fallback1 results:', r2.length, r2);
     if (r2.length) return r2;
   }
-  // Fallback 2: direct where name ~ prefix match on first significant word
-  const stem = clean(title.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9 ]/g,' ').trim().split(/\s+/).slice(0,4).join(' '));
-  if (stem) {
-    const r3 = await igdbFetch(`fields ${IGDB_FIELDS}; where name ~ *"${stem}"*; limit 8;`);
-    if (r3.length) return r3;
-  }
+  // Fallback 2: where name = exact match on accent-stripped title
+  const qExact = clean(title.normalize('NFD').replace(/[̀-ͯ]/g,''));
+  console.log('[1UP IGDB] fallback2 (exact) query:', qExact);
+  const r3 = await igdbFetch(`fields ${IGDB_FIELDS}; where name = "${qExact}"; limit 8;`);
+  console.log('[1UP IGDB] fallback2 results:', r3.length, r3);
+  if (r3.length) return r3;
   return [];
 }
 async function igdbFetchById(id) {
@@ -2731,17 +2735,20 @@ async function bulkRematch() {
     const game=toRematch[i];
     const title=game.searchTitle||game.displayTitle||game.title;
     let igdbResults=[], selectedIdx=0, confidence='none';
+    statusEl.textContent=`Searching: ${title}…`;
     try {
       igdbResults=await igdbSearch(title);
       await sleep(280);
       if (igdbResults.length) confidence=igdbMatchConfidence(title, igdbResults[0]);
     } catch(e) {
+      console.error('[1UP IGDB] search threw:', e);
       if (e.isCors||e.needsToken||e.message?.includes('token')) {
         statusEl.textContent='⚠ IGDB auth error — go to Settings and test/refresh your IGDB connection, then try again.';
         return;
       }
-      // Other errors (network blip etc.): mark this game as no-match and continue
+      // Other errors: log and continue with no match
     }
+    console.log('[1UP IGDB]', title, '→', igdbResults.length, 'results, confidence:', confidence);
     _previewRows.push({ csvTitle:game.displayTitle||game.title, csvPlatforms:game.userPlatforms||[], igdbResults, selectedIdx, include:confidence!=='none', confidence, rematchGameId:game.id });
     renderPreviewRow(_previewRows.length-1);
     statusEl.textContent=`${i+1} / ${toRematch.length} searched…`;
