@@ -1177,7 +1177,7 @@ async function igdbFetch(body) {
   }
   throw Object.assign(new Error('IGDB unreachable — ' + lastErr?.message), { isCors: true });
 }
-const IGDB_FIELDS = 'name,cover.image_id,screenshots.image_id,platforms.name,first_release_date,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,genres.name,summary,slug,aggregated_rating,time_to_beat.hastily,time_to_beat.normally,time_to_beat.completely';
+const IGDB_FIELDS = 'name,cover.image_id,screenshots.image_id,platforms.name,first_release_date,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,genres.name,summary,slug,aggregated_rating';
 async function igdbSearch(title) {
   const clean = s => s.replace(/"/g,"'").slice(0,80);
   // Primary: search endpoint
@@ -1244,8 +1244,8 @@ function buildGameFromIGDB(r, csvData, userPlatforms, confidence) {
   const genres = (r.genres||[]).map(g=>g.name);
   const apiPlatforms = (r.platforms||[]).map(p=>p.name);
   const igdbId = String(r.id);
-  // time_to_beat: IGDB values are in seconds; convert to hours (1 decimal)
-  const ttb = r.time_to_beat;
+  // time_to_beat removed from IGDB games endpoint; values won't be auto-populated
+  const ttb = null;
   const toHr = s => s ? Math.round(s/360)/10 : null;
   return {
     id:igdbId, igdbId, rawgId:null, rawgSlug:null,
@@ -2828,10 +2828,7 @@ async function confirmRematch() {
       if((r.genres||[]).length) game.genres=(r.genres||[]).map(g=>g.name);
       game.igdbPlatforms=(r.platforms||[]).map(p=>p.name);
       game.matchSource='igdb'; game.matchConfidence=p.confidence; game.notFound=false;
-      const ttb=r.time_to_beat;
       if(!game.rating&&r.aggregated_rating) game.rating=Math.round(r.aggregated_rating);
-      if(!game.hltbMain&&ttb?.normally) game.hltbMain=toHr(ttb.normally);
-      if(!game.hltbComplete&&ttb?.completely) game.hltbComplete=toHr(ttb.completely);
 
       await sbSaveGame(game);
       if(p.confidence==='high') summary.high.push(r.name);
@@ -2991,10 +2988,8 @@ async function runIGDBRefresh() {
         if (pubCo?.company?.name) games[i].publisher = pubCo.company.name;
         if (r.genres?.length)    games[i].genres        = r.genres.map(g=>g.name);
         if (r.platforms?.length) games[i].igdbPlatforms = r.platforms.map(p=>p.name);
-        // Only fill HLTB/rating if not already set (respect manual overrides)
-        const ttb = r.time_to_beat;
-        if (!games[i].hltbMain     && ttb?.normally)    games[i].hltbMain     = toHr(ttb.normally);
-        if (!games[i].hltbComplete && ttb?.completely)  games[i].hltbComplete = toHr(ttb.completely);
+        // Only fill rating if not already set (respect manual overrides)
+        // time_to_beat removed from IGDB games endpoint
         if (!games[i].rating && r.aggregated_rating)    games[i].rating       = Math.round(r.aggregated_rating);
         await sbSaveGame(games[i]);
         updatedNames.push(games[i].displayTitle||games[i].title);
