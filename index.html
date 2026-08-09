@@ -2287,11 +2287,21 @@ async function applyFixResult(idx) {
     const old=games[i];
     const newData=buildGameFromIGDB(r,{hltbMain:old.hltbMain,hltbExtra:old.hltbExtra,hltbComplete:old.hltbComplete},old.userPlatforms,'high');
     newData.id=old.id; newData.displayTitle=old.displayTitle; newData.sortTitle=old.sortTitle;
-    newData.customCover=old.customCover; newData.dateAdded=old.dateAdded;
+    // Clear customCover when IGDB provides new art so IGDB art takes over
+    newData.customCover=r?.cover?.image_id ? null : old.customCover;
+    newData.dateAdded=old.dateAdded;
     newData.yearBeaten=old.yearBeaten; newData.beatYears=old.beatYears||[];
     newData.notes=old.notes||null; newData.myRating=old.myRating||null;
     games[i]=newData; await sbSaveGame(newData);
-    setFixStatus('✓ Updated'); applyFilters(); setTimeout(closeFixModal,800);
+    applyFilters(); buildFilterOptions();
+    setFixStatus('✓ Updated');
+    // Advance to next game instead of closing
+    if(fixGameIdx>=0 && fixGameIdx<fixGameList.length-1) {
+      const nextId=String(fixGameList[fixGameIdx+1].id);
+      setTimeout(()=>openFixModal(nextId),600);
+    } else {
+      setTimeout(closeFixModal,800);
+    }
   } catch(e) { setFixStatus('⚠ '+e.message,true); }
 }
 async function unmatchGame() {
@@ -2906,7 +2916,7 @@ async function confirmRematch() {
       game.igdbSlug=r.slug||null;
       game.rawgId=null; game.rawgSlug=null;
       game.title=r.name;
-      if(cid){ game.cover=`${IGDB_IMG}/t_cover_big/${cid}.jpg`; game.coverLg=`${IGDB_IMG}/t_cover_big_2x/${cid}.jpg`; }
+      if(cid){ game.cover=`${IGDB_IMG}/t_cover_big/${cid}.jpg`; game.coverLg=`${IGDB_IMG}/t_cover_big_2x/${cid}.jpg`; game.customCover=null; }
       game.screenshots=(r.screenshots||[]).map(s=>s.image_id);
       if(r.summary) game.summary=r.summary;
       if(r.first_release_date) game.year=new Date(r.first_release_date*1000).getFullYear();
