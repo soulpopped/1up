@@ -445,6 +445,17 @@
 
   <!-- Search IGDB tab -->
   <div class="tab-pane active" id="tab-search">
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <input type="text" id="igdb-search-input" placeholder="Search for a game… e.g. Hades" onkeydown="if(event.key==='Enter')searchIGDBUI()">
+      <button class="btn btn-accent" onclick="searchIGDBUI()" style="white-space:nowrap">Search</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap">Or by IGDB ID:</span>
+      <input type="number" id="igdb-id-input" placeholder="e.g. 1905" onkeydown="if(event.key==='Enter')searchIGDBByIdUI()" style="width:130px">
+      <button class="btn" onclick="searchIGDBByIdUI()" style="white-space:nowrap;font-size:.75rem;padding:6px 12px">Look up</button>
+    </div>
+    <div id="igdb-search-status" style="font-size:.72rem;color:var(--text-muted);min-height:18px;margin-bottom:6px"></div>
+    <div id="search-results"></div>
     <div class="add-form-group">
       <div class="add-form-label">Platform(s) owned on</div>
       <div class="add-platform-chips" id="add-platform-chips">
@@ -493,17 +504,6 @@
         <button class="platform-toggle" data-platform="Mobile" onclick="togglePlatform(this)">Mobile</button>
       </div>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:6px">
-      <input type="text" id="igdb-search-input" placeholder="Search for a game… e.g. Hades" onkeydown="if(event.key==='Enter')searchIGDBUI()">
-      <button class="btn btn-accent" onclick="searchIGDBUI()" style="white-space:nowrap">Search</button>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
-      <span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap">Or by IGDB ID:</span>
-      <input type="number" id="igdb-id-input" placeholder="e.g. 1905" onkeydown="if(event.key==='Enter')searchIGDBByIdUI()" style="width:130px">
-      <button class="btn" onclick="searchIGDBByIdUI()" style="white-space:nowrap;font-size:.75rem;padding:6px 12px">Look up</button>
-    </div>
-    <div id="igdb-search-status" style="font-size:.72rem;color:var(--text-muted);min-height:18px;margin-bottom:6px"></div>
-    <div id="search-results"></div>
     <div id="add-game-form" style="display:none;margin-top:16px">
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn btn-accent" onclick="addGame(false)">Add to Collection</button>
@@ -1321,6 +1321,16 @@ function createAppIcon() {
   } catch(e){}
 }
 
+function resetAddForm() {
+  const si=document.getElementById('igdb-search-input'); if(si) si.value='';
+  const ii=document.getElementById('igdb-id-input'); if(ii) ii.value='';
+  const sr=document.getElementById('search-results'); if(sr){ sr.innerHTML=''; sr.style.display=''; }
+  const ss=document.getElementById('igdb-search-status'); if(ss) ss.textContent='';
+  const af=document.getElementById('add-game-form'); if(af) af.style.display='none';
+  const st=document.getElementById('add-game-status'); if(st) st.textContent='';
+  document.querySelectorAll('#add-platform-chips .platform-toggle').forEach(b=>b.classList.remove('active'));
+  selectedSearchResult=null;
+}
 function showImport() {
   document.getElementById('import-panel').style.display='block';
   document.getElementById('main-header').classList.remove('active');
@@ -1330,6 +1340,7 @@ function showImport() {
   document.getElementById('import-actions').innerHTML = games.length>0 ? `<button class="btn btn-accent" onclick="openApp()">← My Collection</button>` : '';
   document.getElementById('data-section').style.display = games.length>0?'block':'none';
   document.getElementById('danger-section').style.display = [...statusMap.values()].some(s=>s&&s!=='unplayed')?'block':'none';
+  resetAddForm();
 }
 function showImportPanel() { showImport(); }
 
@@ -2272,9 +2283,10 @@ function showFixResults(results) {
   el.innerHTML=results.slice(0,6).map((r,i)=>{
     const yr=r.first_release_date?new Date(r.first_release_date*1000).getFullYear():'?';
     const thumb=igdbCoverUrl(r);
+    const plats=(r.platforms||[]).map(p=>p.name).join(', ');
     return `<div class="search-result" onclick="applyFixResult(${i})" style="margin-bottom:6px">
       <div class="search-result-cover">${thumb?`<img src="${escHtml(thumb)}" alt="" style="width:40px;height:56px;object-fit:cover;border-radius:1px">`:'<div class="no-cover">🎮</div>'}</div>
-      <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr} · IGDB ID: ${r.id}</div></div>
+      <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr} · IGDB #${r.id}</div>${plats?`<div class="search-result-meta" style="margin-top:1px;color:var(--text-dim)">${escHtml(plats)}</div>`:''}</div>
     </div>`;
   }).join('');
   el._results=results;
