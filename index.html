@@ -1079,6 +1079,7 @@ let currentGenreFilter='';
 let platFilters=new Map(); // key -> 'include' | 'exclude'
 let selectionMode=false, selectedIds=new Set();
 let currentRandomGame=null, selectedSearchResult=null;
+let _lbIds=[], _lbIdx=0;
 let fixMyRating=0, markPlayedTargetId=null, markPlayedRating=0;
 let filterMultiplayer=0, filterMotion=0;
 let hltbFilters=new Set();
@@ -2004,7 +2005,7 @@ function openModal(game) {
   // Screenshot gallery: remaining shots after banner (index 1+)
   const galleryIds = hasShotArr ? game.screenshots.slice(1) : [];
   const galleryHTML = galleryIds.length
-    ? `<div class="screenshot-gallery">${galleryIds.map(id=>`<img src="${IGDB_IMG}/t_screenshot_big/${id}.jpg" loading="lazy" alt="screenshot" onclick="openScreenshotLightbox('${id}')" style="cursor:zoom-in">`).join('')}</div>`
+    ? `<div class="screenshot-gallery" data-lbids="${escHtml(JSON.stringify(galleryIds))}">${galleryIds.map((id,i)=>`<img src="${IGDB_IMG}/t_screenshot_big/${id}.jpg" loading="lazy" alt="screenshot" onclick="openScreenshotLightbox(${i})" style="cursor:zoom-in">`).join('')}</div>`
     : '';
 
   const platBadges=(game.userPlatforms||[]).map(p=>platBadgeHTML(p,true)).join('');
@@ -2085,11 +2086,23 @@ function openModal(game) {
   document.getElementById('modal-overlay').classList.add('active');
 }
 function closeModal() { currentModalGameId=null; document.getElementById('modal-overlay').classList.remove('active'); }
-function openScreenshotLightbox(id) {
-  const lb=document.getElementById('screenshot-lightbox');
-  document.getElementById('screenshot-lightbox-img').src=`${IGDB_IMG}/t_screenshot_huge/${id}.jpg`;
-  lb.style.display='flex';
+function openScreenshotLightbox(idx) {
+  const gallery=document.querySelector('[data-lbids]');
+  if(gallery) { try { _lbIds=JSON.parse(gallery.dataset.lbids); } catch(e){ _lbIds=[]; } }
+  _lbIdx=idx;
+  _lbShowFrame();
+  document.getElementById('screenshot-lightbox').style.display='flex';
 }
+function _lbShowFrame() {
+  const id=_lbIds[_lbIdx]; if(!id) return;
+  document.getElementById('screenshot-lightbox-img').src=`${IGDB_IMG}/t_screenshot_huge/${id}.jpg`;
+  const counter=document.getElementById('lb-counter');
+  if(counter) counter.textContent=_lbIds.length>1?`${_lbIdx+1} / ${_lbIds.length}`:'';
+  const prev=document.getElementById('lb-prev'), next=document.getElementById('lb-next');
+  if(prev){ const ok=_lbIdx>0; prev.style.opacity=ok?'.6':'0'; prev.style.pointerEvents=ok?'':'none'; }
+  if(next){ const ok=_lbIdx<_lbIds.length-1; next.style.opacity=ok?'.6':'0'; next.style.pointerEvents=ok?'':'none'; }
+}
+function lbNav(dir) { const n=_lbIdx+dir; if(n<0||n>=_lbIds.length) return; _lbIdx=n; _lbShowFrame(); }
 function closeScreenshotLightbox() {
   document.getElementById('screenshot-lightbox').style.display='none';
   document.getElementById('screenshot-lightbox-img').src='';
@@ -2643,8 +2656,13 @@ let _mpStarsInit=false;
 
 // ── KEYBOARD SHORTCUTS ─────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
+  if (document.getElementById('screenshot-lightbox').style.display!=='none') {
+    if (e.key==='Escape')      { closeScreenshotLightbox(); return; }
+    if (e.key==='ArrowLeft')   { lbNav(-1); return; }
+    if (e.key==='ArrowRight')  { lbNav(1);  return; }
+    return;
+  }
   if (e.key !== 'Escape') return;
-  if (document.getElementById('screenshot-lightbox').style.display!=='none') { closeScreenshotLightbox(); return; }
   if (document.getElementById('import-summary-overlay').classList.contains('active')) { closeImportSummary(false); return; }
   // import-preview-overlay intentionally NOT closed by Escape (too easy to lose progress)
   if (document.getElementById('fix-overlay').classList.contains('active'))       { closeFixModal(); return; }
@@ -2765,7 +2783,8 @@ function openPreviewSwap(idx) {
 function applyPreviewSwap(rowIdx, resultIdx) {
   const p=_previewRows[rowIdx];
   p.selectedIdx=resultIdx;
-  p.confidence=igdbMatchConfidence(p.csvTitle, p.igdbResults[resultIdx]);
+  // User manually picked this result — treat as high confidence
+  p.confidence='high';
   renderPreviewRow(rowIdx);
   updatePreviewCount();
 }
@@ -2787,7 +2806,8 @@ async function previewRowSearch(idx, query) {
     if (statusSpan) statusSpan.textContent='';
     p.igdbResults=results;
     p.selectedIdx=0;
-    p.confidence=igdbMatchConfidence(p.csvTitle, results[0]);
+    // User explicitly searched — trust their choice; force high confidence so it doesn't land in review
+    p.confidence='high';
     if (!p.include) p.include=true;
     // Preserve the search input value across re-render
     const prevQuery=tr?.querySelector('.preview-row-search')?.value||'';
@@ -2821,13 +2841,14 @@ async function confirmImport() {
       } else if (p.igdbResults.length) {
         const r=p.igdbResults[p.selectedIdx];
         const igdbId=String(r.id);
-        if (games.some(g=>g.id===igdbId||g.igdbId===igdbId)) {
-          // ID collision — import as manual
-          const id='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-          const g={id,igdbId:null,rawgId:null,rawgSlug:null,searchTitle:p.csvTitle,title:p.csvTitle,displayTitle:null,sortTitle:null,cover:null,coverLg:null,customCover:null,year:null,summary:null,developer:null,publisher:null,genres:[],igdbPlatforms:[],rawgPlatforms:[],userPlatforms:p.csvPlatforms,...p.csvData,rating:p.csvData.metacritic||null,dateAdded:new Date().toISOString(),notFound:true,matchSource:'manual',matchConfidence:'none'};
-          games.push(g); await sbSaveGame(g);
-          if(p.csvStatus){statusMap.set(g.id,p.csvStatus);await sbSetStatus(g.id,p.csvStatus).catch(()=>{});}
-          summary.noMatch.push(p.csvTitle);
+        const dupeGame=games.find(g=>g.id===igdbId||g.igdbId===igdbId);
+        if (dupeGame) {
+          // IGDB ID matches a game already in library (or imported earlier this batch) — merge
+          let changed=false;
+          p.csvPlatforms.forEach(pl=>{ if(!(dupeGame.userPlatforms||[]).includes(pl)){dupeGame.userPlatforms=dupeGame.userPlatforms||[];dupeGame.userPlatforms.push(pl);changed=true;} });
+          (p.csvData.beatYears||[]).forEach(y=>{ if(!(dupeGame.beatYears||[]).includes(y)){dupeGame.beatYears=dupeGame.beatYears||[];dupeGame.beatYears.push(y);if(!dupeGame.yearBeaten)dupeGame.yearBeaten=y;changed=true;} });
+          if(changed) await sbSaveGame(dupeGame).catch(()=>{});
+          summary.exists.push(p.csvTitle);
         } else {
           const g=buildGameFromIGDB(r,p.csvData,p.csvPlatforms,p.confidence);
           if(p.csvData.myRating) g.myRating=p.csvData.myRating;
@@ -3237,8 +3258,11 @@ async function runIGDBRefresh() {
 
 <!-- SCREENSHOT LIGHTBOX -->
 <div id="screenshot-lightbox" onclick="closeScreenshotLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9500;align-items:center;justify-content:center;cursor:zoom-out">
-  <img id="screenshot-lightbox-img" src="" alt="screenshot" style="max-width:92vw;max-height:92vh;object-fit:contain;border-radius:2px;box-shadow:0 4px 40px rgba(0,0,0,.8)" onclick="event.stopPropagation()">
+  <button id="lb-prev" onclick="event.stopPropagation();lbNav(-1)" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;font-size:3rem;cursor:pointer;line-height:1;opacity:0;pointer-events:none;padding:8px 16px;transition:opacity .15s" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.6'">‹</button>
+  <img id="screenshot-lightbox-img" src="" alt="screenshot" style="max-width:84vw;max-height:90vh;object-fit:contain;border-radius:2px;box-shadow:0 4px 40px rgba(0,0,0,.8)" onclick="event.stopPropagation()">
+  <button id="lb-next" onclick="event.stopPropagation();lbNav(1)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;font-size:3rem;cursor:pointer;line-height:1;opacity:0;pointer-events:none;padding:8px 16px;transition:opacity .15s" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.6'">›</button>
   <button onclick="closeScreenshotLightbox()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;line-height:1;opacity:.7" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.7">✕</button>
+  <div id="lb-counter" style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;font-size:.8rem;opacity:.6;pointer-events:none;white-space:nowrap;letter-spacing:.05em"></div>
 </div>
 
 </body>
