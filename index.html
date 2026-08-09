@@ -2772,9 +2772,10 @@ function openPreviewSwap(idx) {
   swapDiv.innerHTML=p.igdbResults.map((r,i)=>{
     const yr=r.first_release_date?new Date(r.first_release_date*1000).getFullYear():'?';
     const thumb=igdbCoverUrl(r);
+    const plats=(r.platforms||[]).map(p=>p.name).join(', ');
     return `<div class="preview-swap-result-row" onclick="applyPreviewSwap(${idx},${i})">
       ${thumb?`<img src="${escHtml(thumb)}" loading="lazy">`:`<div class="preview-thumb-placeholder">🎮</div>`}
-      <div><div style="font-size:1rem;color:var(--text)">${escHtml(r.name)}</div><div style="font-size:.85rem;color:var(--text-dim)">${yr} · IGDB #${r.id}</div></div>
+      <div><div style="font-size:1rem;color:var(--text)">${escHtml(r.name)}</div><div style="font-size:.85rem;color:var(--text-dim)">${yr} · IGDB #${r.id}</div>${plats?`<div style="font-size:.75rem;color:var(--text-dim);margin-top:1px">${escHtml(plats)}</div>`:''}</div>
       ${i===p.selectedIdx?'<span style="color:var(--accent);font-size:.85rem;margin-left:auto">✓ current</span>':''}
     </div>`;
   }).join('');
