@@ -2658,8 +2658,8 @@ let _mpStarsInit=false;
 document.addEventListener('keydown', e => {
   if (document.getElementById('screenshot-lightbox').style.display!=='none') {
     if (e.key==='Escape')      { closeScreenshotLightbox(); return; }
-    if (e.key==='ArrowLeft')   { lbNav(-1); return; }
-    if (e.key==='ArrowRight')  { lbNav(1);  return; }
+    if (e.key==='ArrowLeft')   { e.preventDefault(); lbNav(-1); return; }
+    if (e.key==='ArrowRight')  { e.preventDefault(); lbNav(1);  return; }
     return;
   }
   if (e.key !== 'Escape') return;
