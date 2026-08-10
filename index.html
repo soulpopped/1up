@@ -2635,9 +2635,10 @@ function quickMarkPlaying(id) {
 
 // ── ESC / ARROW KEYS ───────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
+  const lbOpen = document.getElementById('screenshot-lightbox').style.display !== 'none';
   const modalOpen = document.getElementById('modal-overlay').classList.contains('active');
-  if (e.key === 'ArrowLeft'  && modalOpen) { e.preventDefault(); modalNavPrev(); return; }
-  if (e.key === 'ArrowRight' && modalOpen) { e.preventDefault(); modalNavNext(); return; }
+  if (e.key === 'ArrowLeft'  && modalOpen && !lbOpen) { e.preventDefault(); modalNavPrev(); return; }
+  if (e.key === 'ArrowRight' && modalOpen && !lbOpen) { e.preventDefault(); modalNavNext(); return; }
   if (e.key !== 'Escape') return;
   if (document.getElementById('stats-overlay-1up').classList.contains('active')) { closeStats1UP(); return; }
   if (document.getElementById('mark-played-overlay').classList.contains('active')) { closeMarkPlayedModal(); return; }
