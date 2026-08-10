@@ -2645,7 +2645,7 @@ document.addEventListener('keydown', e => {
   if (document.getElementById('filter-panel').classList.contains('active')) { toggleFilterPanel(); return; }
   if (document.getElementById('hltb-panel').classList.contains('active')) { document.getElementById('hltb-panel').classList.remove('active'); return; }
   if (document.getElementById('fix-overlay').classList.contains('active'))    { closeFixModal(); return; }
-  if (modalOpen) { closeModal(); return; }
+  if (modalOpen && !lbOpen) { closeModal(); return; }
   if (document.getElementById('random-overlay').classList.contains('active')) { closeRandom();   return; }
 });
 
