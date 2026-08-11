@@ -327,6 +327,7 @@
   .plat-atari   {background:rgba(242,91,42,.8);color:#fff}
   .plat-mobile  {background:rgba(80,80,80,.75);color:#eee}
   .plat-ufo50   {background:rgba(110,50,190,.75);color:#fff}
+  .plat-gamecom {background:rgba(20,110,100,.82);color:#fff}
 
   /* PLATFORM GROUP LABELS (in chip lists) */
   .plat-group-label{font-size:.58rem;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);flex-basis:100%;margin-top:8px;margin-bottom:1px}
@@ -501,6 +502,7 @@
         <span class="plat-group-label">🕹 Other</span>
         <button class="platform-toggle" data-platform="UFO 50" onclick="togglePlatform(this)">UFO 50</button>
         <button class="platform-toggle" data-platform="Atari" onclick="togglePlatform(this)">Atari</button>
+        <button class="platform-toggle" data-platform="Game.com" onclick="togglePlatform(this)">Game.com</button>
         <button class="platform-toggle" data-platform="Mobile" onclick="togglePlatform(this)">Mobile</button>
       </div>
     </div>
@@ -563,6 +565,7 @@
         <span class="plat-group-label">🕹 Other</span>
         <button class="platform-toggle" data-platform="UFO 50" onclick="togglePlatformManual(this)">UFO 50</button>
         <button class="platform-toggle" data-platform="Atari" onclick="togglePlatformManual(this)">Atari</button>
+        <button class="platform-toggle" data-platform="Game.com" onclick="togglePlatformManual(this)">Game.com</button>
         <button class="platform-toggle" data-platform="Mobile" onclick="togglePlatformManual(this)">Mobile</button>
       </div>
     </div>
@@ -908,7 +911,7 @@
     <optgroup label="Microsoft"><option value="Xbox">Xbox</option><option value="Xbox Series X/S">Xbox Series X/S</option><option value="Xbox One">Xbox One</option><option value="Xbox 360">Xbox 360</option><option value="Xbox OG">Xbox OG</option></optgroup>
     <optgroup label="Nintendo"><option value="Switch 2">Switch 2</option><option value="Switch">Switch</option><option value="Virtual Console">Virtual Console</option><option value="Wii U">Wii U</option><option value="Wii">Wii</option><option value="GameCube">GameCube</option><option value="N64">N64</option><option value="SNES">SNES</option><option value="NES">NES</option><option value="DS">DS</option><option value="Game Boy">Game Boy</option></optgroup>
     <optgroup label="Sega"><option value="Dreamcast">Dreamcast</option><option value="Saturn">Saturn</option><option value="Genesis">Genesis</option><option value="Sega CD">Sega CD</option><option value="Game Gear">Game Gear</option></optgroup>
-    <optgroup label="Other"><option value="UFO 50">UFO 50</option><option value="Atari">Atari</option><option value="Mobile">Mobile</option></optgroup>
+    <optgroup label="Other"><option value="UFO 50">UFO 50</option><option value="Atari">Atari</option><option value="Game.com">Game.com</option><option value="Mobile">Mobile</option></optgroup>
   </select>
   <input type="number" id="bulk-year-released" class="header-select" placeholder="Year Released" min="1970" max="2099" style="width:116px">
   <input type="number" id="bulk-year-beaten" class="header-select" placeholder="Year Beaten" min="1970" max="2099" style="width:108px">
@@ -984,6 +987,7 @@ const PLATFORM_CONFIG = {
   // Other
   'UFO 50':          { abbr:'UFO',   cls:'plat-ufo50'    },
   'Atari':           { abbr:'ATARI', cls:'plat-atari'    },
+  'Game.com':        { abbr:'G.com', cls:'plat-gamecom'  },
   'Mobile':          { abbr:'iOS',   cls:'plat-mobile'   },
 };
 // Normalize variant platform names → canonical
@@ -1014,7 +1018,7 @@ const PLATFORM_FAMILIES = [
   { label:'🎮 Microsoft', platforms:['Xbox','Xbox Series X/S','Xbox One','Xbox 360','Xbox OG']                             },
   { label:'🎮 Nintendo',  platforms:['Switch 2','Switch','Virtual Console','Wii U','Wii','GameCube','N64','SNES','NES','DS','Game Boy'] },
   { label:'🎮 Sega',      platforms:['Dreamcast','Saturn','Genesis','Sega CD','Game Gear']                                 },
-  { label:'🕹 Other',     platforms:['UFO 50','Atari','Mobile']                                                            },
+  { label:'🕹 Other',     platforms:['UFO 50','Atari','Game.com','Mobile']                                                  },
 ];
 function normalPlatform(p) { return PLATFORM_ALIASES[p] || p; }
 function normSearch(s) { return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim(); }
@@ -1458,7 +1462,7 @@ const FIX_FAMILIES={
   microsoft: ['Xbox','Xbox Series X/S','Xbox One','Xbox 360','Xbox OG'],
   nintendo:  ['Switch 2','Switch','Virtual Console','Wii U','Wii','GameCube','N64','SNES','NES','DS','Game Boy'],
   sega:      ['Dreamcast','Saturn','Genesis','Sega CD','Game Gear'],
-  other:     ['UFO 50','Atari','Mobile'],
+  other:     ['UFO 50','Atari','Game.com','Mobile'],
   flags:     ['multiplayer','motion']
 };
 const PLATFORM_LABELS={
