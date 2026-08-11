@@ -755,6 +755,13 @@
       <div style="flex:1"><label>Sort title</label><input type="text" id="fix-sort-title" placeholder="Used for A–Z sort only"></div>
     </div>
 
+    <!-- 1b. Status -->
+    <div class="fix-divider"></div>
+    <div>
+      <label>Status</label>
+      <div id="fix-status-btn-row" style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
+    </div>
+
     <!-- 2. Description + Notes -->
     <div class="fix-divider"></div>
     <div class="fix-row"><div style="flex:1"><label>Description</label><textarea id="fix-description" rows="1" placeholder="Game summary…" style="resize:vertical"></textarea></div></div>
@@ -1085,6 +1092,7 @@ let filterMultiplayer=0, filterMotion=0;
 let hltbFilters=new Set();
 let currentModalGameId=null, fixTargetId=null;
 let fixPlatforms=new Set(), fixFlags={multiplayer:false,motion:false}, fixOpenFamily=null;
+let fixStatusValue='unplayed';
 let fixGameList=[], fixGameIdx=-1;
 let modalGameList=[], modalGameIdx=-1;
 
@@ -2200,6 +2208,15 @@ async function bulkToggleFlag(flag) {
 }
 
 // ── FIX MODAL ──────────────────────────────────────────────────────────────────
+function renderFixStatusBtns() {
+  const row=document.getElementById('fix-status-btn-row'); if(!row) return;
+  row.innerHTML=Object.entries(STATUS_CONFIG).map(([key,cfg])=>{
+    const active=fixStatusValue===key;
+    return `<button class="status-btn${active?` active-${key}`:''}" onclick="selectFixStatus('${key}')">${cfg.icon?cfg.icon+' ':''}${cfg.label}</button>`;
+  }).join('');
+}
+function selectFixStatus(status) { fixStatusValue=status; renderFixStatusBtns(); }
+
 function openFixModal(id) {
   closeModal(); fixTargetId=String(id);
   const game=games.find(g=>g.id===fixTargetId); if(!game) return;
@@ -2235,6 +2252,7 @@ function openFixModal(id) {
   document.getElementById('fix-description').value=game.summary||'';
   document.getElementById('fix-notes').value=game.notes||'';
   fixMyRating=game.myRating||0; renderFixMyStars();
+  fixStatusValue=statusMap.get(fixTargetId)||'unplayed'; renderFixStatusBtns();
   document.getElementById('fix-overlay').classList.add('active');
   setTimeout(()=>document.getElementById('fix-display-title').focus(),50);
 }
@@ -2266,6 +2284,8 @@ async function saveAllEdits(opts={}) {
   games[i].myRating=fixMyRating||null;
   try {
     await sbSaveGame(games[i]);
+    const prevStatus=statusMap.get(fixTargetId)||'unplayed';
+    if(fixStatusValue!==prevStatus){ statusMap.set(fixTargetId,fixStatusValue); await sbSetStatus(fixTargetId,fixStatusValue).catch(()=>{}); }
     setFixStatus('✓ Saved'); applyFilters(); buildFilterOptions();
     if(!opts.suppressClose) setTimeout(closeFixModal,500);
     return true;
