@@ -1002,6 +1002,11 @@ const PLATFORM_ALIASES = {
   'Xbox Series X':'Xbox Series X/S','Xbox Series S':'Xbox Series X/S','Xbox Game Pass':'Xbox','XGP':'Xbox',
   // PC variants
   'Epic Games':'Epic','GOG.com':'GOG','itch.io':'Itch','Itchio':'Itch','Oculus Quest':'Quest','Meta Quest':'Quest',
+  'PC (Windows)':'PC','Windows':'PC','Linux':'PC','Mac':'PC',
+  // Xbox IGDB variant
+  'Xbox Series X|S':'Xbox Series X/S',
+  // Extra Nintendo IGDB names
+  'New Nintendo 3DS':'DS','Super Famicom':'SNES','Family Computer':'NES','Famicom':'NES','Game Boy Advance SP':'Game Boy',
   // Nintendo variants
   'Nintendo 3DS':'DS','3DS':'DS','Nintendo DS':'DS','Nintendo 64':'N64',
   'Game Boy Color':'Game Boy','Game Boy Advance':'Game Boy','GBA':'Game Boy','GBC':'Game Boy','Gameboy':'Game Boy',
@@ -1218,6 +1223,15 @@ async function igdbSearch(title) {
   const r3 = await igdbFetch(`fields ${IGDB_FIELDS}; where name = "${qExact}"; limit 8;`);
   console.log('[1UP IGDB] fallback2 results:', r3.length, r3);
   if (r3.length) return r3;
+  // Fallback 3: word-by-word contains — handles "madden 25" → "Madden NFL 25"
+  const words = qNorm.split(/\s+/).filter(w=>w.length>1);
+  if (words.length > 1) {
+    const wc = words.map(w=>`name ~ *"${clean(w)}"*`).join(' & ');
+    console.log('[1UP IGDB] fallback3 (word-contains) query:', wc);
+    const r4 = await igdbFetch(`fields ${IGDB_FIELDS}; where ${wc}; sort aggregated_rating desc; limit 8;`);
+    console.log('[1UP IGDB] fallback3 results:', r4.length, r4);
+    if (r4.length) return r4;
+  }
   return [];
 }
 async function igdbFetchById(id) {
@@ -1415,11 +1429,18 @@ function initProxyInput() {
 }
 
 // ── TABS ───────────────────────────────────────────────────────────────────────
+function resetManualForm() {
+  ['manual-title','manual-year','manual-developer','manual-publisher','manual-genres','manual-notes','manual-mc','manual-hltb-main','manual-hltb-extra','manual-hltb-complete','manual-art-url'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const ms=document.getElementById('manual-status'); if(ms) ms.textContent='';
+  const mas=document.getElementById('manual-art-status'); if(mas) mas.textContent='';
+  resetPlatformToggles('manual-platform-chips');
+}
 function switchTab(name) {
   const names=['search','manual','csv'];
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',names[i]===name));
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.getElementById(`tab-${name}`).classList.add('active');
+  if (name==='manual') resetManualForm();
 }
 
 // ── PLATFORM TOGGLES ───────────────────────────────────────────────────────────
@@ -1575,11 +1596,14 @@ function cancelAddGame() {
 }
 async function addGame(stayInMode) {
   if (!selectedSearchResult) return;
-  const platforms=getActivePlatforms('add-platform-chips');
+  const userChips=getActivePlatforms('add-platform-chips');
   const statusEl=document.getElementById('add-game-status');
   statusEl.textContent='Adding…';
   try {
     const r=selectedSearchResult;
+    // Merge user-selected chips with normalized IGDB platforms (known canonical names only)
+    const igdbNorm=(r.platforms||[]).map(p=>normalPlatform(p.name)).filter(p=>PLATFORM_MAP[p]&&!userChips.includes(p));
+    const platforms=[...userChips,...igdbNorm];
     const igdbId=String(r.id);
     const existing=games.find(g=>g.id===igdbId||g.igdbId===igdbId);
     if (existing) {
@@ -2180,7 +2204,7 @@ async function saveBulkEdit() {
   const toUpdate=games.filter(g=>selectedIds.has(String(g.id)));
   if (platVal||yrVal||ybVal||devVal||pubVal||clearDesc) {
     toUpdate.forEach(g=>{
-      if(platVal)    g.userPlatforms=[platVal];
+      if(platVal && !(g.userPlatforms||[]).includes(platVal)) g.userPlatforms=[...(g.userPlatforms||[]),platVal];
       if(yrVal)      g.year=yrVal;
       if(ybVal)      g.yearBeaten=ybVal;
       if(devVal)     g.developer=devVal;
