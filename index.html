@@ -454,7 +454,7 @@
     </div>
     <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
       <span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap">Or by IGDB ID:</span>
-      <input type="number" id="igdb-id-input" placeholder="e.g. 1905" onkeydown="if(event.key==='Enter')searchIGDBByIdUI()" style="width:130px">
+      <input type="text" inputmode="numeric" id="igdb-id-input" placeholder="e.g. 1905" onkeydown="if(event.key==='Enter')searchIGDBByIdUI()" style="width:130px">
       <button class="btn" onclick="searchIGDBByIdUI()" style="white-space:nowrap;font-size:.75rem;padding:6px 12px">Look up</button>
     </div>
     <div id="igdb-search-status" style="font-size:.72rem;color:var(--text-muted);min-height:18px;margin-bottom:6px"></div>
@@ -1552,9 +1552,10 @@ async function searchIGDBUI() {
       const yr=r.first_release_date?new Date(r.first_release_date*1000).getFullYear():'?';
       const thumb=igdbCoverUrl(r);
       const genres=(r.genres||[]).map(g=>g.name).slice(0,2).join(', ');
+      const plats=(r.platforms||[]).map(p=>p.name).join(', ');
       return `<div class="search-result" onclick="selectSearchResult(${i},this)">
         <div class="search-result-cover">${thumb?`<img src="${escHtml(thumb)}" alt="" loading="lazy" style="width:40px;height:56px;object-fit:cover;border-radius:1px">`:'<div class="no-cover">🎮</div>'}</div>
-        <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr}${genres?' · '+genres:''}</div></div>
+        <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr}${genres?' · '+genres:''}</div>${plats?`<div class="search-result-meta" style="margin-top:1px;color:var(--text-dim)">${escHtml(plats)}</div>`:''}</div>
       </div>`;
     }).join('');
     resultsEl._results=results;
@@ -1577,9 +1578,10 @@ async function searchIGDBByIdUI() {
       const yr = r.first_release_date ? new Date(r.first_release_date * 1000).getFullYear() : '?';
       const thumb = igdbCoverUrl(r);
       const genres = (r.genres || []).map(g => g.name).slice(0, 2).join(', ');
+      const plats = (r.platforms || []).map(p => p.name).join(', ');
       return `<div class="search-result" onclick="selectSearchResult(${i},this)">
         <div class="search-result-cover">${thumb ? `<img src="${escHtml(thumb)}" alt="" loading="lazy" style="width:40px;height:56px;object-fit:cover;border-radius:1px">` : '<div class="no-cover">🎮</div>'}</div>
-        <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr}${genres ? ' · ' + genres : ''} · IGDB #${r.id}</div></div>
+        <div class="search-result-info"><div class="search-result-title">${escHtml(r.name)}</div><div class="search-result-meta">${yr}${genres ? ' · ' + genres : ''} · IGDB #${r.id}</div>${plats?`<div class="search-result-meta" style="margin-top:1px;color:var(--text-dim)">${escHtml(plats)}</div>`:''}</div>
       </div>`;
     }).join('');
     resultsEl._results = results;
@@ -1598,14 +1600,11 @@ function cancelAddGame() {
 }
 async function addGame(stayInMode) {
   if (!selectedSearchResult) return;
-  const userChips=getActivePlatforms('add-platform-chips');
+  const platforms=getActivePlatforms('add-platform-chips');
   const statusEl=document.getElementById('add-game-status');
   statusEl.textContent='Adding…';
   try {
     const r=selectedSearchResult;
-    // Merge user-selected chips with normalized IGDB platforms (known canonical names only)
-    const igdbNorm=(r.platforms||[]).map(p=>normalPlatform(p.name)).filter(p=>PLATFORM_CONFIG[p]&&!userChips.includes(p));
-    const platforms=[...userChips,...igdbNorm];
     const igdbId=String(r.id);
     const existing=games.find(g=>g.id===igdbId||g.igdbId===igdbId);
     if (existing) {
