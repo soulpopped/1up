@@ -386,6 +386,8 @@
   .conf-medium{background:rgba(251,191,36,.12);color:#d97706;border:1px solid rgba(251,191,36,.3)}
   .conf-low{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.3)}
   .conf-exists{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3)}
+  .merge-warning{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);border-radius:3px;padding:5px 8px;margin-top:6px;font-size:.68rem;color:rgba(245,158,11,.95);line-height:1.5}
+  .merge-warning strong{color:rgba(255,180,50,1)}
   .conf-none{background:rgba(100,100,100,.1);color:#666;border:1px solid rgba(100,100,100,.2)}
   .preview-match-title{color:var(--text);font-size:1rem}
   .preview-match-meta{color:var(--text-dim);font-size:.85rem;margin-top:2px}
@@ -1602,7 +1604,7 @@ async function addGame(stayInMode) {
   try {
     const r=selectedSearchResult;
     // Merge user-selected chips with normalized IGDB platforms (known canonical names only)
-    const igdbNorm=(r.platforms||[]).map(p=>normalPlatform(p.name)).filter(p=>PLATFORM_MAP[p]&&!userChips.includes(p));
+    const igdbNorm=(r.platforms||[]).map(p=>normalPlatform(p.name)).filter(p=>PLATFORM_CONFIG[p]&&!userChips.includes(p));
     const platforms=[...userChips,...igdbNorm];
     const igdbId=String(r.id);
     const existing=games.find(g=>g.id===igdbId||g.igdbId===igdbId);
@@ -1733,8 +1735,14 @@ async function handleCSVFile(event) {
         confidence='none';
       }
     }
+    // Check if the matched IGDB result is already in the library (even when title didn't match)
+    let libraryMatch = null;
+    if (!existingGame && igdbResults.length) {
+      const matchedId = String(igdbResults[selectedIdx].id);
+      libraryMatch = games.find(g => g.id === matchedId || g.igdbId === matchedId) || null;
+    }
     searched++;
-    _previewRows.push({ csvTitle:title, csvPlatforms:platforms, csvData, csvStatus, igdbResults, selectedIdx, include: confidence!=='none'||!!existingGame, existingGame, confidence });
+    _previewRows.push({ csvTitle:title, csvPlatforms:platforms, csvData, csvStatus, igdbResults, selectedIdx, include: confidence!=='none'||!!existingGame||!!libraryMatch, existingGame, libraryMatch, confidence });
     renderPreviewRow(_previewRows.length-1);
     document.getElementById('import-preview-searching').textContent=`${searched}/${entries.length} searched…`;
     updatePreviewCount();
@@ -2741,7 +2749,7 @@ function renderPreviewRow(idx) {
   const existing=p.existingGame;
   let tr=tbody.querySelector(`tr[data-preview-idx="${idx}"]`);
   if (!tr) { tr=document.createElement('tr'); tr.dataset.previewIdx=idx; tbody.appendChild(tr); }
-  tr.className=(!p.include&&!existing)?'preview-row-skip':'';
+  tr.className=!p.include?'preview-row-skip':'';
 
   // Per-row search box (shown in all non-existing rows)
   const searchBox=existing?'':
@@ -2754,7 +2762,14 @@ function renderPreviewRow(idx) {
   let matchHTML='', thumbHTML='', confHTML='';
   if (existing) {
     thumbHTML=`<div class="preview-thumb-placeholder" title="Already in collection">📚</div>`;
-    matchHTML=`<div class="preview-match-title">${escHtml(existing.displayTitle||existing.title)}</div><div class="preview-match-meta">Already in collection — platforms will be merged</div>`;
+    const existPlats=(existing.userPlatforms||[]).join(', ')||'none';
+    const addPlats=p.csvPlatforms.join(', ')||'none';
+    matchHTML=`<div class="preview-match-title">${escHtml(existing.displayTitle||existing.title)}</div>
+      <div class="preview-match-meta">IGDB #${existing.igdbId||'—'}</div>
+      <div class="merge-warning">⚠ Will merge into this library game<br>
+        <strong>Currently on:</strong> ${escHtml(existPlats)}<br>
+        <strong>Adding from CSV:</strong> ${escHtml(addPlats)}
+      </div>`;
     confHTML=`<span class="conf-badge conf-exists">Exists</span>`;
   } else if (!p.igdbResults.length) {
     thumbHTML=`<div class="preview-thumb-placeholder">🎮</div>`;
@@ -2768,6 +2783,14 @@ function renderPreviewRow(idx) {
     thumbHTML=thumb?`<img class="preview-thumb" src="${escHtml(thumb)}" loading="lazy">`:`<div class="preview-thumb-placeholder">🎮</div>`;
     const swapBtn=p.igdbResults.length>1?`<button class="preview-swap-btn" onclick="openPreviewSwap(${idx})">⇄ Swap</button>`:'';
     matchHTML=`<div style="display:flex;align-items:flex-start;gap:6px"><div><div class="preview-match-title">${escHtml(r.name)}</div><div class="preview-match-meta">${yr}${plats?' · '+escHtml(plats):''} · IGDB #${r.id}</div></div>${swapBtn}</div>${searchBox}`;
+    if (p.libraryMatch) {
+      const lm=p.libraryMatch;
+      const lmPlats=(lm.userPlatforms||[]).join(', ')||'none';
+      const addPlats=p.csvPlatforms.join(', ')||'none';
+      matchHTML+=`<div class="merge-warning">⚠ IGDB match already in library as <strong>${escHtml(lm.displayTitle||lm.title)}</strong> · IGDB #${lm.igdbId||'—'}<br>
+        <strong>Currently on:</strong> ${escHtml(lmPlats)} &nbsp;→&nbsp; <strong>Adding:</strong> ${escHtml(addPlats)}
+      </div>`;
+    }
     const cls=p.confidence==='high'?'conf-high':p.confidence==='medium'?'conf-medium':'conf-low';
     confHTML=`<span class="conf-badge ${cls}">${p.confidence}</span>`;
   }
@@ -2780,8 +2803,8 @@ function renderPreviewRow(idx) {
        <div style="font-size:.65rem;color:var(--text-dim);margin-top:2px">${p.csvPlatforms.join(', ')||'—'}</div>`
     : `${escHtml(p.csvTitle)}<br><span style="font-size:.65rem;color:var(--text-dim)">${p.csvPlatforms.join(', ')||'—'}</span>`;
 
-  const cbDisabled=existing?'disabled':'';
-  const cbChecked=(p.include||existing)?'checked':'';
+  const cbDisabled='';
+  const cbChecked=p.include?'checked':'';
   tr.innerHTML=`
     <td><input type="checkbox" class="preview-include-cb" ${cbChecked} ${cbDisabled} onchange="previewToggleRow(${idx},this.checked)"></td>
     <td>${thumbHTML}</td>
@@ -2796,7 +2819,7 @@ function previewToggleRow(idx, checked) {
   updatePreviewCount();
 }
 function previewToggleAll(checked) {
-  _previewRows.forEach((p,i)=>{ if(!p.existingGame){ p.include=checked; renderPreviewRow(i); } });
+  _previewRows.forEach((p,i)=>{ p.include=checked; renderPreviewRow(i); });
   updatePreviewCount();
 }
 function previewSelectConfident() {
@@ -2805,7 +2828,7 @@ function previewSelectConfident() {
   updatePreviewCount();
 }
 function updatePreviewCount() {
-  const inc=_previewRows.filter(p=>p.include||p.existingGame).length;
+  const inc=_previewRows.filter(p=>p.include).length;
   const tot=_previewRows.length;
   document.getElementById('import-preview-count').textContent=`${inc} of ${tot} selected`;
   const label=_previewMode==='rematch'?`Re-match ${inc} Games`:`Import ${inc} Games`;
@@ -2833,8 +2856,12 @@ function openPreviewSwap(idx) {
 function applyPreviewSwap(rowIdx, resultIdx) {
   const p=_previewRows[rowIdx];
   p.selectedIdx=resultIdx;
-  // User manually picked this result — treat as high confidence
   p.confidence='high';
+  // Recheck library collision for newly selected result
+  if (!p.existingGame) {
+    const matchedId=String(p.igdbResults[resultIdx].id);
+    p.libraryMatch=games.find(g=>g.id===matchedId||g.igdbId===matchedId)||null;
+  }
   renderPreviewRow(rowIdx);
   updatePreviewCount();
 }
@@ -2856,9 +2883,13 @@ async function previewRowSearch(idx, query) {
     if (statusSpan) statusSpan.textContent='';
     p.igdbResults=results;
     p.selectedIdx=0;
-    // User explicitly searched — trust their choice; force high confidence so it doesn't land in review
     p.confidence='high';
     if (!p.include) p.include=true;
+    // Recheck library collision for new search result
+    if (!p.existingGame) {
+      const matchedId=String(results[0].id);
+      p.libraryMatch=games.find(g=>g.id===matchedId||g.igdbId===matchedId)||null;
+    }
     // Preserve the search input value across re-render
     const prevQuery=tr?.querySelector('.preview-row-search')?.value||'';
     renderPreviewRow(idx);
@@ -2870,7 +2901,7 @@ async function previewRowSearch(idx, query) {
   }
 }
 async function confirmImport() {
-  const toImport=_previewRows.filter(p=>p.include||p.existingGame);
+  const toImport=_previewRows.filter(p=>p.include);
   if (!toImport.length) return;
   closeImportPreview();
   showProgress('Importing Games', `0 / ${toImport.length}`);
