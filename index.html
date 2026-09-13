@@ -243,7 +243,7 @@
   #nb-editor > p, #nb-editor > div{border-bottom:1px solid rgba(100,75,35,0.32);min-height:35px;margin:0}
   #nb-editor table{border-collapse:collapse;margin:12px 0;font-family:Cambria,'Times New Roman',serif;font-size:1.05rem;line-height:1.6}
   #nb-editor th,#nb-editor td{border:1px solid #5a5040;padding:6px 14px;min-width:60px;vertical-align:top;text-align:left;overflow:hidden}
-  #nb-editor th{background:#2e2820;font-weight:600;color:#c8b89a;position:relative;user-select:none}
+  #nb-editor th{background:#2e2820;font-family:Cambria,'Times New Roman',serif;font-weight:600;font-style:italic;color:#c8b89a;position:relative;user-select:none}
   #nb-editor td{background:#252119;color:#d8cbb8}
   #nb-editor p{margin:0}
   /* Column resize handle */
@@ -1463,32 +1463,42 @@ async function openNotebook(){
 }
 
 function nbEditorKeydown(e){
-  if(e.key!=='Tab') return;
   const sel=window.getSelection();
   if(!sel||!sel.rangeCount) return;
   const node=sel.anchorNode;
   const cell=(node.nodeType===3?node.parentElement:node).closest('td,th');
-  if(!cell) return; // not in a table — let Tab bubble normally
-  e.preventDefault();
-  const row=cell.parentElement;
-  const cells=[...row.querySelectorAll('td,th')];
-  const idx=cells.indexOf(cell);
-  let next=e.shiftKey?cells[idx-1]:cells[idx+1];
-  if(!next){
+  if(!cell) return; // not in a table — let keys bubble normally
+
+  if(e.key==='Tab'){
+    e.preventDefault();
+    const row=cell.parentElement;
+    const cells=[...row.querySelectorAll('td,th')];
+    const idx=cells.indexOf(cell);
+    let next=e.shiftKey?cells[idx-1]:cells[idx+1];
+    if(!next){
+      const tbl=cell.closest('table');
+      const rows=[...tbl.querySelectorAll('tr')];
+      const ri=rows.indexOf(row);
+      const nextRow=rows[e.shiftKey?ri-1:ri+1];
+      if(nextRow){
+        const nc=[...nextRow.querySelectorAll('td,th')];
+        next=e.shiftKey?nc[nc.length-1]:nc[0];
+      }
+    }
+    if(next){ const r=document.createRange(); r.selectNodeContents(next); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); }
+
+  } else if(e.key==='ArrowUp'||e.key==='ArrowDown'){
+    const row=cell.parentElement;
     const tbl=cell.closest('table');
     const rows=[...tbl.querySelectorAll('tr')];
     const ri=rows.indexOf(row);
-    const nextRow=rows[e.shiftKey?ri-1:ri+1];
-    if(nextRow){
-      const nc=[...nextRow.querySelectorAll('td,th')];
-      next=e.shiftKey?nc[nc.length-1]:nc[0];
-    }
-  }
-  if(next){
-    const range=document.createRange();
-    range.selectNodeContents(next);
-    range.collapse(true);
-    sel.removeAllRanges(); sel.addRange(range);
+    const targetRow=rows[e.key==='ArrowUp'?ri-1:ri+1];
+    if(!targetRow) return;
+    const cells=[...row.querySelectorAll('td,th')];
+    const colIdx=cells.indexOf(cell);
+    const targetCells=[...targetRow.querySelectorAll('td,th')];
+    const target=targetCells[Math.min(colIdx,targetCells.length-1)];
+    if(target){ e.preventDefault(); const r=document.createRange(); r.selectNodeContents(target); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); }
   }
 }
 
