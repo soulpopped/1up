@@ -211,10 +211,10 @@
   #notebook-overlay.active{display:flex}
   #nb-toolbar{background:#252119;border-bottom:1px solid #3a342c;flex-shrink:0;padding:10px 18px}
   #nb-toolbar-inner{max-width:800px;margin:0 auto;width:100%;display:flex;align-items:center;gap:9px;position:relative}
-  #nb-toolbar select,#nb-title-input{font-family:Cambria,'Times New Roman',serif;font-size:.88rem;padding:5px 9px;border:1px solid #4a4238;border-radius:2px;background:#1e1b17;color:#d8cbb8;outline:none}
+  #nb-toolbar select{font-family:Cambria,'Times New Roman',serif;font-size:.88rem;padding:5px 9px;border:1px solid #4a4238;border-radius:2px;background:#1e1b17;color:#d8cbb8;outline:none}
   /* Page combobox */
   #nb-page-combo{position:relative;display:flex;align-items:center}
-  #nb-title-input{min-width:140px;max-width:240px;font-weight:600;color:#e8dcc8;border-radius:2px 0 0 2px}
+  #nb-title-input{min-width:140px;max-width:240px;font-weight:600;color:#e8dcc8;border-radius:2px 0 0 2px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:.88rem;padding:5px 9px;border:1px solid #4a4238;background:#1e1b17;outline:none}
   #nb-combo-btn{border-left:0;border-radius:0 2px 2px 0;margin:0;padding:5px 8px;font-size:.82rem}
   #nb-page-list-popup{display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:200px;max-height:280px;overflow-y:auto;background:#2a2520;border:1px solid #4a4238;border-radius:4px;z-index:30}
   .nb-page-item{padding:8px 14px;cursor:pointer;font-size:.82rem;color:#c8b89a;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -242,10 +242,20 @@
   /* Each paragraph/div line gets its own underline — always aligned regardless of tables */
   #nb-editor > p, #nb-editor > div{border-bottom:1px solid rgba(100,75,35,0.32);min-height:35px;margin:0}
   #nb-editor table{border-collapse:collapse;margin:12px 0;font-family:Cambria,'Times New Roman',serif;font-size:1.05rem;line-height:1.6}
-  #nb-editor th,#nb-editor td{border:1px solid #5a5040;padding:6px 14px;min-width:120px;vertical-align:top;text-align:left}
-  #nb-editor th{background:#2e2820;font-weight:600;color:#c8b89a}
+  #nb-editor th,#nb-editor td{border:1px solid #5a5040;padding:6px 14px;min-width:60px;vertical-align:top;text-align:left;overflow:hidden}
+  #nb-editor th{background:#2e2820;font-weight:600;color:#c8b89a;position:relative;user-select:none}
   #nb-editor td{background:#252119;color:#d8cbb8}
   #nb-editor p{margin:0}
+  /* Column resize handle */
+  .nb-col-resizer{position:absolute;right:-2px;top:0;bottom:0;width:6px;cursor:col-resize;z-index:2;background:transparent;transition:background .15s}
+  .nb-col-resizer:hover,.nb-col-resizer.nb-dragging{background:rgba(180,130,60,0.55)}
+  /* Table right-click context menu */
+  #nb-table-ctx{display:none;position:fixed;background:#2a2520;border:1px solid #4a4238;border-radius:4px;z-index:1010;min-width:188px;padding:4px 0;box-shadow:0 4px 18px rgba(0,0,0,.55)}
+  .nb-ctx-item{padding:7px 16px;cursor:pointer;font-size:.8rem;color:#c8b89a;transition:background .1s;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;white-space:nowrap}
+  .nb-ctx-item:hover{background:#3e3830;color:#e8dcc8}
+  .nb-ctx-sep{height:1px;background:#3a342c;margin:4px 0}
+  .nb-ctx-danger:hover{background:#3a2525;color:#e08080}
+  .nb-ctx-danger{color:#b07070}
 
   /* OFFLINE BANNER */
   #offline-banner{display:none;background:#7c3d0a;color:#fef3e2;font-size:.68rem;letter-spacing:.1em;text-align:center;padding:4px 12px;flex-shrink:0}
@@ -815,6 +825,18 @@
   </div>
   <div id="nb-editor-wrap">
     <div id="nb-editor" contenteditable="true" oninput="nbScheduleSave()" onpaste="nbHandlePaste(event)" spellcheck="true"></div>
+  </div>
+  <!-- Table context menu (position:fixed, shown on right-click inside a table) -->
+  <div id="nb-table-ctx">
+    <div class="nb-ctx-item" onclick="nbTableAddRow(false)">Add Row Below</div>
+    <div class="nb-ctx-item" onclick="nbTableAddRow(true)">Add Row Above</div>
+    <div class="nb-ctx-item" onclick="nbTableAddCol(false)">Add Column Right</div>
+    <div class="nb-ctx-item" onclick="nbTableAddCol(true)">Add Column Left</div>
+    <div class="nb-ctx-sep"></div>
+    <div class="nb-ctx-item" onclick="nbTableRemoveRow()">Remove Row</div>
+    <div class="nb-ctx-item" onclick="nbTableRemoveCol()">Remove Column</div>
+    <div class="nb-ctx-sep"></div>
+    <div class="nb-ctx-item nb-ctx-danger" onclick="nbTableDelete()">Delete Table</div>
   </div>
 </div>
 
@@ -1412,9 +1434,10 @@ async function nbInsertPage(title){
 
 async function openNotebook(){
   document.getElementById('notebook-overlay').classList.add('active');
-  // Tab-in-table handler (attach once)
+  // Attach editor handlers once
   const ed=document.getElementById('nb-editor');
   if(!ed._tabBound){ ed.addEventListener('keydown',nbEditorKeydown); ed._tabBound=true; }
+  if(!ed._ctxBound){ ed.addEventListener('contextmenu',nbTableContextMenu); ed._ctxBound=true; }
   document.execCommand('defaultParagraphSeparator',false,'p');
   if(!nbLoaded){
     document.getElementById('nb-status').textContent='Loading…';
@@ -1508,6 +1531,8 @@ function nbLoadPageContent(){
   document.getElementById('nb-title-input').value=p.title||'';
   document.getElementById('nb-status').textContent='';
   nbDirty=false;
+  // Re-attach resize handles to any tables in the loaded content
+  document.querySelectorAll('#nb-editor table').forEach(nbInitTableResizers);
 }
 
 async function newNotebookPage(){
@@ -1579,12 +1604,156 @@ function insertNotebookTable(){
     nbSavedRange=null;
   }
   document.execCommand('insertHTML',false,html);
+  document.querySelectorAll('#nb-editor table').forEach(nbInitTableResizers);
   nbScheduleSave();
 }
 
 function clearNotebookPage(){
   if(!confirm('Clear this page? Cannot be undone.')) return;
   document.getElementById('nb-editor').innerHTML='';
+  nbScheduleSave();
+}
+
+// ── TABLE CONTEXT MENU ─────────────────────────────────────────────────────────
+let nbCtxCell=null;
+
+function nbTableContextMenu(e){
+  const node=e.target.nodeType===3?e.target.parentElement:e.target;
+  const cell=node.closest('td,th');
+  if(!cell) return; // not in a table — browser default context menu
+  e.preventDefault();
+  nbCtxCell=cell;
+  const ctx=document.getElementById('nb-table-ctx');
+  ctx.style.display='block';
+  ctx.style.left=e.clientX+'px';
+  ctx.style.top=e.clientY+'px';
+  // Nudge away from screen edges
+  requestAnimationFrame(()=>{
+    const r=ctx.getBoundingClientRect();
+    if(r.right>window.innerWidth) ctx.style.left=(e.clientX-r.width)+'px';
+    if(r.bottom>window.innerHeight) ctx.style.top=(e.clientY-r.height)+'px';
+  });
+  setTimeout(()=>{
+    const hide=ev=>{
+      if(!ev.target.closest('#nb-table-ctx')){ ctx.style.display='none'; document.removeEventListener('click',hide,true); }
+    };
+    document.addEventListener('click',hide,true);
+  },10);
+}
+
+function nbTableAddRow(above=false){
+  if(!nbCtxCell) return;
+  document.getElementById('nb-table-ctx').style.display='none';
+  const row=nbCtxCell.closest('tr');
+  const cols=row.querySelectorAll('td,th').length;
+  const nr=document.createElement('tr');
+  for(let i=0;i<cols;i++){ const td=document.createElement('td'); td.innerHTML='&nbsp;'; nr.appendChild(td); }
+  above ? row.parentElement.insertBefore(nr,row) : row.insertAdjacentElement('afterend',nr);
+  nbInitTableResizers(nbCtxCell.closest('table'));
+  nbScheduleSave();
+}
+
+function nbTableRemoveRow(){
+  if(!nbCtxCell) return;
+  document.getElementById('nb-table-ctx').style.display='none';
+  const row=nbCtxCell.closest('tr');
+  const tbl=row.closest('table');
+  if(tbl.querySelectorAll('tr').length<=1){ nbTableDelete(); return; }
+  row.remove(); nbScheduleSave();
+}
+
+function nbTableAddCol(left=false){
+  if(!nbCtxCell) return;
+  document.getElementById('nb-table-ctx').style.display='none';
+  const tbl=nbCtxCell.closest('table');
+  const colIdx=[...nbCtxCell.parentElement.querySelectorAll('td,th')].indexOf(nbCtxCell);
+  tbl.querySelectorAll('tr').forEach((row,ri)=>{
+    const ref=row.querySelectorAll('td,th')[colIdx];
+    if(!ref) return;
+    const nc=document.createElement(ri===0?'th':'td');
+    nc.innerHTML='&nbsp;';
+    left ? ref.insertAdjacentElement('beforebegin',nc) : ref.insertAdjacentElement('afterend',nc);
+  });
+  nbInitTableResizers(tbl); nbScheduleSave();
+}
+
+function nbTableRemoveCol(){
+  if(!nbCtxCell) return;
+  document.getElementById('nb-table-ctx').style.display='none';
+  const tbl=nbCtxCell.closest('table');
+  const colIdx=[...nbCtxCell.parentElement.querySelectorAll('td,th')].indexOf(nbCtxCell);
+  const firstRow=tbl.querySelector('tr');
+  if(firstRow && firstRow.querySelectorAll('td,th').length<=1){ nbTableDelete(); return; }
+  tbl.querySelectorAll('tr').forEach(row=>{ const c=row.querySelectorAll('td,th')[colIdx]; if(c) c.remove(); });
+  nbScheduleSave();
+}
+
+function nbTableDelete(){
+  if(!nbCtxCell) return;
+  document.getElementById('nb-table-ctx').style.display='none';
+  nbCtxCell.closest('table').remove();
+  nbCtxCell=null; nbScheduleSave();
+}
+
+// ── COLUMN RESIZE ──────────────────────────────────────────────────────────────
+let nbResizeTh=null, nbResizeStartX=0, nbResizeStartW=0;
+
+function nbInitTableResizers(tbl){
+  // Lock column widths to current rendered sizes then switch to fixed layout
+  const ths=[...tbl.querySelectorAll('tr:first-child th, tr:first-child td')];
+  if(!ths.length) return;
+  ths.forEach(th=>{
+    if(!th.style.width) th.style.width=th.offsetWidth+'px';
+    // Add handle if not present
+    if(!th.querySelector('.nb-col-resizer')){
+      const h=document.createElement('span');
+      h.className='nb-col-resizer';
+      h.addEventListener('mousedown',nbResizeMD);
+      h.addEventListener('touchstart',nbResizeTD,{passive:false});
+      th.appendChild(h);
+    }
+  });
+  tbl.style.tableLayout='fixed';
+}
+
+function nbResizeMD(e){
+  e.preventDefault(); e.stopPropagation();
+  nbResizeTh=e.currentTarget.parentElement;
+  nbResizeStartX=e.clientX; nbResizeStartW=nbResizeTh.offsetWidth;
+  e.currentTarget.classList.add('nb-dragging');
+  document.addEventListener('mousemove',nbResizeMM);
+  document.addEventListener('mouseup',nbResizeMU);
+}
+function nbResizeMM(e){
+  if(!nbResizeTh) return;
+  nbResizeTh.style.width=Math.max(48,nbResizeStartW+(e.clientX-nbResizeStartX))+'px';
+}
+function nbResizeMU(){
+  nbResizeTh?.querySelector('.nb-col-resizer')?.classList.remove('nb-dragging');
+  nbResizeTh=null;
+  document.removeEventListener('mousemove',nbResizeMM);
+  document.removeEventListener('mouseup',nbResizeMU);
+  nbScheduleSave();
+}
+
+function nbResizeTD(e){
+  e.preventDefault(); e.stopPropagation();
+  nbResizeTh=e.currentTarget.parentElement;
+  nbResizeStartX=e.touches[0].clientX; nbResizeStartW=nbResizeTh.offsetWidth;
+  e.currentTarget.classList.add('nb-dragging');
+  document.addEventListener('touchmove',nbResizeTM,{passive:false});
+  document.addEventListener('touchend',nbResizeTU);
+}
+function nbResizeTM(e){
+  if(!nbResizeTh) return;
+  e.preventDefault();
+  nbResizeTh.style.width=Math.max(48,nbResizeStartW+(e.touches[0].clientX-nbResizeStartX))+'px';
+}
+function nbResizeTU(){
+  nbResizeTh?.querySelector('.nb-col-resizer')?.classList.remove('nb-dragging');
+  nbResizeTh=null;
+  document.removeEventListener('touchmove',nbResizeTM);
+  document.removeEventListener('touchend',nbResizeTU);
   nbScheduleSave();
 }
 
