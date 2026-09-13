@@ -258,10 +258,10 @@
   .nb-ctx-danger{color:#b07070}
   /* Column / row selection highlight */
   #nb-editor th.nb-sel{background:#3a3015!important;color:#e8d490}
-  #nb-editor td.nb-sel:not(.nb-row-sel){background:#2e2a10!important}
-  /* Row selector strip (narrow cell at left of each body row) */
-  .nb-row-sel{width:12px!important;min-width:12px!important;max-width:12px!important;padding:0!important;cursor:pointer;background:#252119!important;border-right:2px solid #3a3025!important;user-select:none;vertical-align:middle;text-align:center;color:#4a3a28;font-size:9px}
-  .nb-row-sel:hover,.nb-row-sel.nb-sel{background:#3a3015!important;color:#c8a040}
+  #nb-editor td.nb-sel{background:#2e2a10!important}
+  /* Row selector zone — thin strip on left of first td in each body row */
+  .nb-row-sel-zone{position:absolute;top:0;left:0;bottom:0;width:8px;cursor:pointer;z-index:2;transition:background .15s}
+  .nb-row-sel-zone:hover,.nb-row-sel-zone.nb-sel-on{background:rgba(180,130,40,0.35)}
   /* Column selector zone — thin strip at top of each th */
   .nb-col-sel-zone{position:absolute;top:0;left:0;right:0;height:10px;cursor:pointer;z-index:1;transition:background .15s}
   .nb-col-sel-zone:hover,.nb-col-sel-zone.nb-sel-on{background:rgba(180,130,40,0.3)}
@@ -1633,13 +1633,13 @@ let nbResizeThColIdx=-1, nbSelStartWidths=new Map();
 
 // ── Helpers ──
 function nbGetDataCells(row){
-  return [...row.querySelectorAll('td,th')].filter(c=>!c.classList.contains('nb-row-sel'));
+  return [...row.querySelectorAll('td,th')];
 }
 
 function nbGetCleanContent(){
   const ed=document.getElementById('nb-editor');
   const clone=ed.cloneNode(true);
-  clone.querySelectorAll('.nb-row-sel,.nb-col-resizer,.nb-col-sel-zone').forEach(el=>el.remove());
+  clone.querySelectorAll('.nb-row-sel-zone,.nb-col-resizer,.nb-col-sel-zone').forEach(el=>el.remove());
   clone.querySelectorAll('.nb-sel,.nb-sel-on,.nb-dragging').forEach(el=>el.classList.remove('nb-sel','nb-sel-on','nb-dragging'));
   return clone.innerHTML;
 }
@@ -1649,6 +1649,7 @@ function nbUpdateSelHighlight(tbl){
   tbl.querySelectorAll('td,th').forEach(c=>{
     c.classList.remove('nb-sel');
     c.querySelector('.nb-col-sel-zone')?.classList.remove('nb-sel-on');
+    c.querySelector('.nb-row-sel-zone')?.classList.remove('nb-sel-on');
   });
   if(nbSelMode==='col'){
     [...tbl.querySelectorAll('tr')].forEach(row=>{
@@ -1656,14 +1657,17 @@ function nbUpdateSelHighlight(tbl){
       nbSelCols.forEach(idx=>{ if(cells[idx]){ cells[idx].classList.add('nb-sel'); cells[idx].querySelector('.nb-col-sel-zone')?.classList.add('nb-sel-on'); }});
     });
   } else if(nbSelMode==='row'){
-    nbSelRowEls.forEach(row=>{ row.querySelectorAll('td,th').forEach(c=>c.classList.add('nb-sel')); });
+    nbSelRowEls.forEach(row=>{
+      row.querySelectorAll('td,th').forEach(c=>c.classList.add('nb-sel'));
+      row.querySelector('.nb-row-sel-zone')?.classList.add('nb-sel-on');
+    });
   }
 }
 
 function nbClearSel(tbl){
   nbSelMode=null; nbSelCols.clear(); nbSelRowEls.clear();
   if(tbl) nbUpdateSelHighlight(tbl);
-  else document.querySelectorAll('#nb-editor .nb-sel,.nb-col-sel-zone.nb-sel-on').forEach(el=>{
+  else document.querySelectorAll('#nb-editor .nb-sel,.nb-col-sel-zone.nb-sel-on,.nb-row-sel-zone.nb-sel-on').forEach(el=>{
     el.classList.remove('nb-sel','nb-sel-on');
   });
 }
@@ -1700,9 +1704,9 @@ function nbRowSelClick(e,tbl,row){
 // ── Context menu ──
 function nbTableContextMenu(e){
   const node=e.target.nodeType===3?e.target.parentElement:e.target;
-  if(node.classList.contains('nb-row-sel')||node.classList.contains('nb-col-sel-zone')) return;
+  if(node.classList.contains('nb-row-sel-zone')||node.classList.contains('nb-col-sel-zone')) return;
   const cell=node.closest('td,th');
-  if(!cell||cell.classList.contains('nb-row-sel')) return;
+  if(!cell) return;
   e.preventDefault();
   nbCtxCell=cell;
   // Count selected rows / cols
@@ -1817,20 +1821,22 @@ function nbInitTableResizers(tbl){
       th.appendChild(h);
     }
   });
-  // Body rows: add row-sel cell as first child (if not already present)
+  // Body rows: add row-sel zone as absolute strip inside first td (no extra column)
+  // Remove any stale zones first (handles column-add-left shifting first cell)
+  tbl.querySelectorAll('.nb-row-sel-zone').forEach(z=>z.remove());
   rows.slice(1).forEach(row=>{
-    if(!row.querySelector('.nb-row-sel')){
-      const sel=document.createElement('td'); sel.className='nb-row-sel';
-      sel.contentEditable='false'; sel.innerHTML='▸';
-      sel.addEventListener('click',e=>nbRowSelClick(e,tbl,row));
-      row.insertBefore(sel,row.firstChild);
-    }
+    const firstTd=row.querySelector('td');
+    if(!firstTd) return;
+    firstTd.style.position='relative';
+    const zone=document.createElement('span'); zone.className='nb-row-sel-zone';
+    zone.addEventListener('click',e=>nbRowSelClick(e,tbl,row));
+    firstTd.insertBefore(zone,firstTd.firstChild);
   });
   // Clear selection on click in regular cells
-  tbl.querySelectorAll('td:not(.nb-row-sel),th').forEach(cell=>{
+  tbl.querySelectorAll('td,th').forEach(cell=>{
     if(!cell._clrBound){
       cell.addEventListener('click',e=>{
-        if(!e.target.closest('.nb-col-sel-zone')&&!e.target.closest('.nb-row-sel')&&!e.target.closest('.nb-col-resizer')) nbClearSel(tbl);
+        if(!e.target.closest('.nb-col-sel-zone')&&!e.target.closest('.nb-row-sel-zone')&&!e.target.closest('.nb-col-resizer')) nbClearSel(tbl);
       });
       cell._clrBound=true;
     }
