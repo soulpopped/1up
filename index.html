@@ -259,9 +259,6 @@
   /* Column / row selection highlight */
   #nb-editor th.nb-sel{background:#3a3015!important;color:#e8d490}
   #nb-editor td.nb-sel{background:#2e2a10!important}
-  /* Row selector zone — thin strip on left of first td in each body row */
-  .nb-row-sel-zone{position:absolute;top:0;left:0;bottom:0;width:8px;cursor:pointer;z-index:2;transition:background .15s}
-  .nb-row-sel-zone:hover,.nb-row-sel-zone.nb-sel-on{background:rgba(180,130,40,0.35)}
   /* Column selector zone — thin strip at top of each th */
   .nb-col-sel-zone{position:absolute;top:0;left:0;right:0;height:10px;cursor:pointer;z-index:1;transition:background .15s}
   .nb-col-sel-zone:hover,.nb-col-sel-zone.nb-sel-on{background:rgba(180,130,40,0.3)}
@@ -1635,9 +1632,8 @@ function clearNotebookPage(){
 
 // ── TABLE SELECTION + CONTEXT MENU + RESIZE ────────────────────────────────────
 let nbCtxCell=null;
-let nbSelMode=null;       // 'col' | 'row' | null
+let nbSelMode=null;       // 'col' | null
 let nbSelCols=new Set();  // selected data-column indices (0-based)
-let nbSelRowEls=new Set();// selected <tr> elements
 let nbResizeTh=null, nbResizeStartX=0, nbResizeStartW=0;
 let nbResizeThColIdx=-1, nbSelStartWidths=new Map();
 
@@ -1649,7 +1645,7 @@ function nbGetDataCells(row){
 function nbGetCleanContent(){
   const ed=document.getElementById('nb-editor');
   const clone=ed.cloneNode(true);
-  clone.querySelectorAll('.nb-row-sel-zone,.nb-col-resizer,.nb-col-sel-zone').forEach(el=>el.remove());
+  clone.querySelectorAll('.nb-col-resizer,.nb-col-sel-zone').forEach(el=>el.remove());
   clone.querySelectorAll('.nb-sel,.nb-sel-on,.nb-dragging').forEach(el=>el.classList.remove('nb-sel','nb-sel-on','nb-dragging'));
   return clone.innerHTML;
 }
@@ -1659,25 +1655,19 @@ function nbUpdateSelHighlight(tbl){
   tbl.querySelectorAll('td,th').forEach(c=>{
     c.classList.remove('nb-sel');
     c.querySelector('.nb-col-sel-zone')?.classList.remove('nb-sel-on');
-    c.querySelector('.nb-row-sel-zone')?.classList.remove('nb-sel-on');
   });
   if(nbSelMode==='col'){
     [...tbl.querySelectorAll('tr')].forEach(row=>{
       const cells=nbGetDataCells(row);
       nbSelCols.forEach(idx=>{ if(cells[idx]){ cells[idx].classList.add('nb-sel'); cells[idx].querySelector('.nb-col-sel-zone')?.classList.add('nb-sel-on'); }});
     });
-  } else if(nbSelMode==='row'){
-    nbSelRowEls.forEach(row=>{
-      row.querySelectorAll('td,th').forEach(c=>c.classList.add('nb-sel'));
-      row.querySelector('.nb-row-sel-zone')?.classList.add('nb-sel-on');
-    });
   }
 }
 
 function nbClearSel(tbl){
-  nbSelMode=null; nbSelCols.clear(); nbSelRowEls.clear();
+  nbSelMode=null; nbSelCols.clear();
   if(tbl) nbUpdateSelHighlight(tbl);
-  else document.querySelectorAll('#nb-editor .nb-sel,.nb-col-sel-zone.nb-sel-on,.nb-row-sel-zone.nb-sel-on').forEach(el=>{
+  else document.querySelectorAll('#nb-editor .nb-sel,.nb-col-sel-zone.nb-sel-on').forEach(el=>{
     el.classList.remove('nb-sel','nb-sel-on');
   });
 }
@@ -1695,33 +1685,17 @@ function nbColSelClick(e,tbl,colIdx){
   nbUpdateSelHighlight(tbl);
 }
 
-// ── Row selector click ──
-function nbRowSelClick(e,tbl,row){
-  e.stopPropagation(); e.preventDefault();
-  const rows=[...tbl.querySelectorAll('tr')];
-  const rowIdx=rows.indexOf(row);
-  if(e.shiftKey && nbSelMode==='row' && nbSelRowEls.size>0){
-    const existingIdxs=[...nbSelRowEls].map(r=>rows.indexOf(r));
-    const lo=Math.min(...existingIdxs,rowIdx), hi=Math.max(...existingIdxs,rowIdx);
-    nbSelRowEls.clear(); for(let i=lo;i<=hi;i++) if(rows[i]) nbSelRowEls.add(rows[i]);
-  } else {
-    nbClearSel(tbl);
-    nbSelMode='row'; nbSelRowEls.add(row);
-  }
-  nbUpdateSelHighlight(tbl);
-}
-
 // ── Context menu ──
 function nbTableContextMenu(e){
   const node=e.target.nodeType===3?e.target.parentElement:e.target;
-  if(node.classList.contains('nb-row-sel-zone')||node.classList.contains('nb-col-sel-zone')) return;
+  if(node.classList.contains('nb-col-sel-zone')) return;
   const cell=node.closest('td,th');
   if(!cell) return;
   e.preventDefault();
   nbCtxCell=cell;
-  // Count selected rows / cols
+  // Count selected cols (rows always 1 — no row selection mode)
   const nCols=nbSelMode==='col'?nbSelCols.size:1;
-  const nRows=nbSelMode==='row'?nbSelRowEls.size:1;
+  const nRows=1;
   const pl=(n,w)=>n>1?`${n} ${w}s`:w;
   document.getElementById('nb-ctx-add-below').textContent=`Add ${pl(nRows,'Row')} Below`;
   document.getElementById('nb-ctx-add-above').textContent=`Add ${pl(nRows,'Row')} Above`;
@@ -1750,15 +1724,8 @@ function nbTableAddRow(above=false){
   const tbl=nbCtxCell.closest('table');
   const numCols=nbGetDataCells(tbl.querySelector('tr')).length;
   const makeRow=()=>{const r=document.createElement('tr');for(let i=0;i<numCols;i++){const td=document.createElement('td');td.innerHTML='&nbsp;';r.appendChild(td);}return r;};
-  if(nbSelMode==='row'&&nbSelRowEls.size>0){
-    const sorted=[...nbSelRowEls].sort((a,b)=>a.rowIndex-b.rowIndex);
-    const count=sorted.length;
-    if(above){for(let i=0;i<count;i++) sorted[0].insertAdjacentElement('beforebegin',makeRow());}
-    else{for(let i=0;i<count;i++) sorted[sorted.length-1].insertAdjacentElement('afterend',makeRow());}
-  } else {
-    const row=nbCtxCell.closest('tr');
-    above?row.insertAdjacentElement('beforebegin',makeRow()):row.insertAdjacentElement('afterend',makeRow());
-  }
+  const row=nbCtxCell.closest('tr');
+  above?row.insertAdjacentElement('beforebegin',makeRow()):row.insertAdjacentElement('afterend',makeRow());
   nbInitTableResizers(tbl); nbScheduleSave();
 }
 
@@ -1766,7 +1733,7 @@ function nbTableRemoveRow(){
   if(!nbCtxCell) return;
   document.getElementById('nb-table-ctx').style.display='none';
   const tbl=nbCtxCell.closest('table');
-  const targets=nbSelMode==='row'&&nbSelRowEls.size>0?[...nbSelRowEls]:[nbCtxCell.closest('tr')];
+  const targets=[nbCtxCell.closest('tr')];
   if(tbl.querySelectorAll('tr').length-targets.length<=0){nbTableDelete();return;}
   targets.forEach(r=>r.remove());
   nbClearSel(tbl); nbScheduleSave();
@@ -1831,22 +1798,11 @@ function nbInitTableResizers(tbl){
       th.appendChild(h);
     }
   });
-  // Body rows: add row-sel zone as absolute strip inside first td (no extra column)
-  // Remove any stale zones first (handles column-add-left shifting first cell)
-  tbl.querySelectorAll('.nb-row-sel-zone').forEach(z=>z.remove());
-  rows.slice(1).forEach(row=>{
-    const firstTd=row.querySelector('td');
-    if(!firstTd) return;
-    firstTd.style.position='relative';
-    const zone=document.createElement('span'); zone.className='nb-row-sel-zone';
-    zone.addEventListener('click',e=>nbRowSelClick(e,tbl,row));
-    firstTd.insertBefore(zone,firstTd.firstChild);
-  });
   // Clear selection on click in regular cells
   tbl.querySelectorAll('td,th').forEach(cell=>{
     if(!cell._clrBound){
       cell.addEventListener('click',e=>{
-        if(!e.target.closest('.nb-col-sel-zone')&&!e.target.closest('.nb-row-sel-zone')&&!e.target.closest('.nb-col-resizer')) nbClearSel(tbl);
+        if(!e.target.closest('.nb-col-sel-zone')&&!e.target.closest('.nb-col-resizer')) nbClearSel(tbl);
       });
       cell._clrBound=true;
     }
