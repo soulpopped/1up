@@ -204,6 +204,29 @@
   body.public-mode .card-fix-btn{display:none!important}
   body.public-mode #select-btn-app{display:none!important}
   body.public-mode #add-btn-app{display:none!important}
+  body.public-mode #notebook-btn{display:none!important}
+
+  /* NOTEBOOK OVERLAY */
+  #notebook-overlay{display:none;position:fixed;inset:0;z-index:950;background:#fdf8f0;flex-direction:column;color:#1a1205}
+  #notebook-overlay.active{display:flex}
+  #nb-toolbar{display:flex;align-items:center;gap:9px;padding:10px 18px;border-bottom:2px solid #c8bfaa;background:#f0ebe0;flex-shrink:0;flex-wrap:wrap}
+  #nb-toolbar select,#nb-title-input{font-family:Cambria,'Times New Roman',serif;font-size:.88rem;padding:5px 9px;border:1px solid #b0a898;border-radius:2px;background:#fdf8f0;color:#1a1205;outline:none}
+  #nb-title-input{flex:1;min-width:120px;max-width:280px;font-weight:600}
+  #nb-page-select{max-width:200px}
+  .nb-btn{font-family:inherit;font-size:.76rem;padding:5px 12px;border:1px solid #b0a898;border-radius:2px;background:#e8e0d0;color:#1a1205;cursor:pointer;white-space:nowrap;transition:background .1s}
+  .nb-btn:hover{background:#d5ccbc}
+  #nb-close-btn{margin-left:auto;font-size:1rem;padding:4px 10px}
+  #nb-editor-wrap{flex:1;overflow-y:auto;display:flex;justify-content:center;padding:40px 20px}
+  #nb-editor{width:100%;max-width:800px;min-height:400px;font-family:Cambria,'Times New Roman',serif;font-size:1.05rem;line-height:1.8;color:#1a1205;outline:none;caret-color:#1a1205}
+  #nb-editor table{border-collapse:collapse;margin:14px 0;font-family:Cambria,'Times New Roman',serif;font-size:.95rem}
+  #nb-editor th,#nb-editor td{border:1px solid #b0a898;padding:6px 12px;min-width:120px;vertical-align:top;text-align:left}
+  #nb-editor th{background:#ede8de;font-weight:600;color:#4a3f30}
+  #nb-editor td{background:#fdf8f0}
+  #nb-editor p{margin:0 0 .2em}
+  #nb-status{font-size:.68rem;color:#7a6e5e;letter-spacing:.06em;margin-left:4px}
+
+  /* OFFLINE BANNER */
+  #offline-banner{display:none;background:#7c3d0a;color:#fef3e2;font-size:.68rem;letter-spacing:.1em;text-align:center;padding:4px 12px;flex-shrink:0}
   .empty-state{text-align:center;padding:80px 24px;color:var(--text-dim);grid-column:1/-1}
   .empty-state h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.1em;margin-bottom:8px}
   .count-line{font-size:.7rem;color:var(--text-dim);padding:0 12px 4px}
@@ -673,6 +696,7 @@
       <span class="header-stats" id="header-stats"></span>
       <div class="header-btns">
         <button class="icon-btn" onclick="openStats1UP()">📊 Stats</button>
+        <button class="icon-btn" id="notebook-btn" onclick="openNotebook()">📓 Notes</button>
         <button class="icon-btn" id="select-btn-app" onclick="enterSelectionMode()">Select</button>
         <button class="icon-btn" onclick="pickRandom()">🎲</button>
         <button class="icon-btn" id="add-btn-app" onclick="showImportPanel()">+ Add</button>
@@ -735,9 +759,26 @@
         <option value="added">Recently Added</option>
       </select>
     </div>
+    <div id="offline-banner">⚠ Offline — showing cached data from <span id="offline-date"></span></div>
   </div>
   <div id="grid-wrap">
     <div id="game-grid"></div>
+  </div>
+</div>
+
+<!-- NOTEBOOK OVERLAY -->
+<div id="notebook-overlay">
+  <div id="nb-toolbar">
+    <select id="nb-page-select" onchange="switchNotebookPage()"></select>
+    <input type="text" id="nb-title-input" placeholder="Page title…" oninput="nbScheduleSave()">
+    <button class="nb-btn" onclick="newNotebookPage()">+ New Page</button>
+    <button class="nb-btn" onclick="addNotebookTable()">⊞ Table</button>
+    <button class="nb-btn" onclick="clearNotebookPage()">Clear</button>
+    <span id="nb-status"></span>
+    <button class="nb-btn" id="nb-close-btn" onclick="closeNotebook()">✕</button>
+  </div>
+  <div id="nb-editor-wrap">
+    <div id="nb-editor" contenteditable="true" oninput="nbScheduleSave()" onpaste="nbHandlePaste(event)" spellcheck="true"></div>
   </div>
 </div>
 
@@ -1321,6 +1362,109 @@ function gateSubmit() {
   }
 }
 
+// ── NOTEBOOK ───────────────────────────────────────────────────────────────────
+let nbPages=[], nbCurrentId=null, nbSaveTimer=null, nbLoaded=false, nbDirty=false;
+
+async function nbFetchPages(){ return await sbFetch('notebook_pages?order=updated_at.desc&select=id,title,content,updated_at')||[]; }
+async function nbUpsertPage(p){
+  await sbFetch('notebook_pages',{method:'POST',headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:p.id,title:p.title,content:p.content,updated_at:new Date().toISOString()})});
+}
+async function nbInsertPage(title){
+  const rows=await sbFetch('notebook_pages?select=*',{method:'POST',headers:{...SB_HDR,'Prefer':'return=representation'},body:JSON.stringify({title,content:''})});
+  return rows[0];
+}
+
+async function openNotebook(){
+  document.getElementById('notebook-overlay').classList.add('active');
+  if(!nbLoaded){
+    document.getElementById('nb-status').textContent='Loading…';
+    try{
+      nbPages=await nbFetchPages(); nbLoaded=true;
+      document.getElementById('nb-status').textContent='';
+    }catch(e){ document.getElementById('nb-status').textContent='⚠ Load failed'; return; }
+  }
+  if(!nbPages.length){
+    try{ const p=await nbInsertPage('Notes'); nbPages=[p]; }catch(e){ document.getElementById('nb-status').textContent='⚠ Could not create page'; return; }
+  }
+  if(!nbCurrentId||!nbPages.find(p=>p.id===nbCurrentId)) nbCurrentId=nbPages[0].id;
+  nbRenderPageList(); nbLoadPageContent();
+}
+
+function closeNotebook(){
+  nbFlushSave();
+  document.getElementById('notebook-overlay').classList.remove('active');
+}
+
+function nbRenderPageList(){
+  const sel=document.getElementById('nb-page-select');
+  sel.innerHTML=nbPages.map(p=>`<option value="${p.id}"${p.id===nbCurrentId?' selected':''}>${p.title||'Untitled'}</option>`).join('');
+}
+
+function nbLoadPageContent(){
+  const p=nbPages.find(x=>x.id===nbCurrentId); if(!p) return;
+  document.getElementById('nb-editor').innerHTML=p.content||'';
+  document.getElementById('nb-title-input').value=p.title||'';
+  document.getElementById('nb-status').textContent='';
+  nbDirty=false;
+}
+
+function switchNotebookPage(){
+  nbFlushSave();
+  nbCurrentId=parseInt(document.getElementById('nb-page-select').value);
+  nbLoadPageContent();
+}
+
+async function newNotebookPage(){
+  nbFlushSave();
+  try{
+    const p=await nbInsertPage('Untitled');
+    nbPages.unshift(p); nbCurrentId=p.id;
+    nbRenderPageList(); nbLoadPageContent();
+    const t=document.getElementById('nb-title-input'); t.focus(); t.select();
+  }catch(e){ document.getElementById('nb-status').textContent='⚠ Error: '+e.message; }
+}
+
+function nbScheduleSave(){
+  nbDirty=true;
+  clearTimeout(nbSaveTimer);
+  nbSaveTimer=setTimeout(nbFlushSave,1500);
+}
+
+async function nbFlushSave(){
+  clearTimeout(nbSaveTimer);
+  if(!nbDirty||!nbCurrentId) return;
+  const p=nbPages.find(x=>x.id===nbCurrentId); if(!p) return;
+  p.content=document.getElementById('nb-editor').innerHTML;
+  p.title=document.getElementById('nb-title-input').value.trim()||'Untitled';
+  nbRenderPageList();
+  const st=document.getElementById('nb-status'); st.textContent='Saving…';
+  try{ await nbUpsertPage(p); st.textContent='✓ Saved'; nbDirty=false; setTimeout(()=>{ if(st.textContent==='✓ Saved') st.textContent=''; },2000); }
+  catch(e){ st.textContent='⚠ Save failed'; }
+}
+
+function addNotebookTable(){
+  const cols=2, bodyRows=5;
+  const hdr=`<tr>${Array(cols).fill('<th> </th>').join('')}</tr>`;
+  const rows=Array(bodyRows).fill(`<tr>${Array(cols).fill('<td> </td>').join('')}</tr>`).join('');
+  const html=`<br><table>${hdr}${rows}</table><br>`;
+  document.getElementById('nb-editor').focus();
+  document.execCommand('insertHTML',false,html);
+  nbScheduleSave();
+}
+
+function clearNotebookPage(){
+  if(!confirm('Clear this page? Cannot be undone.')) return;
+  document.getElementById('nb-editor').innerHTML='';
+  nbScheduleSave();
+}
+
+function nbHandlePaste(e){
+  e.preventDefault();
+  const text=e.clipboardData.getData('text/plain');
+  document.execCommand('insertText',false,text);
+  nbScheduleSave();
+}
+
 // ── INIT ───────────────────────────────────────────────────────────────────────
 async function init() {
   if(READ_ONLY) document.body.classList.add('public-mode');
@@ -1331,7 +1475,35 @@ async function init() {
     document.getElementById('add-tabs').style.display='none';
     document.getElementById('import-actions').innerHTML=`<span style="font-size:.8rem;color:var(--text-dim)">Loading collection…</span>`;
   }
-  const [loadedGames, loadedStatus] = await Promise.all([sbLoadGames(), sbLoadStatus()]);
+  let loadedGames, loadedStatus;
+  try {
+    [loadedGames, loadedStatus] = await Promise.all([sbLoadGames(), sbLoadStatus()]);
+    // Cache for offline use
+    try {
+      localStorage.setItem('1up_cache', JSON.stringify({
+        games: loadedGames,
+        statuses: [...loadedStatus.entries()],
+        at: new Date().toISOString()
+      }));
+    } catch(_) {}
+  } catch(e) {
+    // Supabase unreachable — try local cache
+    let banner=document.getElementById('offline-banner');
+    try {
+      const c=JSON.parse(localStorage.getItem('1up_cache')||'null');
+      if (c) {
+        loadedGames=c.games||[];
+        loadedStatus=new Map(c.statuses||[]);
+        if(banner){
+          banner.innerHTML=`⚠ Offline — showing cached data from ${new Date(c.at).toLocaleDateString()}`;
+          banner.style.display='';
+        }
+      } else {
+        loadedGames=[]; loadedStatus=new Map();
+        if(banner){ banner.innerHTML='⚠ Offline — no cached data available'; banner.style.display=''; }
+      }
+    } catch(_) { loadedGames=[]; loadedStatus=new Map(); }
+  }
   games=loadedGames; statusMap=loadedStatus;
   READ_ONLY ? openApp() : (games.length>0 ? openApp() : showImport());
 }
