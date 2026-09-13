@@ -212,8 +212,14 @@
   #nb-toolbar{background:#252119;border-bottom:1px solid #3a342c;flex-shrink:0;padding:10px 18px}
   #nb-toolbar-inner{max-width:800px;margin:0 auto;width:100%;display:flex;align-items:center;gap:9px;position:relative}
   #nb-toolbar select,#nb-title-input{font-family:Cambria,'Times New Roman',serif;font-size:.88rem;padding:5px 9px;border:1px solid #4a4238;border-radius:2px;background:#1e1b17;color:#d8cbb8;outline:none}
-  #nb-title-input{flex:1;min-width:120px;max-width:280px;font-weight:600;color:#e8dcc8}
-  #nb-page-select{max-width:200px}
+  /* Page combobox */
+  #nb-page-combo{position:relative;display:flex;align-items:center}
+  #nb-title-input{min-width:140px;max-width:240px;font-weight:600;color:#e8dcc8;border-radius:2px 0 0 2px}
+  #nb-combo-btn{border-left:0;border-radius:0 2px 2px 0;margin:0;padding:5px 8px;font-size:.82rem}
+  #nb-page-list-popup{display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:200px;max-height:280px;overflow-y:auto;background:#2a2520;border:1px solid #4a4238;border-radius:4px;z-index:30}
+  .nb-page-item{padding:8px 14px;cursor:pointer;font-size:.82rem;color:#c8b89a;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nb-page-item:hover{background:#3e3830}
+  .nb-page-item.active{color:#e8dcc8;background:#333029}
   .nb-btn{font-family:inherit;font-size:.76rem;padding:5px 12px;border:1px solid #4a4238;border-radius:2px;background:#333029;color:#c8b89a;cursor:pointer;white-space:nowrap;transition:background .1s}
   .nb-btn:hover{background:#3e3830}
   #nb-close-btn{margin-left:auto;font-size:1rem;padding:4px 10px}
@@ -222,18 +228,20 @@
   #nb-table-popup label{font-size:.78rem;color:#c8b89a;font-family:inherit;display:flex;align-items:center;gap:6px}
   #nb-table-popup input[type=number]{width:52px;padding:4px 6px;background:#1e1b17;border:1px solid #4a4238;border-radius:2px;color:#d8cbb8;font-family:inherit;font-size:.82rem;outline:none}
   #nb-editor-wrap{flex:1;overflow-y:auto;display:flex;justify-content:center;padding:28px 20px 40px}
-  /* Lined paper: rules every 35px, margin line at 44px */
+  /* Lined paper: amber margin line at 44px; paragraph border-bottom ensures text always aligns */
   #nb-editor{
     width:100%;max-width:800px;min-height:400px;
     font-family:Cambria,'Times New Roman',serif;font-size:1.2rem;line-height:35px;
     color:#d8cbb8;outline:none;caret-color:#d8cbb8;
     padding:20px 28px 20px 68px;
-    background-image:linear-gradient(#7a5a2a,#7a5a2a),linear-gradient(transparent 34px,rgba(90,70,40,0.32) 34px,rgba(90,70,40,0.32) 35px);
+    background-image:linear-gradient(#7a5a2a,#7a5a2a),linear-gradient(transparent 34px,rgba(90,70,40,0.2) 34px,rgba(90,70,40,0.2) 35px);
     background-size:1px 100%,100% 35px;
-    background-position:44px 0,0 8px;
+    background-position:44px 0,0 20px;
     background-repeat:no-repeat,repeat;
   }
-  #nb-editor table{border-collapse:collapse;margin:10px 0;font-family:Cambria,'Times New Roman',serif;font-size:1.05rem;line-height:1.6}
+  /* Each paragraph/div line gets its own underline — always aligned regardless of tables */
+  #nb-editor > p, #nb-editor > div{border-bottom:1px solid rgba(100,75,35,0.32);min-height:35px;margin:0}
+  #nb-editor table{border-collapse:collapse;margin:12px 0;font-family:Cambria,'Times New Roman',serif;font-size:1.05rem;line-height:1.6}
   #nb-editor th,#nb-editor td{border:1px solid #5a5040;padding:6px 14px;min-width:120px;vertical-align:top;text-align:left}
   #nb-editor th{background:#2e2820;font-weight:600;color:#c8b89a}
   #nb-editor td{background:#252119;color:#d8cbb8}
@@ -784,8 +792,12 @@
 <div id="notebook-overlay">
   <div id="nb-toolbar">
     <div id="nb-toolbar-inner">
-      <select id="nb-page-select" onchange="switchNotebookPage()"></select>
-      <input type="text" id="nb-title-input" placeholder="Page title…" oninput="nbScheduleSave()">
+      <!-- Page combobox: editable title + ▾ dropdown for all pages -->
+      <div id="nb-page-combo">
+        <input type="text" id="nb-title-input" placeholder="Page name…" oninput="nbScheduleSave()">
+        <button class="nb-btn" id="nb-combo-btn" onclick="togglePageCombo()" title="All pages">▾</button>
+        <div id="nb-page-list-popup"></div>
+      </div>
       <button class="nb-btn" onclick="newNotebookPage()">+ New Page</button>
       <button class="nb-btn" id="nb-table-btn" onclick="showTablePopup()">⊞ Table</button>
       <button class="nb-btn" onclick="clearNotebookPage()">Clear</button>
@@ -1387,7 +1399,7 @@ function gateSubmit() {
 }
 
 // ── NOTEBOOK ───────────────────────────────────────────────────────────────────
-let nbPages=[], nbCurrentId=null, nbSaveTimer=null, nbLoaded=false, nbDirty=false;
+let nbPages=[], nbCurrentId=null, nbSaveTimer=null, nbLoaded=false, nbDirty=false, nbSavedRange=null;
 
 async function nbFetchPages(){ return await sbFetch('notebook_pages?order=updated_at.desc&select=id,title,content,updated_at')||[]; }
 async function nbUpsertPage(p){
@@ -1400,6 +1412,10 @@ async function nbInsertPage(title){
 
 async function openNotebook(){
   document.getElementById('notebook-overlay').classList.add('active');
+  // Tab-in-table handler (attach once)
+  const ed=document.getElementById('nb-editor');
+  if(!ed._tabBound){ ed.addEventListener('keydown',nbEditorKeydown); ed._tabBound=true; }
+  document.execCommand('defaultParagraphSeparator',false,'p');
   if(!nbLoaded){
     document.getElementById('nb-status').textContent='Loading…';
     try{
@@ -1414,14 +1430,76 @@ async function openNotebook(){
   nbRenderPageList(); nbLoadPageContent();
 }
 
+function nbEditorKeydown(e){
+  if(e.key!=='Tab') return;
+  const sel=window.getSelection();
+  if(!sel||!sel.rangeCount) return;
+  const node=sel.anchorNode;
+  const cell=(node.nodeType===3?node.parentElement:node).closest('td,th');
+  if(!cell) return; // not in a table — let Tab bubble normally
+  e.preventDefault();
+  const row=cell.parentElement;
+  const cells=[...row.querySelectorAll('td,th')];
+  const idx=cells.indexOf(cell);
+  let next=e.shiftKey?cells[idx-1]:cells[idx+1];
+  if(!next){
+    const tbl=cell.closest('table');
+    const rows=[...tbl.querySelectorAll('tr')];
+    const ri=rows.indexOf(row);
+    const nextRow=rows[e.shiftKey?ri-1:ri+1];
+    if(nextRow){
+      const nc=[...nextRow.querySelectorAll('td,th')];
+      next=e.shiftKey?nc[nc.length-1]:nc[0];
+    }
+  }
+  if(next){
+    const range=document.createRange();
+    range.selectNodeContents(next);
+    range.collapse(true);
+    sel.removeAllRanges(); sel.addRange(range);
+  }
+}
+
 function closeNotebook(){
   nbFlushSave();
   document.getElementById('notebook-overlay').classList.remove('active');
 }
 
 function nbRenderPageList(){
-  const sel=document.getElementById('nb-page-select');
-  sel.innerHTML=nbPages.map(p=>`<option value="${p.id}"${p.id===nbCurrentId?' selected':''}>${p.title||'Untitled'}</option>`).join('');
+  // Update title input to current page title; refresh combo popup if open
+  const p=nbPages.find(x=>x.id===nbCurrentId);
+  if(p) document.getElementById('nb-title-input').value=p.title||'';
+  const pop=document.getElementById('nb-page-list-popup');
+  if(pop && pop.style.display==='block') _nbRenderPageComboItems();
+}
+
+function _nbRenderPageComboItems(){
+  const pop=document.getElementById('nb-page-list-popup');
+  pop.innerHTML=nbPages.map(p=>
+    `<div class="nb-page-item${p.id===nbCurrentId?' active':''}" onclick="selectNotebookPage(${p.id})">${p.title||'Untitled'}</div>`
+  ).join('')||'<div class="nb-page-item" style="opacity:.5;pointer-events:none">No pages</div>';
+}
+
+function togglePageCombo(){
+  const pop=document.getElementById('nb-page-list-popup');
+  if(pop.style.display==='block'){ pop.style.display='none'; return; }
+  _nbRenderPageComboItems();
+  pop.style.display='block';
+  // Close on outside click
+  setTimeout(()=>{
+    const onOutside=e=>{
+      if(!e.target.closest('#nb-page-combo')){ pop.style.display='none'; document.removeEventListener('click',onOutside,true); }
+    };
+    document.addEventListener('click',onOutside,true);
+  },10);
+}
+
+function selectNotebookPage(id){
+  document.getElementById('nb-page-list-popup').style.display='none';
+  if(id===nbCurrentId) return;
+  nbFlushSave();
+  nbCurrentId=id;
+  nbLoadPageContent();
 }
 
 function nbLoadPageContent(){
@@ -1430,12 +1508,6 @@ function nbLoadPageContent(){
   document.getElementById('nb-title-input').value=p.title||'';
   document.getElementById('nb-status').textContent='';
   nbDirty=false;
-}
-
-function switchNotebookPage(){
-  nbFlushSave();
-  nbCurrentId=parseInt(document.getElementById('nb-page-select').value);
-  nbLoadPageContent();
 }
 
 async function newNotebookPage(){
@@ -1467,6 +1539,12 @@ async function nbFlushSave(){
 }
 
 function showTablePopup(){
+  // Save cursor position so table inserts at the right spot
+  const sel=window.getSelection();
+  const ed=document.getElementById('nb-editor');
+  if(sel && sel.rangeCount>0 && ed.contains(sel.anchorNode)){
+    nbSavedRange=sel.getRangeAt(0).cloneRange();
+  }
   const popup=document.getElementById('nb-table-popup');
   const isVisible=popup.style.display==='block';
   popup.style.display=isVisible?'none':'block';
@@ -1491,9 +1569,15 @@ function insertNotebookTable(){
   const bodyRows=Math.max(1,Math.min(30,parseInt(document.getElementById('nb-row-input').value)||5));
   const hdr=`<tr>${Array(cols).fill('<th>&nbsp;</th>').join('')}</tr>`;
   const rows=Array(bodyRows).fill(`<tr>${Array(cols).fill('<td>&nbsp;</td>').join('')}</tr>`).join('');
-  const html=`<p><br></p><table>${hdr}${rows}</table><p><br></p>`;
+  const html=`<table>${hdr}${rows}</table>`;
   document.getElementById('nb-table-popup').style.display='none';
   const ed=document.getElementById('nb-editor'); ed.focus();
+  // Restore cursor to where it was before popup opened
+  if(nbSavedRange){
+    const sel=window.getSelection();
+    sel.removeAllRanges(); sel.addRange(nbSavedRange);
+    nbSavedRange=null;
+  }
   document.execCommand('insertHTML',false,html);
   nbScheduleSave();
 }
