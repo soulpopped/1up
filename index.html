@@ -1280,14 +1280,21 @@ async function igdbGetToken() {
 }
 
 async function igdbFetch(body) {
-  const token = await igdbGetToken();
-  const headers = { 'Client-ID':IGDB_CLIENT_ID, 'Authorization':`Bearer ${token}`, 'Content-Type':'text/plain' };
   const IGDB_API = 'https://api.igdb.com/v4/games';
   const customProxy = (()=>{ try{ return localStorage.getItem('igdb_proxy_url')||''; }catch(_){ return ''; } })();
-  // Try direct first, then custom proxy (if set), then public proxies as last resort
+
+  // If a custom proxy is configured, use it exclusively — it handles auth server-side
+  if (customProxy) {
+    const res = await fetch(customProxy, { method:'POST', headers:{'Content-Type':'text/plain'}, body });
+    if (!res.ok) throw new Error(`IGDB proxy returned ${res.status}`);
+    return res.json();
+  }
+
+  // No proxy — need a token and try direct + public CORS proxies as fallback
+  const token = await igdbGetToken();
+  const headers = { 'Client-ID':IGDB_CLIENT_ID, 'Authorization':`Bearer ${token}`, 'Content-Type':'text/plain' };
   const targets = [
     IGDB_API,
-    ...(customProxy ? [customProxy] : []),
     IGDB_PROXY + encodeURIComponent(IGDB_API),
     'https://proxy.cors.sh/' + IGDB_API,
   ];
@@ -1299,10 +1306,9 @@ async function igdbFetch(body) {
       if (!res.ok) { lastErr = new Error(`IGDB ${res.status} (target ${i})`); console.warn('[1UP IGDB] target', i, 'returned', res.status); continue; }
       return res.json();
     } catch(e) {
-      if (e.message?.includes('token expired')) throw e; // auth error — don't retry
+      if (e.message?.includes('token expired')) throw e;
       lastErr = e;
       console.warn('[1UP IGDB] target', i, 'failed:', e.message);
-      // continue to next target regardless of error type
     }
   }
   throw Object.assign(new Error('IGDB unreachable — ' + lastErr?.message), { isCors: true });
